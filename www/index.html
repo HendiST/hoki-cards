@@ -3944,7 +3944,7 @@ function initFirebase(){
     // Capacitor/APK: pakai long polling supaya Firestore tidak kena CORS di WebView
     const isCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
     if(isCapacitor || location.protocol === 'capacitor:' || location.hostname === 'localhost'){
-      fbDb.settings({ experimentalForceLongPolling: true, merge: true });
+      fbDb.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     }
 
     // Timeout 5 detik: kalau Firebase lambat/offline, paksa buka loginScreen
