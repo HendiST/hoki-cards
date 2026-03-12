@@ -1244,33 +1244,37 @@ body.bom-shake{animation:bomShake 0.55s ease-out;}
 <body>
 
 <!-- =================== SPLASH SCREEN =================== -->
+<style>
+#splashScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at 50% 40%,#0d2a0d 0%,#050e05 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 0.5s ease;
+}
+#splashScreen.hide{opacity:0;pointer-events:none;}
+.spl-title{font-family:'Cinzel',serif;font-size:52px;font-weight:900;
+  background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:4px;line-height:1;margin-bottom:4px;}
+.spl-sub{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:6px;
+  color:#7a9a7a;margin-bottom:32px;}
+.spl-suits{font-size:28px;display:flex;gap:16px;margin-bottom:40px;}
+.spl-bar-wrap{width:200px;height:6px;background:#ffffff15;border-radius:4px;overflow:hidden;margin-bottom:10px;}
+.spl-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#FFA500);
+  border-radius:4px;transition:width 0.1s linear;}
+.spl-txt{font-size:12px;color:#5a7a5a;letter-spacing:2px;}
+</style>
 <div id="splashScreen">
-  <div class="splash-bg" id="splashBg"></div>
-  <div class="splash-logo-wrap">
-    <div class="splash-dice">🎲</div>
-    <div class="splash-title">LUDO HOKI</div>
-    <div class="splash-subtitle">Board Game Online</div>
-    <div class="splash-by">by Mamet 🎮</div>
-    <div class="splash-pions">
-      <div class="splash-pion">🟢</div>
-      <div class="splash-pion">🔴</div>
-      <div class="splash-pion">🟡</div>
-      <div class="splash-pion">🔵</div>
-    </div>
-    <div class="splash-loading-wrap">
-      <div class="splash-loading-bar">
-        <div class="splash-loading-fill" id="splashLoadFill"></div>
-      </div>
-      <div class="splash-loading-txt" id="splashTxt">Memuat game...</div>
-    </div>
-    <div id="splashTapHint" style="margin-top:18px;color:#ffd740;font-size:13px;font-weight:800;
-      letter-spacing:1px;animation:tapBlink 1s ease-in-out infinite alternate;
-      opacity:0;transition:opacity .5s;">🎮 TAP UNTUK MULAI</div>
-  </div>
+  <div class="spl-title">HOKI</div>
+  <div class="spl-title" style="margin-top:-8px;">CARDS</div>
+  <div class="spl-sub">BIG TWO · KARTU SERU</div>
+  <div class="spl-suits">♠ <span style="color:#e05;">♥</span> <span style="color:#e05;">♦</span> ♣</div>
+  <div class="spl-bar-wrap"><div class="spl-bar-fill" id="splashBar"></div></div>
+  <div class="spl-txt" id="splashTxt">Memuat...</div>
 </div>
-<div id="loginScreen" class="screen active">
-  <div class="login-logo">🎲</div>
-  <div class="login-title">LUDO HOKI</div>
+<div id="loginScreen" class="screen">
+  <div class="login-logo">🃏</div>
+  <div class="login-title">HOKI CARDS</div>
   <div class="login-sub">Login untuk simpan progress,<br>diamond, dan bersaing di leaderboard!</div>
 
   <!-- Tab: Login / Daftar -->
@@ -2099,7 +2103,7 @@ body.bom-shake{animation:bomShake 0.55s ease-out;}
 <!-- GAME -->
 <div id="gameScreen" class="screen">
   <div class="g-hd">
-    <div class="g-title">🎲 LUDO HOKI</div>
+    <div class="g-title">🃏 HOKI CARDS</div>
     <div class="turn-bar" id="turnBar">–</div>
     <div style="display:flex;gap:4px;align-items:center;">
       <button class="g-audio-btn active" id="btnMusic" onclick="openMusicPanel()" title="Musik">🎵</button>
@@ -2263,7 +2267,6 @@ body.bom-shake{animation:bomShake 0.55s ease-out;}
   </div>
 </div>
 
-<div id="toast"></div>
 <!-- Kill effect overlay -->
 <div id="killOverlay" style="position:fixed;inset:0;pointer-events:none;z-index:500;overflow:hidden;"></div>
 <!-- Win confetti canvas -->
@@ -2840,7 +2843,15 @@ function initSock(){
   sock.on('disconnect',()=>toast('Koneksi terputus!'));
 }
 
-function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function go(id){
+  if(!id) return;
+  var el=document.getElementById(id);
+  if(!el){console.warn('go: not found:',id);return;}
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  if(el.classList.contains('scr')) el.classList.add('on');
+  else el.classList.add('active');
+}
 function gname(){const n=document.getElementById('inp-name').value.trim();if(!n){toast('Masukkan nama!');return null;}return n;}
 
 // ── NAVIGASI MODE ──
@@ -3419,56 +3430,12 @@ function showOver(st){
 }
 
 
+
+
 // ============================================================
 // FIREBASE INTEGRATION FOR HOKI CARDS
 // ============================================================
-// Override go() to support both hoki (.scr.on) and ludo (.screen.active) screens
-const _hokkiSocialScreens = ['loginScreen','profileScreen','leaderboardScreen',
-  'friendsScreen','ownerPanel','rankedScreen','tournamentScreen'];
-
-const _originalGo = go;
-// Override go to handle social screens
-window._socialGo = function(id) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  // Check if it's a social screen (uses .screen.active system)
-  if(_hokkiSocialScreens.includes(id)) {
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    el.classList.add('active');
-  } else {
-    // Normal hoki screen
-    document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-    if(el.classList.contains('scr')) {
-      el.classList.add('on');
-    } else {
-      // Mixed: could be either
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      el.classList.add('active');
-    }
-  }
-};
-
-// Patch go() to handle both screen types
-(function(){
-  const origGo = go;
-  window.go = function(id) {
-    if(!id) return;
-    const el = document.getElementById(id);
-    if(!el) return;
-    // Social screens use .screen.active
-    if(_hokkiSocialScreens.includes(id)) {
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-      el.classList.add('active');
-    } else if(el.classList.contains('scr')) {
-      document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      el.classList.add('on');
-    } else {
-      origGo(id);
-    }
-  };
-})();
+// go() sudah di-fix di atas — tidak perlu override lagi
 
 // updateProfileBar for hoki-cards (simplified)
 
@@ -3487,7 +3454,13 @@ function _autoFillName(){
 // Initialize Firebase when DOM is ready
 document.addEventListener('DOMContentLoaded', function(){
   if(typeof firebase !== 'undefined'){
-    setTimeout(()=>{ initFirebase(); }, 300);
+    setTimeout(()=>{ initFirebase(); }, 500);
+  } else {
+    // Firebase script gagal load (offline?) — langsung ke loginScreen
+    setTimeout(()=>{
+      if(window._splashHide) window._splashHide('loginScreen');
+      else go('loginScreen');
+    }, 1500);
   }
 });
 
@@ -3496,13 +3469,13 @@ document.addEventListener('DOMContentLoaded', function(){
 // ============================================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCEiGR236fIpjqGymWtlOI7rFuDEDRNPe8",
-  authDomain: "ludo-hoki.firebaseapp.com",
-  projectId: "ludo-hoki",
-  storageBucket: "ludo-hoki.firebasestorage.app",
-  messagingSenderId: "192855960278",
-  appId: "1:192855960278:web:338cd6835637d58b3c3777",
-  databaseURL: "https://ludo-hoki-default-rtdb.asia-southeast1.firebasedatabase.app"
+  apiKey: "AIzaSyCuqLwEEmtR8BbsyamVkRFaNKRoBLflYyY",
+  authDomain: "poker-hoki.firebaseapp.com",
+  projectId: "poker-hoki",
+  storageBucket: "poker-hoki.firebasestorage.app",
+  messagingSenderId: "916488822071",
+  appId: "1:916488822071:web:873cb7995c71ecbf35ceb2",
+  databaseURL: "https://poker-hoki-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
 // ⚠️ GANTI dengan UID kamu setelah login pertama (lihat di Firebase Auth Dashboard)
@@ -3548,22 +3521,39 @@ function initFirebase(){
     fbDb   = firebase.firestore();
     fbRtdb = firebase.database();
 
-    // Timeout 8 detik: kalau Firebase tidak merespons (offline), tetap tampilkan login
+    // Timeout 5 detik: kalau Firebase lambat/offline, paksa buka loginScreen
     const fbTimeout = setTimeout(()=>{
-      if(document.getElementById('loginScreen').classList.contains('active')){
-        showToast('⚠️ Tidak ada koneksi. Gunakan mode Tamu untuk main offline.');
-      }
-    }, 8000);
+      showToast('⚠️ Koneksi lambat. Coba lagi atau gunakan mode Tamu.');
+      if(window._splashHide) window._splashHide('loginScreen');
+      else go('loginScreen');
+    }, 5000);
 
     fbAuth.onAuthStateChanged(user=>{
       clearTimeout(fbTimeout);
-      if(user){ currentUser=user; onUserLoggedIn(user); }
-      else { currentUser=null; currentUserData=null; go('loginScreen'); updateProfileBar(); }
+      if(user){
+        currentUser=user;
+        onUserLoggedIn(user).then(()=>{
+          // Splash sudah hilang atau belum, langsung ke s-menu
+          if(window._splashHide) window._splashHide('s-menu');
+          else go('s-menu');
+        }).catch(()=>{
+          if(window._splashHide) window._splashHide('s-menu');
+          else go('s-menu');
+        });
+      } else {
+        currentUser=null; currentUserData=null;
+        updateProfileBar();
+        // Kalau splash sudah hilang sendiri, Firebase tetap bisa redirect
+        if(window._splashHide) window._splashHide('loginScreen');
+        // Kalau splashDone sudah true, go() langsung saja
+        else go('loginScreen');
+      }
     });
   } catch(e){
     console.error('Firebase init error:',e);
-    go('loginScreen');
-    setTimeout(()=>showToast('⚠️ Tidak ada koneksi. Gunakan mode Tamu untuk main offline.'), 500);
+    if(window._splashHide) window._splashHide('loginScreen');
+    else go('loginScreen');
+    setTimeout(()=>showToast('⚠️ Firebase error: '+e.message), 500);
   }
 }
 
@@ -3618,7 +3608,8 @@ async function onUserLoggedIn(user){
   }
 
   currentUserData = (await ref.get()).data();
-  go('s-menu');
+  // go('s-menu') dipanggil oleh _splashHide atau onAuthStateChanged
+  if(!window._splashHide) go('s-menu');
   updateProfileBar();
   // Update rank badge
   const rinfo = getRankInfo(currentUserData?.rankPoints||0);
@@ -5341,6 +5332,17 @@ function renderRankedScreen(){
     const isCurrent = info.tier.id === t.id;
     const card = document.createElement('div');
     card.className = 'rank-tier-card'+(isCurrent?' current':'')+(unlocked?'':' locked');
+    card.innerHTML = `
+      <div class="rtc-badge">${getRankSvg(t,36)}</div>
+      <div class="rtc-name" style="color:${t.color}">${t.icon} ${t.name}</div>
+      <div class="rtc-pts" style="color:#aaa;font-size:11px;">${t.minPts}+ RP</div>
+      ${isCurrent?'<div class="rtc-current" style="color:#ffd700;font-size:10px;">▶ Rank Kamu</div>':''}
+      ${!unlocked?'<div class="rtc-locked" style="font-size:16px;">🔒</div>':''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
 function listenBroadcastRtdb(){
   if(!fbRtdb || _broadcastRtdbInited) return;
   _broadcastRtdbInited = true;
@@ -5498,35 +5500,6 @@ function replayHoki(){
   go('s-menu');
   if(typeof _showGlobalChatForMenu === 'function') _showGlobalChatForMenu();
 }
-      btn.style.left=GAP+'px'; btn.style.right='auto';
-    } else {
-      btn.style.right=GAP+'px'; btn.style.left='auto';
-    }
-    // Simpan posisi
-    localStorage.setItem('gcBtnTop',  btn.style.top);
-    localStorage.setItem('gcBtnSide', cx<window.innerWidth/2?'left':'right');
-    if(!moved) toggleGlobalChat(); // tap = toggle
-  }
-
-  btn.addEventListener('mousedown',  onStart);
-  btn.addEventListener('touchstart', onStart, {passive:false});
-  document.addEventListener('mousemove',  e=>{ if(dragging) onMove(e); });
-  document.addEventListener('touchmove',  e=>{ if(dragging) onMove(e); }, {passive:false});
-  document.addEventListener('mouseup',    onEnd);
-  document.addEventListener('touchend',   onEnd);
-
-  // Restore posisi tersimpan
-  const savedTop  = localStorage.getItem('gcBtnTop');
-  const savedSide = localStorage.getItem('gcBtnSide');
-  if(savedTop){
-    btn.style.top=savedTop; btn.style.bottom='auto';
-    if(savedSide==='left'){ btn.style.left=GAP+'px'; btn.style.right='auto'; }
-    else { btn.style.right=GAP+'px'; btn.style.left='auto'; }
-  } else {
-    // Default: top-left + 20px lebih bawah dari default lama (top:16px → top:36px via CSS)
-    btn.style.top='36px'; btn.style.left='16px';
-  }
-}
 
 // initGlobalChat: see definition elsewhere
 
@@ -5535,16 +5508,56 @@ function replayHoki(){
 
 
 // ============================================================
-
-
+// SPLASH SCREEN & APP INIT
 // ============================================================
-// Stub for tournament (not implemented in hoki-cards)
-function updateTournamentScore(){ /* stub */ }
-function stopFireworks(){ /* stub */ }
+(function(){
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+
+  var bar = document.getElementById('splashBar');
+  var txt = document.getElementById('splashTxt');
+  var splash = document.getElementById('splashScreen');
+  var splashDone = false;
+  var pct = 0;
+  var msgs = ['Memuat kartu...','Menyiapkan meja...','Mengocok deck...','Siap!'];
+
+  var interval = setInterval(function(){
+    pct += Math.random() * 22 + 12;
+    if(pct >= 100){ pct = 100; clearInterval(interval); }
+    if(bar) bar.style.width = pct + '%';
+    if(txt) txt.textContent = msgs[Math.min(3, Math.floor(pct/25))];
+  }, 150);
+
+  function hideSplash(target){
+    if(splashDone) return;
+    splashDone = true;
+    clearInterval(interval);
+    if(bar) bar.style.width = '100%';
+    if(txt) txt.textContent = 'Siap!';
+    setTimeout(function(){
+      if(splash){ splash.style.opacity='0'; splash.style.transition='opacity 0.4s'; }
+      setTimeout(function(){
+        if(splash) splash.style.display='none';
+        go(target || 'loginScreen');
+      }, 400);
+    }, 200);
+  }
+
+  // Selalu buka loginScreen setelah 2 detik — tidak tunggu Firebase
+  var splashTimer = setTimeout(function(){ hideSplash('loginScreen'); }, 2000);
+
+  window._splashHide = function(target){
+    clearTimeout(splashTimer);
+    hideSplash(target || 'loginScreen');
+  };
+})();
+
 function toast(msg){
-  const t=document.getElementById('toast');
+  var t=document.getElementById('toast');
+  if(!t) return;
   t.textContent=msg;t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),2500);
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(function(){t.classList.remove('on');},2500);
 }
 </script>
 </body>
