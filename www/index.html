@@ -3603,9 +3603,26 @@ async function onUserLoggedIn(user){
     };
     // Hanya update photoURL kalau ada (Google login), jangan hapus nama yg ada
     if(user.photoURL) updateData.photoURL = user.photoURL;
-    await ref.update(updateData);
+    await ref.update(updateData).catch(async()=>{
+      // Doc belum ada (proses daftar sebelumnya gagal simpan) — buat ulang
+      const friendId = genFriendId();
+      const uname = (user.email||'').split('@')[0].replace(/[^a-z0-9_]/gi,'').toLowerCase() || ('user'+user.uid.slice(0,6));
+      await ref.set({
+        uid:user.uid, name:user.displayName||uname, username:uname,
+        email:(user.email||'').endsWith('@ludohoki.game')?'':(user.email||''),
+        photoURL:user.photoURL||'', emojiAvatar:'👤',
+        diamond:200, wins:0, plays:0, kills:0, rankPoints:0,
+        rankHistory:[], ownedEmojis:[], friendId, friends:[], banned:false,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin:firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await fbDb.collection('usernames').doc(uname).set(
+        {uid:user.uid, email:(user.email||'').endsWith('@ludohoki.game')?'':(user.email||'')},
+        {merge:true}
+      ).catch(()=>{});
+    });
     // Check if banned
-    if(snap.data().banned){
+    if(snap.data()?.banned){
       fbAuth.signOut();
       showLoginError('❌ Akun kamu telah di-ban. Hubungi admin.');
       return;
@@ -3810,13 +3827,15 @@ async function submitAuth(){
           if(uSnap.exists && uSnap.data().email){
             loginEmail = uSnap.data().email;
           } else {
-            showLoginError('❌ Username tidak ditemukan. Coba daftar dulu!');
+            showLoginError('❌ Username "'+username+'" tidak ditemukan. Pastikan sudah daftar dulu!');
             if(btn){ btn.disabled=false; btn.textContent='Masuk'; }
             return;
           }
         } catch(e){
-          // Fallback: coba format email lama
-          loginEmail = usernameToEmail(username);
+          console.error('[login] Firestore usernames lookup error:', e);
+          showLoginError('❌ Gagal terhubung ke server. Cek koneksi internet!');
+          if(btn){ btn.disabled=false; btn.textContent='Masuk'; }
+          return;
         }
       }
       await fbAuth.signInWithEmailAndPassword(loginEmail, pass);
@@ -3826,12 +3845,12 @@ async function submitAuth(){
       if(taken){ showLoginError('❌ Username sudah dipakai! Coba yang lain.'); if(btn){btn.disabled=false;btn.textContent='Daftar';} return; }
       // Cek email unik
       // Cek email duplikat ditangani Firebase Auth sendiri (auth/email-already-in-use)
+      // Set semua pending vars SEBELUM createUser supaya onAuthStateChanged tidak racing
       _pendingRegisterName = name;
       _pendingRegisterUsername = username;
+      _pendingRegisterEmail = email;
       const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
       await cred.user.updateProfile({ displayName: name });
-      // Simpan email asli ke Firestore via onUserLoggedIn
-      _pendingRegisterEmail = email;
     }
   } catch(e){
     const msgs = {
