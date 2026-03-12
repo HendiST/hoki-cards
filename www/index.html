@@ -2718,7 +2718,7 @@ const SPOS={
   4:[[50,91],[8,35],[50,6],[92,35]]
 };
 
-let sock=null,myIdx=null,myRoom=null,isHost=false;
+let sock=null,myIdx=null,myRoom=null,isHost=false; // sock = legacy (bot/mabar lokal)
 let selCards=[],handOrder=[],curSt=null;
 let reorderIdx=null; // which card index is in reorder mode
 
@@ -2799,47 +2799,465 @@ function buildPips(val, sym){
   }
 })();
 
-// ══ SOCKET ══
+
+
+// ══════════════════════════════════════════════════════════════════════════
+//  FIREBASE RTDB MULTIPLAYER ENGINE
+//  Host jalankan game logic client-side, broadcast state ke semua via RTDB
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── GAME LOGIC (duplikat server.js, jalan di client/host) ─────────────────
+const _SUITS=['S','H','D','C'];
+const _SUIT_SYM={S:'♠',H:'♥',D:'♦',C:'♣'};
+const _SUIT_COL={S:'black',H:'red',D:'red',C:'black'};
+const _VALUES=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+const _VAL_IDX=Object.fromEntries(_VALUES.map((v,i)=>[v,i]));
+const _LETTER=['J','Q','K','A'];
+const _NUMBER=['4','5','6','7','8','9','10'];
+
+const _cDisp=(s,v)=>v+_SUIT_SYM[s];
+const _cDict=(s,v)=>({suit:s,value:v,display:_cDisp(s,v),color:_SUIT_COL[s]});
+const _cVal=c=>_VAL_IDX[c.value];
+
+function _shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function _deal(n){const d=[];for(const s of _SUITS)for(const v of _VALUES)d.push({suit:s,value:v});_shuffle(d);const h=Array.from({length:n},()=>[]);d.forEach((c,i)=>h[i%n].push(c));return h;}
+function _rem(hand,card){const i=hand.findIndex(c=>c.suit===card.suit&&c.value===card.value);if(i!==-1)hand.splice(i,1);}
+function _sameSuit(cards){return new Set(cards.map(c=>c.suit)).size===1;}
+function _validStr(cards){
+  if(cards.length<3||!_sameSuit(cards))return false;
+  const allN=cards.every(c=>_NUMBER.includes(c.value));
+  const allL=cards.every(c=>_LETTER.includes(c.value));
+  if(!allN&&!allL)return false;
+  const v=cards.map(c=>_VAL_IDX[c.value]).sort((a,b)=>a-b);
+  for(let i=1;i<v.length;i++)if(v[i]!==v[i-1]+1)return false;
+  return true;
+}
+function _isJQKA(cards){if(cards.length!==4)return false;const v=cards.map(c=>c.value).sort();return JSON.stringify(v)===JSON.stringify(['A','J','K','Q'])&&_sameSuit(cards);}
+function _getPlayType(cards){
+  const n=cards.length;
+  if(n===0)return[null,0];
+  if(n===1)return['single',_cVal(cards[0])];
+  if(n===2){if(cards[0].value===cards[1].value)return['double',_cVal(cards[0])];return[null,0];}
+  if(n===3){
+    if(new Set(cards.map(c=>c.value)).size===1)return['triple',_cVal(cards[0])];
+    if(_validStr(cards)){const h=[...cards].sort((a,b)=>_cVal(a)-_cVal(b)).at(-1);return['straight3',_cVal(h)];}
+    return[null,0];
+  }
+  if(n===4){
+    if(_isJQKA(cards))return['jqka',99];
+    if(new Set(cards.map(c=>c.value)).size===1)return['bomb4',_cVal(cards[0])];
+    if(_validStr(cards)){const h=[...cards].sort((a,b)=>_cVal(a)-_cVal(b)).at(-1);return['straight4',_cVal(h)];}
+    return[null,0];
+  }
+  if(n>=5&&_validStr(cards)){const h=[...cards].sort((a,b)=>_cVal(a)-_cVal(b)).at(-1);return['straight5plus',_cVal(h)];}
+  return[null,0];
+}
+function _allTwos(cards){return cards.length>0&&cards.every(c=>c.value==='2');}
+function _isBomb(pt){return['bomb4','jqka','straight5plus'].includes(pt);}
+function _canBeat(play,table,ttype){
+  if(!table||!table.length||ttype===null)return true;
+  const[pt,pv]=_getPlayType(play);if(pt===null)return false;
+  const[,tv]=_getPlayType(table);
+  if(ttype==='single'&&table[0].value==='2')return _isBomb(pt);
+  if(_allTwos(table)&&table.length>1)return false;
+  if(pt!==ttype)return false;
+  if(['straight3','straight4','straight5plus'].includes(ttype)&&play.length!==table.length)return false;
+  return pv>tv;
+}
+function _effHand(hand){return hand.filter(c=>c.value!=='3');}
+function _checkLose(hand){
+  const eff=_effHand(hand);
+  if(eff.length===0&&hand.length>0)return[true,'Sisa kartu 3 semua — langsung kalah!'];
+  if(eff.length>0&&eff.every(c=>c.value==='2'))return[true,`Sisa ${eff.length} kartu 2 — tidak bisa menang!`];
+  return[false,''];
+}
+function _checkPlayedLose(played,handBefore){
+  const nh=[...handBefore];
+  for(const c of played){const i=nh.findIndex(x=>x.suit===c.suit&&x.value===c.value);if(i!==-1)nh.splice(i,1);}
+  if(nh.length===0&&played.some(c=>c.value==='2'))return[true,'Kartu 2 dimainkan sebagai kartu terakhir — kalah!'];
+  return[false,''];
+}
+
+// ── GameState class ────────────────────────────────────────────────────────
+class _GameState{
+  constructor(n){
+    this.numPlayers=n;this.hands=[];this.currentPlayer=0;
+    this.tableCards=[];this.tableType=null;this.rankings=[];
+    this.activePlayers=[];this.stoppedPlayers=new Set();
+    this.skippedThisRound=new Set();this.lastPlayerPlayed=null;
+    this.started=false;this.gameOver=false;this.message='';
+    this.phase='opening';this.openingDone=new Set();
+    this.openerIdx=0;this.decoyCards=[];this.openingTable=[];
+  }
+  startGame(){
+    this.hands=_deal(this.numPlayers);
+    this.rankings=[];this.stoppedPlayers=new Set();this.skippedThisRound=new Set();
+    this.activePlayers=Array.from({length:this.numPlayers},(_,i)=>i);
+    this.tableCards=[];this.tableType=null;this.lastPlayerPlayed=null;
+    this.started=true;this.gameOver=false;this.phase='opening';
+    this.openingDone=new Set();this.decoyCards=[];this.openingTable=[];
+    for(let i=0;i<this.hands.length;i++){
+      const eff=_effHand(this.hands[i]);
+      if(eff.length>0&&eff.every(c=>c.value==='2')){
+        this.activePlayers=this.activePlayers.filter(p=>p!==i);
+        this.message=`💀 Pemain ${i+1} langsung KALAH! Dapat semua kartu 2!`;
+        if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];this.gameOver=true;this.message+=` | 🏆 Pemain ${w+1} Menang!`;return;}
+      }
+    }
+    for(let i=0;i<this.hands.length;i++){
+      for(const c of this.hands[i]){
+        if(c.value==='3'&&c.suit==='S'){this.currentPlayer=i;this.openerIdx=i;this.message=`🃏 Ronde pembukaan! Semua boleh buang kartu 3 atau skip. Pemain ${i+1} wajib keluarkan 3♠!`;return;}
+      }
+    }
+  }
+  playOpening(pidx,sel){
+    if(this.openingDone.has(pidx))return[false,'Kamu sudah aksi di ronde pembukaan!'];
+    if(!this.activePlayers.includes(pidx))return[false,'Kamu tidak aktif!'];
+    let msg='';
+    if(sel.length>0){
+      for(const c of sel){
+        if(c.value!=='3')return[false,'Hanya boleh keluarkan kartu 3!'];
+        if(!this.hands[pidx].find(h=>h.suit===c.suit&&h.value===c.value))return[false,'Kartu tidak ada!'];
+      }
+      if(pidx===this.openerIdx&&!sel.find(c=>c.suit==='S'&&c.value==='3'))return[false,'Kamu pegang 3♠, wajib keluarkan!'];
+      for(const c of sel){_rem(this.hands[pidx],c);this.openingTable.push(c);}
+      msg=`Pemain ${pidx+1} buang ${sel.map(c=>_cDisp(c.suit,c.value)).join(', ')} (pengecoh)`;
+    } else {
+      if(pidx===this.openerIdx&&this.hands[pidx].find(c=>c.suit==='S'&&c.value==='3'))return[false,'Kamu pegang 3♠, wajib keluarkan dulu!'];
+      msg=`Pemain ${pidx+1} simpan kartu 3 (skip)`;
+    }
+    this.openingDone.add(pidx);
+    if(this.openingDone.size>=this.activePlayers.length){
+      this.phase='normal';this.currentPlayer=this.openerIdx;
+      this.tableCards=[];this.tableType=null;this.skippedThisRound=new Set();
+      this.lastPlayerPlayed=null;this.openingTable=[];
+      msg+=` | ✅ Ronde pembukaan selesai! Pemain ${this.openerIdx+1} mulai!`;
+    } else {
+      msg+=` | Menunggu ${this.activePlayers.length-this.openingDone.size} pemain lagi...`;
+    }
+    this.message=msg;return[true,msg];
+  }
+  playCards(pidx,sel){
+    if(this.phase==='opening')return this.playOpening(pidx,sel);
+    if(pidx!==this.currentPlayer)return[false,'Bukan giliran kamu!'];
+    if(!sel||!sel.length)return[false,'Pilih kartu dulu!'];
+    if(sel.length===1&&sel[0].value==='3'){
+      const c3=sel[0];_rem(this.hands[pidx],c3);this.decoyCards=[c3];
+      let msg=`Pemain ${pidx+1} buang ${_cDisp(c3.suit,c3.value)} (pengecoh) — harus main lagi!`;
+      const[il,lm]=_checkLose(this.hands[pidx]);
+      if(il){this.hands[pidx]=[];msg+=` | 💀 ${lm} Pemain ${pidx+1} KALAH!`;const ai=this.activePlayers.indexOf(pidx);if(ai!==-1)this.activePlayers.splice(ai,1);if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];msg+=` | 🏆 Pemain ${w+1} Menang!`;this.gameOver=true;}else if(this.activePlayers.length===0)this.gameOver=true;if(!this.gameOver)this._next(pidx);this.message=msg;return[true,msg];}
+      this.message=msg;return[true,msg];
+    }
+    const[pt,pv]=_getPlayType(sel);
+    if(pt===null)return[false,'Kombinasi tidak valid!'];
+    const isFree=!this.tableCards.length;
+    if(!isFree&&!_canBeat(sel,this.tableCards,this.tableType))return[false,'Kartu tidak bisa mengalahkan!'];
+    let bomVic=null;
+    if(!isFree&&this.tableType==='single'&&this.tableCards[0].value==='2'&&_isBomb(pt))bomVic=this.lastPlayerPlayed;
+    const eb=_effHand(this.hands[pidx]);
+    if(eb.length>0&&eb.every(c=>c.value==='2')&&!sel.every(c=>c.value==='2'))return[false,'⚠️ Sisa kartu semua 2 — hanya bisa BOM!'];
+    if(eb.length>=2&&eb.some(c=>c.value==='2')&&!sel.some(c=>c.value==='2')){
+      const rem=[...this.hands[pidx]];for(const c of sel){const i=rem.findIndex(x=>x.suit===c.suit&&x.value===c.value);if(i!==-1)rem.splice(i,1);}
+      if(_effHand(rem).every(c=>c.value==='2'))return[false,'⚠️ Wajib mainkan kartu 2 lebih dulu!'];
+    }
+    const hb=[...this.hands[pidx]];
+    for(const c of sel)_rem(this.hands[pidx],c);
+    const prevLast=this.lastPlayerPlayed;
+    this.tableCards=sel;this.tableType=pt;this.lastPlayerPlayed=pidx;
+    this.skippedThisRound=new Set();this.decoyCards=[];
+    let msg=`Pemain ${pidx+1} main: ${sel.map(c=>_cDisp(c.suit,c.value)).join(', ')}`;
+    if(bomVic!==null&&this.activePlayers.includes(bomVic)){const ai=this.activePlayers.indexOf(bomVic);if(ai!==-1)this.activePlayers.splice(ai,1);msg+=` | 💥 BOM! Pemain ${bomVic+1} langsung kalah!`;if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];msg+=` | 🏆 Pemain ${w+1} Menang!`;this.gameOver=true;}else if(this.activePlayers.length===0)this.gameOver=true;}
+    if(pt==='straight4'&&prevLast!==null&&prevLast!==pidx&&this.activePlayers.includes(prevLast)){this.stoppedPlayers.add(prevLast);msg+=` | 🛑 Pemain ${prevLast+1} di-stop 1 putaran!`;}
+    const[ilp,lmp]=_checkPlayedLose(sel,hb);
+    if(ilp){msg+=` | 💀 ${lmp} Pemain ${pidx+1} KALAH!`;this.hands[pidx]=[];const ai1=this.activePlayers.indexOf(pidx);if(ai1!==-1)this.activePlayers.splice(ai1,1);if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];msg+=` | 🏆 Pemain ${w+1} Menang!`;this.gameOver=true;}else if(this.activePlayers.length===0)this.gameOver=true;if(!this.gameOver)this._next(pidx);this.message=msg;return[true,msg];}
+    const[il,lm]=_checkLose(this.hands[pidx]);
+    if(il){msg+=` | 💀 ${lm} Pemain ${pidx+1} KALAH!`;this.hands[pidx]=[];const ai1=this.activePlayers.indexOf(pidx);if(ai1!==-1)this.activePlayers.splice(ai1,1);if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];msg+=` | 🏆 Pemain ${w+1} Menang!`;this.gameOver=true;}else if(this.activePlayers.length===0)this.gameOver=true;if(!this.gameOver)this._next(pidx);this.message=msg;return[true,msg];}
+    if(this.hands[pidx].length===0){this.rankings.push(pidx);const ai0=this.activePlayers.indexOf(pidx);if(ai0!==-1)this.activePlayers.splice(ai0,1);msg+=` | 🏆 Pemain ${pidx+1} Juara ${this.rankings.length}!`;if(this.activePlayers.length===1){const loser=this.activePlayers[0];this.activePlayers=[];msg+=` | 💀 Pemain ${loser+1} Kalah!`;this.gameOver=true;}else if(this.activePlayers.length===0)this.gameOver=true;if(!this.gameOver)this._next(pidx);this.message=msg;return[true,msg];}
+    this._next();this.message=msg;return[true,msg];
+  }
+  skipTurn(pidx){
+    if(this.phase==='opening')return this.playOpening(pidx,[]);
+    if(pidx!==this.currentPlayer)return[false,'Bukan giliran kamu!'];
+    this.skippedThisRound.add(pidx);this.decoyCards=[];
+    let msg=`Pemain ${pidx+1} skip`;this._next();
+    const others=this.activePlayers.filter(p=>p!==this.lastPlayerPlayed);
+    if(others.length>0&&others.every(p=>this.skippedThisRound.has(p))){this.tableCards=[];this.tableType=null;this.skippedThisRound=new Set();msg+=` | Meja reset! Pemain ${this.currentPlayer+1} bebas main!`;}
+    this.message=msg;return[true,msg];
+  }
+  _next(from=null){
+    const a=this.activePlayers;if(!a.length)return;
+    let s=from!==null?from:this.currentPlayer;
+    if(!a.includes(s))s=a[0];const si=a.indexOf(s);
+    for(let i=1;i<=a.length;i++){const nxt=a[(si+i)%a.length];if(this.stoppedPlayers.has(nxt)){this.stoppedPlayers.delete(nxt);continue;}this.currentPlayer=nxt;return;}
+  }
+}
+
+// ── RTDB STATE VARS ────────────────────────────────────────────────────────
+let _rtdbGame=null;
+let _rtdbRoom=null;
+let _rtdbMyIdx=null;
+let _rtdbIsHost=false;
+let _rtdbUid=null;
+let _rtdbListeners=[];
+let _rtdbNumPlayers=2;
+let _rtdbPlayerUids={};
+
+function _genRoomId(){
+  const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let id='';for(let i=0;i<6;i++)id+=ch[Math.floor(Math.random()*ch.length)];
+  return id;
+}
+
+// Broadcast state publik + kartu tiap pemain ke RTDB
+async function _broadcastState(){
+  if(!_rtdbIsHost||!_rtdbGame||!_rtdbRoom)return;
+  const gs=_rtdbGame;
+  const pub={
+    current_player:gs.currentPlayer,
+    table_cards:gs.tableCards.map(c=>_cDict(c.suit,c.value)),
+    table_type:gs.tableType,
+    rankings:gs.rankings,
+    active_players:gs.activePlayers,
+    stopped_players:[...gs.stoppedPlayers],
+    game_over:gs.gameOver,
+    message:gs.message,
+    phase:gs.phase,
+    opener_idx:gs.openerIdx,
+    opening_done:[...gs.openingDone],
+    decoy_cards:gs.decoyCards.map(c=>_cDict(c.suit,c.value)),
+    opening_table:gs.openingTable.map(c=>_cDict(c.suit,c.value)),
+    hand_counts:gs.hands.map(h=>h.length),
+    num_players:gs.numPlayers,
+    ts:Date.now()
+  };
+  const updates={};
+  updates[`rooms/${_rtdbRoom}/state`]=pub;
+  for(const[idx,uid] of Object.entries(_rtdbPlayerUids)){
+    updates[`rooms/${_rtdbRoom}/hands/${uid}`]=gs.hands[idx]?gs.hands[idx].map(c=>_cDict(c.suit,c.value)):[];
+  }
+  await fbRtdb.ref().update(updates);
+}
+
+// Host listen aksi dari pemain
+function _hostListenActions(){
+  const actRef=fbRtdb.ref(`rooms/${_rtdbRoom}/actions`);
+  const fn=actRef.on('child_added',snap=>{
+    const act=snap.val();
+    if(!act||!_rtdbGame||_rtdbGame.gameOver)return;
+    actRef.child(snap.key).remove();
+    const pidx=act.pidx;
+    let result;
+    if(act.type==='play') result=_rtdbGame.playCards(pidx,act.cards||[]);
+    else if(act.type==='skip') result=_rtdbGame.skipTurn(pidx);
+    if(result){
+      const[ok,msg]=result;
+      if(!ok){
+        const uid=_rtdbPlayerUids[pidx];
+        if(uid)fbRtdb.ref(`rooms/${_rtdbRoom}/errors/${uid}`).set({msg,ts:Date.now()});
+      } else {
+        _broadcastState();
+      }
+    }
+  });
+  _rtdbListeners.push(()=>actRef.off('child_added',fn));
+}
+
+// Client kirim aksi ke host
+function _sendAction(act){
+  if(!_rtdbRoom)return;
+  fbRtdb.ref(`rooms/${_rtdbRoom}/actions`).push({...act,pidx:_rtdbMyIdx,ts:Date.now()});
+}
+
+// Client listen state update dari RTDB
+function _clientListenState(){
+  const stRef=fbRtdb.ref(`rooms/${_rtdbRoom}/state`);
+  const fn=stRef.on('value',snap=>{
+    const d=snap.val();if(!d)return;
+    const uid=_rtdbUid||currentUser?.uid;
+    fbRtdb.ref(`rooms/${_rtdbRoom}/hands/${uid}`).get().then(hsnap=>{
+      const hand=hsnap.val()||[];
+      fbRtdb.ref(`rooms/${_rtdbRoom}/info/playerNames`).get().then(nsnap=>{
+        const fullState={...d,hand,room_id:_rtdbRoom,player_names:nsnap.val()||{}};
+        const newBom=d.message&&d.message.includes('💥 BOM');
+        curSt=fullState;
+        renderGame(fullState);
+        if(newBom)triggerBom();
+        if(d.game_over)showOver(fullState);
+      });
+    });
+  });
+  _rtdbListeners.push(()=>stRef.off('value',fn));
+}
+
+// Listen error hanya untuk diri sendiri
+function _clientListenError(){
+  const uid=_rtdbUid||currentUser?.uid;
+  if(!uid)return;
+  const eRef=fbRtdb.ref(`rooms/${_rtdbRoom}/errors/${uid}`);
+  const fn=eRef.on('value',snap=>{
+    const d=snap.val();if(!d)return;
+    eRef.remove();
+    toast(d.msg);
+    if(handOrder.length>0)renderHand(handOrder);
+  });
+  _rtdbListeners.push(()=>eRef.off('value',fn));
+}
+
+// Bersihkan semua listener saat keluar
+function _rtdbCleanup(){
+  _rtdbListeners.forEach(fn=>fn());
+  _rtdbListeners=[];
+  if(_rtdbRoom){
+    const uid=_rtdbUid||currentUser?.uid;
+    if(uid)fbRtdb.ref(`rooms/${_rtdbRoom}/info/players/${uid}`).remove();
+  }
+  _rtdbGame=null;_rtdbRoom=null;_rtdbMyIdx=null;
+  _rtdbIsHost=false;_rtdbPlayerUids={};
+}
+
+// ── PUBLIC API ─────────────────────────────────────────────────────────────
+async function rtdbCreateOnline(numPlayers){
+  if(!currentUser){toast('❌ Login dulu!');return;}
+  const name=gname();if(!name)return;
+  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
+  const rid=_genRoomId();
+  _rtdbRoom=rid;_rtdbMyIdx=0;_rtdbIsHost=true;
+  _rtdbUid=currentUser.uid;_rtdbNumPlayers=numPlayers;
+  _rtdbPlayerUids={0:currentUser.uid};
+  _rtdbGame=new _GameState(numPlayers);
+
+  await fbRtdb.ref(`rooms/${rid}`).set({
+    info:{numPlayers,started:false,host:currentUser.uid,
+      players:{[currentUser.uid]:{idx:0,name}},
+      playerNames:{0:name},createdAt:Date.now()}
+  });
+  fbRtdb.ref(`rooms/${rid}`).onDisconnect().remove();
+
+  // Listen pemain yang join
+  const joinRef=fbRtdb.ref(`rooms/${rid}/info/players`);
+  const joinFn=joinRef.on('value',snap=>{
+    const players=snap.val()||{};
+    const uids=Object.keys(players);
+    const names={};
+    uids.forEach(uid=>{const p=players[uid];names[p.idx]=p.name;_rtdbPlayerUids[p.idx]=uid;});
+    fbRtdb.ref(`rooms/${rid}/info/playerNames`).set(names);
+    updLobby(names,numPlayers,uids.length);
+    document.getElementById('btn-start').style.display=uids.length>=2?'block':'none';
+  });
+  _rtdbListeners.push(()=>joinRef.off('value',joinFn));
+
+  document.getElementById('lob-code').textContent=rid;
+  document.getElementById('lob-status').textContent=`Menunggu ${numPlayers-1} pemain lagi...`;
+  go('s-lobby');
+}
+
+async function rtdbJoinOnline(rid,playerName){
+  if(!currentUser){toast('❌ Login dulu!');return;}
+  const name=playerName||gname();if(!name)return;
+  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
+  rid=rid.toUpperCase().trim();
+
+  const roomSnap=await fbRtdb.ref(`rooms/${rid}/info`).get();
+  if(!roomSnap.exists()){toast(`❌ Room ${rid} tidak ditemukan!`);return;}
+  const info=roomSnap.val();
+  if(info.started){toast('❌ Game sudah dimulai!');return;}
+  const players=info.players||{};
+  const uids=Object.keys(players);
+  if(uids.length>=info.numPlayers){toast('❌ Room sudah penuh!');return;}
+
+  const usedIdx=new Set(uids.map(u=>players[u].idx));
+  let myIdx=0;for(let i=0;i<info.numPlayers;i++)if(!usedIdx.has(i)){myIdx=i;break;}
+
+  _rtdbRoom=rid;_rtdbMyIdx=myIdx;_rtdbIsHost=false;
+  _rtdbUid=currentUser.uid;_rtdbNumPlayers=info.numPlayers;
+
+  await fbRtdb.ref(`rooms/${rid}/info/players/${currentUser.uid}`).set({idx:myIdx,name});
+  fbRtdb.ref(`rooms/${rid}/info/players/${currentUser.uid}`).onDisconnect().remove();
+
+  // Listen lobby info
+  const infoRef=fbRtdb.ref(`rooms/${rid}/info`);
+  const infoFn=infoRef.on('value',snap=>{
+    const d=snap.val();if(!d)return;
+    const pl=d.players||{};
+    updLobby(d.playerNames||{},d.numPlayers,Object.keys(pl).length);
+  });
+  _rtdbListeners.push(()=>infoRef.off('value',infoFn));
+
+  // Listen game dimulai
+  const stRef=fbRtdb.ref(`rooms/${rid}/info/started`);
+  const stFn=stRef.on('value',snap=>{
+    if(!snap.val())return;
+    stRef.off('value',stFn);
+    _clientListenState();
+    _clientListenError();
+    fbRtdb.ref(`rooms/${rid}/state`).get().then(s=>{
+      if(!s.val())return;
+      const d=s.val();
+      fbRtdb.ref(`rooms/${rid}/hands/${currentUser.uid}`).get().then(hs=>{
+        const hand=hs.val()||[];
+        fbRtdb.ref(`rooms/${rid}/info/playerNames`).get().then(ns=>{
+          const fullState={...d,hand,room_id:rid,player_names:ns.val()||{}};
+          curSt=fullState;handOrder=[];
+          countdown(()=>{go('s-game');renderGame(fullState,true);playDealSounds(hand.length);});
+        });
+      });
+    });
+  });
+  _rtdbListeners.push(()=>stRef.off('value',stFn));
+
+  document.getElementById('lob-code').textContent=rid;
+  document.getElementById('lob-status').textContent=`Bergabung ke room ${rid} sebagai Pemain ${myIdx+1}`;
+  go('s-lobby');
+}
+
+async function rtdbStartGame(){
+  if(!_rtdbIsHost||!_rtdbGame||!_rtdbRoom)return;
+  const snap=await fbRtdb.ref(`rooms/${_rtdbRoom}/info/players`).get();
+  const players=snap.val()||{};
+  if(Object.keys(players).length<2){toast('❌ Minimal 2 pemain!');return;}
+  Object.entries(players).forEach(([uid,p])=>{_rtdbPlayerUids[p.idx]=uid;});
+
+  _rtdbGame.startGame();
+  _hostListenActions();
+  _clientListenState();
+  _clientListenError();
+  await _broadcastState();
+  await fbRtdb.ref(`rooms/${_rtdbRoom}/info/started`).set(true);
+
+  // Tampilkan game untuk host (pemain idx 0)
+  const hand=_rtdbGame.hands[0].map(c=>_cDict(c.suit,c.value));
+  const pnames=await fbRtdb.ref(`rooms/${_rtdbRoom}/info/playerNames`).get();
+  const fullState={
+    current_player:_rtdbGame.currentPlayer,
+    table_cards:[],hand,room_id:_rtdbRoom,
+    player_names:pnames.val()||{},
+    hand_counts:_rtdbGame.hands.map(h=>h.length),
+    active_players:_rtdbGame.activePlayers,
+    stopped_players:[..._rtdbGame.stoppedPlayers],
+    opening_done:[..._rtdbGame.openingDone],
+    decoy_cards:[],opening_table:[],
+    num_players:_rtdbGame.numPlayers,
+    phase:_rtdbGame.phase,
+    opener_idx:_rtdbGame.openerIdx,
+    rankings:_rtdbGame.rankings,
+    game_over:false,
+    message:_rtdbGame.message,
+  };
+  curSt=fullState;handOrder=[];
+  countdown(()=>{go('s-game');renderGame(fullState,true);playDealSounds(hand.length);});
+}
+
+// ── initSock (untuk mabar lokal via Termux server.js) ─────────────────────
 function initSock(){
   if(sock)sock.disconnect();
   sock=io();
-  sock.on('room_created',d=>{
-    myIdx=d.player_idx;myRoom=d.room_id;isHost=true;
-    document.getElementById('lob-code').textContent=d.room_id;
-    document.getElementById('lob-status').textContent=`Menunggu ${d.num_players-1} pemain lagi...`;
-    go('s-lobby');
-  });
-  sock.on('joined_room',d=>{
-    myIdx=d.player_idx;myRoom=d.room_id;isHost=false;
-    document.getElementById('lob-code').textContent=d.room_id;
-    document.getElementById('lob-status').textContent=d.message;
-    go('s-lobby');
-  });
-  sock.on('player_joined',d=>{
-    document.getElementById('lob-status').textContent=d.message;
-    updLobby(d.player_names,d.num_players,d.players_joined);
-    if(isHost&&d.players_joined>=2)document.getElementById('btn-start').style.display='block';
-  });
+  sock.on('room_created',d=>{myIdx=d.player_idx;myRoom=d.room_id;isHost=true;document.getElementById('lob-code').textContent=d.room_id;document.getElementById('lob-status').textContent=`Menunggu ${d.num_players-1} pemain lagi...`;go('s-lobby');});
+  sock.on('joined_room',d=>{myIdx=d.player_idx;myRoom=d.room_id;isHost=false;document.getElementById('lob-code').textContent=d.room_id;document.getElementById('lob-status').textContent=d.message;go('s-lobby');});
+  sock.on('player_joined',d=>{document.getElementById('lob-status').textContent=d.message;updLobby(d.player_names,d.num_players,d.players_joined);if(isHost&&d.players_joined>=2)document.getElementById('btn-start').style.display='block';});
   sock.on('player_left',d=>toast(d.message));
-  sock.on('game_started',d=>{
-    countdown(()=>{curSt=d;handOrder=[];go('s-game');renderGame(d,true);playDealSounds(d.hand?d.hand.length:13);});
-  });
-  sock.on('state_update',d=>{
-    // Detect BOM move
-    // BOM trigger: ada pesan 💥 BOM di message (lebih reliable)
-    const newBom = d.message && d.message.includes('💥 BOM');
-    curSt=d;
-    renderGame(d);
-    if(newBom)triggerBom();
-    if(d.game_over)showOver(d);
-  });
-  sock.on('error',d=>{
-    toast(d.message);
-    // Kartu yang dipilih tadi dikembalikan (batalkan play yang gagal)
-    // handOrder sudah tidak di-reset di doPlay, jadi kartu tetap ada
-    // Tapi re-render untuk memastikan tampilan benar
-    if(handOrder.length>0) renderHand(handOrder);
-  });
+  sock.on('game_started',d=>{countdown(()=>{curSt=d;handOrder=[];go('s-game');renderGame(d,true);playDealSounds(d.hand?d.hand.length:13);});});
+  sock.on('state_update',d=>{const newBom=d.message&&d.message.includes('💥 BOM');curSt=d;renderGame(d);if(newBom)triggerBom();if(d.game_over)showOver(d);});
+  sock.on('error',d=>{toast(d.message);if(handOrder.length>0)renderHand(handOrder);});
   sock.on('disconnect',()=>toast('Koneksi terputus!'));
 }
 
@@ -2860,18 +3278,15 @@ function goMabar(){if(!gname())return;initSock();go('s-mabar');}
 function goOnline(){
   if(!gname())return;
   if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
-  initSock();go('s-online');
+  go('s-online');
 }
 function doCreateOnline(){
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
-  const name=gname();if(!name)return;sock.emit('create_room',{num_players:selNumOnline,name});
+  rtdbCreateOnline(selNumOnline);
 }
 function doJoinOnline(){
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
-  const name=gname()||'Pemain';
   const rid=document.getElementById('inp-room-online').value.trim().toUpperCase();
   if(!rid){toast('Masukkan kode room!');return;}
-  sock.emit('join_room_game',{room_id:rid,name});
+  rtdbJoinOnline(rid);
 }
 
 // ── BOT ──
@@ -2891,10 +3306,14 @@ function doJoinMabar(){
   if(!rid){toast('Masukkan kode room!');return;}
   sock.emit('join_room_game',{room_id:rid,name});
 }
-function doStart(){sock.emit('start_game',{});}
+function doStart(){
+  if(_rtdbIsHost) rtdbStartGame();
+  else sock.emit('start_game',{});
+}
 function backMenu(){
   document.getElementById('modal-over').classList.remove('on');
   selCards=[];handOrder=[];myIdx=null;myRoom=null;isHost=false;curSt=null;reorderIdx=null;
+  if(_rtdbRoom)_rtdbCleanup();
   if(sock)sock.disconnect();
   go('s-menu');
   // Show global chat btn when back to menu
@@ -3367,12 +3786,14 @@ function doPlay(){
       el.classList.add('fly-to-table');
     });
   },60);
-  sock.emit('play_cards',{cards:selCards});
+  if(_rtdbRoom&&!myRoom) _sendAction({type:'play',cards:selCards});
+  else sock.emit('play_cards',{cards:selCards});
   selCards=[];
   exitReorder();
 }
 function doSkip(){
-  sock.emit('skip_turn',{});
+  if(_rtdbRoom&&!myRoom) _sendAction({type:'skip'});
+  else sock.emit('skip_turn',{});
   exitReorder();
 }
 
