@@ -3576,7 +3576,7 @@ async function onUserLoggedIn(user){
     await fbDb.collection('usernames').doc(username).set({
       uid: user.uid,
       email: realEmail || (user.email?.endsWith('@ludohoki.game') ? '' : (user.email||''))
-    }).catch(()=>{});
+    }, { merge: true }).catch(e => console.warn('[usernames] write failed:', e));
     await ref.set({
       uid: user.uid,
       name: displayName,
