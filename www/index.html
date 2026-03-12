@@ -3453,6 +3453,11 @@ function _autoFillName(){
 
 // Initialize Firebase when DOM is ready
 document.addEventListener('DOMContentLoaded', function(){
+  // Peringatan HTTP (Firebase Auth butuh HTTPS atau localhost)
+  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if(!isSecure){
+    console.warn('⚠️ Firebase Auth butuh HTTPS. Login/Register mungkin gagal di HTTP.');
+  }
   if(typeof firebase !== 'undefined'){
     setTimeout(()=>{ initFirebase(); }, 500);
   } else {
@@ -3765,6 +3770,12 @@ async function checkUsernameExists(username){
 }
 
 async function submitAuth(){
+  // Cek Firebase siap
+  if(!fbAuth || !fbDb){
+    showLoginError('⚠️ Firebase belum siap. Tunggu sebentar atau refresh halaman.');
+    showToast('DEBUG: fbAuth='+(!!fbAuth)+' fbDb='+(!!fbDb));
+    return;
+  }
   const usernameEl = document.getElementById('authUsername');
   const passEl  = document.getElementById('authPassword');
   const nameEl  = document.getElementById('authName');
@@ -3824,9 +3835,14 @@ async function submitAuth(){
       'auth/invalid-email':         '❌ Format email tidak valid!',
       'auth/weak-password':         '❌ Password terlalu lemah, min 6 karakter!',
       'auth/network-request-failed':'❌ Tidak ada koneksi internet!',
+      'auth/unauthorized-domain':   '❌ Domain tidak diizinkan Firebase. Tambahkan IP ini di Firebase Console → Authentication → Settings → Authorized domains.',
       'auth/too-many-requests':     '❌ Terlalu banyak percobaan. Coba lagi nanti.',
     };
-    showLoginError(msgs[e.code] || '❌ ' + (e.message || e.code));
+    console.error('submitAuth error:', e.code, e.message);
+    const errMsg = msgs[e.code] || '❌ ' + (e.message || e.code || 'Error tidak dikenal');
+    showLoginError(errMsg);
+    // Debug: tampilkan error detail
+    showToast('DEBUG: ' + (e.code || e.message || 'unknown'));
   } finally {
     if(btn){
       btn.disabled = false;
