@@ -3453,11 +3453,6 @@ function _autoFillName(){
 
 // Initialize Firebase when DOM is ready
 document.addEventListener('DOMContentLoaded', function(){
-  // Peringatan HTTP (Firebase Auth butuh HTTPS atau localhost)
-  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if(!isSecure){
-    console.warn('⚠️ Firebase Auth butuh HTTPS. Login/Register mungkin gagal di HTTP.');
-  }
   if(typeof firebase !== 'undefined'){
     setTimeout(()=>{ initFirebase(); }, 500);
   } else {
@@ -3577,6 +3572,11 @@ async function onUserLoggedIn(user){
     _pendingRegisterEmail = null;
     _pendingRegisterName = null;
     _pendingRegisterUsername = null;
+    // Simpan mapping username → email di collection publik (untuk login pakai username)
+    await fbDb.collection('usernames').doc(username).set({
+      uid: user.uid,
+      email: realEmail || (user.email?.endsWith('@ludohoki.game') ? '' : (user.email||''))
+    }).catch(()=>{});
     await ref.set({
       uid: user.uid,
       name: displayName,
@@ -3729,9 +3729,13 @@ function switchAuthTab(mode){
   if(confirmWrap) confirmWrap.style.display = isReg ? 'block' : 'none';
   if(strengthBar) strengthBar.style.display = isReg ? 'block' : 'none';
 
-  // Update username placeholder
+  // Update placeholder sesuai mode
   const uEl = document.getElementById('authUsername');
-  if(uEl) uEl.placeholder = isReg ? 'Username baru (unik)' : 'Username kamu';
+  if(uEl){
+    uEl.placeholder = isReg ? 'Username baru (unik, tanpa spasi)' : 'Username kamu';
+    uEl.type = 'text';
+    uEl.oninput = function(){ this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,''); };
+  }
 
   showLoginError('');
 }
@@ -3770,12 +3774,6 @@ async function checkUsernameExists(username){
 }
 
 async function submitAuth(){
-  // Cek Firebase siap
-  if(!fbAuth || !fbDb){
-    showLoginError('⚠️ Firebase belum siap. Tunggu sebentar atau refresh halaman.');
-    showToast('DEBUG: fbAuth='+(!!fbAuth)+' fbDb='+(!!fbDb));
-    return;
-  }
   const usernameEl = document.getElementById('authUsername');
   const passEl  = document.getElementById('authPassword');
   const nameEl  = document.getElementById('authName');
@@ -3803,14 +3801,23 @@ async function submitAuth(){
 
   try {
     if(_authMode === 'login'){
-      // Login: cari email asli berdasarkan username
-      const snap = await fbDb.collection('users').where('username','==',username).limit(1).get();
-      let loginEmail;
-      if(!snap.empty && snap.docs[0].data().email){
-        loginEmail = snap.docs[0].data().email;
-      } else {
-        // Fallback ke fake email untuk akun lama
-        loginEmail = usernameToEmail(username);
+      // Login pakai username → cari email dari usernames collection (public read)
+      let loginEmail = username;
+      if(!username.includes('@')){
+        // Cari email dari usernames collection (tidak butuh auth)
+        try {
+          const uSnap = await fbDb.collection('usernames').doc(username.toLowerCase()).get();
+          if(uSnap.exists && uSnap.data().email){
+            loginEmail = uSnap.data().email;
+          } else {
+            showLoginError('❌ Username tidak ditemukan. Coba daftar dulu!');
+            if(btn){ btn.disabled=false; btn.textContent='Masuk'; }
+            return;
+          }
+        } catch(e){
+          // Fallback: coba format email lama
+          loginEmail = usernameToEmail(username);
+        }
       }
       await fbAuth.signInWithEmailAndPassword(loginEmail, pass);
     } else {
@@ -3835,14 +3842,9 @@ async function submitAuth(){
       'auth/invalid-email':         '❌ Format email tidak valid!',
       'auth/weak-password':         '❌ Password terlalu lemah, min 6 karakter!',
       'auth/network-request-failed':'❌ Tidak ada koneksi internet!',
-      'auth/unauthorized-domain':   '❌ Domain tidak diizinkan Firebase. Tambahkan IP ini di Firebase Console → Authentication → Settings → Authorized domains.',
       'auth/too-many-requests':     '❌ Terlalu banyak percobaan. Coba lagi nanti.',
     };
-    console.error('submitAuth error:', e.code, e.message);
-    const errMsg = msgs[e.code] || '❌ ' + (e.message || e.code || 'Error tidak dikenal');
-    showLoginError(errMsg);
-    // Debug: tampilkan error detail
-    showToast('DEBUG: ' + (e.code || e.message || 'unknown'));
+    showLoginError(msgs[e.code] || '❌ ' + (e.message || e.code));
   } finally {
     if(btn){
       btn.disabled = false;
