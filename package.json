@@ -1,6 +1,11 @@
 {
   "name": "hoki-cards",
   "version": "1.0.0",
+  "description": "Hoki Cards - Capsa game via hotspot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "socket.io": "^4.7.2",
     "@capacitor/android": "^5.0.0",

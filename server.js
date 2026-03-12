@@ -78,13 +78,18 @@ function getPlayType(cards){
   return[null,0];
 }
 
+function isAllTwos(cards){ return cards.length>0&&cards.every(c=>c.value==='2'); }
+function isBomb(pt){ return['bomb4','jqka','straight5plus'].includes(pt); }
+
 function canBeat(play,table,ttype){
   if(!table||!table.length||ttype===null)return true;
   const[pt,pv]=getPlayType(play);
   if(pt===null)return false;
   const[,tv]=getPlayType(table);
-  if(ttype==='single'&&table[0].value==='2')return['bomb4','jqka'].includes(pt);
-  if(ttype==='double'&&table.every(c=>c.value==='2'))return false;
+  // Hanya single 2 yang bisa kena BOM — 22 double dan 222 triple TIDAK bisa kena BOM
+  if(ttype==='single'&&table[0].value==='2')return isBomb(pt);
+  // 22 double dan 222 triple: tidak ada yang bisa mengalahkan
+  if(isAllTwos(table)&&table.length>1)return false;
   if(pt!==ttype)return false;
   if(['straight3','straight4','straight5plus'].includes(ttype)&&play.length!==table.length)return false;
   return pv>tv;
@@ -95,7 +100,17 @@ function effHand(hand){return hand.filter(c=>c.value!=='3');}
 function checkLose(hand){
   const eff=effHand(hand);
   if(eff.length===0&&hand.length>0)return[true,'Sisa kartu 3 semua (pengecoh) — langsung kalah!'];
-  if(eff.length===1&&eff[0].value==='2')return[true,'Sisa kartu 2 saja — tidak bisa menang dengan kartu 2 terakhir!'];
+  // Sisa semua kartu 2 (1, 2, atau 3 kartu 2) → langsung kalah
+  if(eff.length>0&&eff.every(c=>c.value==='2'))return[true,`Sisa ${eff.length} kartu 2 saja — tidak bisa menang dengan kartu 2!`];
+  return[false,''];
+}
+
+// Cek apakah kartu yang BARU DIMAINKAN menyebabkan kalah
+// (habis kartu, tapi kartu terakhir yang dimainkan mengandung kartu 2)
+function checkPlayedLose(played, handBefore){
+  const newHand = [...handBefore];
+  for(const c of played){ const i=newHand.findIndex(x=>x.suit===c.suit&&x.value===c.value); if(i!==-1)newHand.splice(i,1); }
+  if(newHand.length===0 && played.some(c=>c.value==='2')) return[true,'Kartu 2 dimainkan sebagai kartu terakhir — kalah!'];
   return[false,''];
 }
 
@@ -130,6 +145,21 @@ class GameState{
     this.tableCards=[];this.tableType=null;this.lastPlayerPlayed=null;
     this.started=true;this.gameOver=false;this.phase='opening';
     this.openingDone=new Set();this.decoyCards=[];this.openingTable=[];
+    // Cek langsung kalah: tangan semua kartu 2 (2222)
+    for(let i=0;i<this.hands.length;i++){
+      const eff=effHand(this.hands[i]);
+      if(eff.length>0&&eff.every(c=>c.value==='2')){
+        this.activePlayers=this.activePlayers.filter(p=>p!==i);
+        this.message=`💀 Pemain ${i+1} langsung KALAH! Dapat semua kartu 2!`;
+        if(this.activePlayers.length===1){
+          const winner=this.activePlayers[0];
+          this.rankings.push(winner);this.activePlayers=[];
+          this.gameOver=true;
+          this.message+=` | 🏆 Pemain ${winner+1} Menang!`;
+          return;
+        }
+      }
+    }
     for(let i=0;i<this.hands.length;i++){
       for(const c of this.hands[i]){
         if(c.value==='3'&&c.suit==='S'){
@@ -184,7 +214,12 @@ class GameState{
       if(il){
         this.hands[pidx]=[];msg+=` | 💀 ${lm} Pemain ${pidx+1} KALAH!`;
         const ai=this.activePlayers.indexOf(pidx);if(ai!==-1)this.activePlayers.splice(ai,1);
-        if(this.activePlayers.length<=1)this.gameOver=true;
+        if(this.activePlayers.length===1){
+          const winner=this.activePlayers[0];
+          this.rankings.push(winner);this.activePlayers=[];
+          msg+=` | 🏆 Pemain ${winner+1} Menang!`;
+          this.gameOver=true;
+        } else if(this.activePlayers.length===0){this.gameOver=true;}
         if(!this.gameOver)this._next(pidx);
         this.message=msg;return[true,msg];
       }
@@ -196,16 +231,27 @@ class GameState{
     const isFree=!this.tableCards.length;
     if(!isFree&&!canBeat(sel,this.tableCards,this.tableType))return[false,'Kartu tidak bisa mengalahkan kartu di meja!'];
 
-    // Bom victim
+    // Bom victim — hanya single 2 yang bisa di-BOM
     let bomVic=null;
-    if(!isFree&&this.tableType==='single'&&this.tableCards[0].value==='2'&&['bomb4','jqka'].includes(pt))
+    if(!isFree && this.tableType==='single' && this.tableCards[0].value==='2' && isBomb(pt))
       bomVic=this.lastPlayerPlayed;
 
-    // Wajib 2 duluan
+    // Wajib 2 duluan — kalau sisa tangan semua kartu 2, tidak boleh main kartu lain
     const eb=effHand(this.hands[pidx]);
-    if(eb.length===2&&eb.some(c=>c.value==='2')&&!sel.some(c=>c.value==='2'))
-      return[false,'⚠️ Sisa 2 kartu efektif dan ada kartu 2 — wajib keluarkan 2 duluan atau kamu kalah!'];
+    if(eb.length>0 && eb.every(c=>c.value==='2') && !sel.every(c=>c.value==='2'))
+      return[false,'⚠️ Sisa kartu kamu semua kartu 2 — hanya bisa BOM atau kena BOM saja!'];
+    // Kalau sisa 2+ kartu efektif dan ada kartu 2 di antaranya, wajib keluarkan 2 duluan
+    if(eb.length>=2&&eb.some(c=>c.value==='2')&&!sel.some(c=>c.value==='2')){
+      // Cek apakah sel akan menghabiskan semua kartu non-2
+      const remaining=[...this.hands[pidx]];
+      for(const c of sel){const i=remaining.findIndex(x=>x.suit===c.suit&&x.value===c.value);if(i!==-1)remaining.splice(i,1);}
+      const remEff=effHand(remaining);
+      if(remEff.every(c=>c.value==='2'))
+        return[false,'⚠️ Kartu terakhir kamu adalah kartu 2 — wajib mainkan 2 lebih dulu!'];
+    }
 
+    // Simpan tangan sebelum dimainkan untuk cek kalah kartu 2 terakhir
+    const handBefore=[...this.hands[pidx]];
     for(const c of sel)removeCard(this.hands[pidx],c);
     const prevLast=this.lastPlayerPlayed;
     this.tableCards=sel;this.tableType=pt;this.lastPlayerPlayed=pidx;
@@ -215,25 +261,60 @@ class GameState{
     if(bomVic!==null&&this.activePlayers.includes(bomVic)){
       const ai=this.activePlayers.indexOf(bomVic);if(ai!==-1)this.activePlayers.splice(ai,1);
       msg+=` | 💥 BOM! Pemain ${bomVic+1} langsung kalah!`;
-      if(this.activePlayers.length<=1)this.gameOver=true;
+      if(this.activePlayers.length===1){
+        const winner=this.activePlayers[0];
+        this.rankings.push(winner);this.activePlayers=[];
+        msg+=` | 🏆 Pemain ${winner+1} Menang!`;
+        this.gameOver=true;
+      } else if(this.activePlayers.length===0){this.gameOver=true;}
     }
     if(pt==='straight4'&&prevLast!==null&&prevLast!==pidx&&this.activePlayers.includes(prevLast)){
       this.stoppedPlayers.add(prevLast);msg+=` | 🛑 Pemain ${prevLast+1} di-stop 1 putaran!`;
     }
 
-    const[il,lm]=checkLose(this.hands[pidx]);
-    if(il&&this.hands[pidx].length>0){
-      msg+=` | 💀 ${lm} Pemain ${pidx+1} KALAH!`;this.hands[pidx]=[];
-      const ai=this.activePlayers.indexOf(pidx);if(ai!==-1)this.activePlayers.splice(ai,1);
-      if(this.activePlayers.length<=1)this.gameOver=true;
+    // Cek kalah: kartu 2 dimainkan sebagai kartu terakhir (tangan jadi kosong)
+    const[ilp,lmp]=checkPlayedLose(sel, handBefore);
+    if(ilp){
+      msg+=` | 💀 ${lmp} Pemain ${pidx+1} KALAH!`;this.hands[pidx]=[];
+      const ai1=this.activePlayers.indexOf(pidx);if(ai1!==-1)this.activePlayers.splice(ai1,1);
+      if(this.activePlayers.length===1){
+        const winner=this.activePlayers[0];
+        this.rankings.push(winner);this.activePlayers=[];
+        msg+=` | 🏆 Pemain ${winner+1} Menang!`;
+        this.gameOver=true;
+      } else if(this.activePlayers.length===0){ this.gameOver=true; }
       if(!this.gameOver)this._next(pidx);
       this.message=msg;return[true,msg];
     }
+    // Cek instant lose: sisa tangan semua kartu 2 atau semua kartu 3
+    const[il,lm]=checkLose(this.hands[pidx]);
+    if(il){
+      msg+=` | 💀 ${lm} Pemain ${pidx+1} KALAH!`;this.hands[pidx]=[];
+      const ai1=this.activePlayers.indexOf(pidx);if(ai1!==-1)this.activePlayers.splice(ai1,1);
+      if(this.activePlayers.length===1){
+        const winner=this.activePlayers[0];
+        this.rankings.push(winner);this.activePlayers=[];
+        msg+=` | 🏆 Pemain ${winner+1} Menang!`;
+        this.gameOver=true;
+      } else if(this.activePlayers.length===0){
+        this.gameOver=true;
+      }
+      if(!this.gameOver)this._next(pidx);
+      this.message=msg;return[true,msg];
+    }
+    // Cek habis kartu = menang (kartu terakhir bukan kartu 2)
     if(this.hands[pidx].length===0){
       this.rankings.push(pidx);
-      const ai=this.activePlayers.indexOf(pidx);if(ai!==-1)this.activePlayers.splice(ai,1);
+      const ai0=this.activePlayers.indexOf(pidx);if(ai0!==-1)this.activePlayers.splice(ai0,1);
       msg+=` | 🏆 Pemain ${pidx+1} Juara ${this.rankings.length}!`;
-      if(this.activePlayers.length<=1)this.gameOver=true;
+      if(this.activePlayers.length===1){
+        const loser=this.activePlayers[0];
+        this.activePlayers=[];
+        msg+=` | 💀 Pemain ${loser+1} Kalah!`;
+        this.gameOver=true;
+      } else if(this.activePlayers.length===0){
+        this.gameOver=true;
+      }
       if(!this.gameOver)this._next(pidx);
       this.message=msg;return[true,msg];
     }

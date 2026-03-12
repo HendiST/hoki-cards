@@ -4,5 +4,21 @@
   "webDir": "www",
   "server": {
     "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "screenOrientation": "sensorLandscape"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#050e05"
+    },
+    "NavigationBar": {
+      "backgroundColor": "#050e05"
+    }
   }
 }
