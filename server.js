@@ -145,12 +145,12 @@ class GameState{
     this.tableCards=[];this.tableType=null;this.lastPlayerPlayed=null;
     this.started=true;this.gameOver=false;this.phase='opening';
     this.openingDone=new Set();this.decoyCards=[];this.openingTable=[];
-    // Cek langsung kalah: tangan semua kartu 2 (2222)
+    // Cek langsung kalah: tangan mengandung semua 4 kartu 2 (2222)
     for(let i=0;i<this.hands.length;i++){
-      const eff=effHand(this.hands[i]);
-      if(eff.length>0&&eff.every(c=>c.value==='2')){
+      const twos=this.hands[i].filter(c=>c.value==='2');
+      if(twos.length===4){
         this.activePlayers=this.activePlayers.filter(p=>p!==i);
-        this.message=`💀 Pemain ${i+1} langsung KALAH! Dapat semua kartu 2!`;
+        this.message=`💀 Pemain ${i+1} langsung KALAH! Dapat semua 4 kartu 2!`;
         if(this.activePlayers.length===1){
           const winner=this.activePlayers[0];
           this.rankings.push(winner);this.activePlayers=[];
