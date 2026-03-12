@@ -5585,7 +5585,11 @@ function replayHoki(){
 
   window._splashHide = function(target){
     clearTimeout(splashTimer);
-    hideSplash(target || 'loginScreen');
+    if(splashDone){
+      go(target || 'loginScreen');
+    } else {
+      hideSplash(target || 'loginScreen');
+    }
   };
 })();
 
