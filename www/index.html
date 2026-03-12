@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Hoki Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:#030b18;}
+body{font-family:'Nunito',sans-serif;user-select:none;}
+
+:root{
+  --gold:#ffd740;
+  --gold2:#ffb300;
+  --blue-dark:#030b18;
+  --blue-mid:#071428;
+  --blue-card:#0a1e3d;
+  --red:#e53935;
+  --green:#43a047;
+  --accent:#1a6af5;
+}
+
+/* ===== SCREENS ===== */
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:center;position:absolute;top:0;left:0;}
+.screen.active{display:flex;}
+
+/* ===== MENU ===== */
+#menuScreen{
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -5%,#1a3a8a 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 100%,#0d2560 0%,transparent 55%),
+    linear-gradient(180deg,#030b18 0%,#050e20 100%);
+  justify-content:space-between;padding:0 0 20px;overflow:hidden;}
+
+.menu-stars{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
+
+.menu-top{z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:40px;gap:6px;}
+.menu-logo{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.logo-icon{font-size:48px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 20px #ffd74066);}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.logo-title{font-family:'Fredoka One',cursive;font-size:38px;
+  background:linear-gradient(135deg,#ffd740,#ffb300,#ff8f00);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 12px #ffd74055);letter-spacing:3px;}
+.logo-sub{color:#aac4ff;font-size:13px;font-weight:700;letter-spacing:2px;opacity:.7;}
+
+.menu-cards-row{display:flex;gap:8px;margin-top:12px;}
+.mc{width:36px;height:50px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;
+  box-shadow:0 6px 0 #00000066,inset 0 1px 0 #ffffff44;
+  animation:cardPop var(--cd,0.5s) ease-out both var(--cdelay,0s);}
+@keyframes cardPop{from{transform:translateY(30px) rotate(var(--cr,0deg));opacity:0}to{transform:translateY(0) rotate(var(--cr,0deg));opacity:1}}
+.mc-s{background:linear-gradient(135deg,#fff,#e8f0ff);color:#1a3a8a;}
+.mc-h{background:linear-gradient(135deg,#ff5252,#e53935);color:#fff;}
+.mc-d{background:linear-gradient(135deg,#ff9800,#f57c00);color:#fff;}
+.mc-c{background:linear-gradient(135deg,#fff,#e8f5e9);color:#1b5e20;}
+
+.menu-btns{display:flex;flex-direction:column;gap:10px;width:min(320px,92vw);z-index:2;padding:0 16px;}
+.mb{display:flex;align-items:center;gap:14px;
+  background:linear-gradient(135deg,rgba(10,28,70,.9),rgba(16,38,90,.9));
+  border:1.5px solid rgba(255,215,64,.18);
+  border-radius:18px;padding:15px 18px;cursor:pointer;
+  box-shadow:0 7px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .08s,box-shadow .08s;
+  backdrop-filter:blur(12px);}
+.mb:active{transform:translateY(6px);box-shadow:0 1px 0 rgba(0,0,0,.5);}
+.mb-ic{font-size:26px;width:36px;text-align:center;}
+.mb-tx{flex:1;color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;}
+.mb-ar{color:var(--gold);font-size:22px;font-weight:900;}
+.mb-badge{background:var(--green);color:#fff;font-size:10px;font-weight:900;
+  border-radius:8px;padding:2px 7px;margin-right:4px;}
+
+.menu-profile{z-index:2;display:flex;align-items:center;gap:10px;
+  background:rgba(10,24,60,.6);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:8px 14px;cursor:pointer;
+  backdrop-filter:blur(8px);}
+.prof-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1a6af5,#0d3d99);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  border:2px solid rgba(255,215,64,.3);}
+.prof-name{color:#fff;font-size:14px;font-weight:800;}
+.prof-gems{color:var(--gold);font-size:13px;font-weight:700;}
+.prof-edit{color:#aac4ff;font-size:12px;margin-left:auto;}
+
+/* ===== SETUP SCREEN ===== */
+#setupScreen{
+  background:linear-gradient(180deg,#040d22 0%,#071428 100%);
+  padding:16px;gap:12px;justify-content:flex-start;overflow-y:auto;}
+.back-btn{align-self:flex-start;
+  background:linear-gradient(135deg,#0d2258,#142d70);
+  border:1.5px solid rgba(255,255,255,.15);color:#aac4ff;
+  border-radius:12px;padding:8px 16px;font-size:14px;font-weight:800;cursor:pointer;
+  box-shadow:0 3px 0 #04091a;}
+.back-btn:active{transform:translateY(2px);}
+.s-title{font-family:'Fredoka One',cursive;font-size:22px;color:var(--gold);text-align:center;}
+.player-row{display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#0a1c40,#0f2248);
+  border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;
+  box-shadow:0 3px 8px rgba(0,0,0,.3);}
+.pr-dot{width:32px;height:32px;border-radius:50%;flex-shrink:0;border:3px solid rgba(255,255,255,.25);}
+.pr-name{flex:1;background:transparent;border:none;color:#fff;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;outline:none;}
+.pr-name::placeholder{color:rgba(255,255,255,.25);}
+.pr-type{background:rgba(10,24,60,.8);border:1.5px solid rgba(255,255,255,.15);
+  border-radius:9px;color:#aac4ff;font-family:'Nunito',sans-serif;
+  font-size:12px;font-weight:800;padding:6px 8px;outline:none;-webkit-appearance:none;}
+.start-btn{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:16px;padding:16px;
+  font-family:'Fredoka One',cursive;font-size:22px;color:#3a1a00;cursor:pointer;
+  width:100%;box-shadow:0 6px 0 #a06800,0 0 24px rgba(255,215,64,.2);
+  transition:transform .08s,box-shadow .08s;}
+.start-btn:active{transform:translateY(5px);box-shadow:0 1px 0 #a06800;}
+.num-btns{display:flex;gap:8px;justify-content:center;}
+.num-btn{flex:1;padding:10px;border-radius:12px;
+  background:rgba(10,28,70,.8);border:1.5px solid rgba(255,255,255,.1);
+  color:#aac4ff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;
+  cursor:pointer;transition:all .15s;}
+.num-btn.sel{background:linear-gradient(135deg,var(--accent),#0d3d99);
+  border-color:rgba(255,215,64,.4);color:var(--gold);
+  box-shadow:0 4px 0 #04091a,0 0 12px rgba(26,106,245,.3);}
+
+/* ===== GAME SCREEN ===== */
+#gameScreen{
+  background:
+    radial-gradient(ellipse 100% 40% at 50% 0%,#0e2456 0%,transparent 50%),
+    linear-gradient(180deg,#030b18 0%,#040e1c 100%);
+  padding:0;}
+
+.g-hd{width:100%;background:linear-gradient(180deg,#02080f,#04101e);
+  padding:6px 12px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(255,215,64,.08);flex-shrink:0;
+  box-shadow:0 2px 20px rgba(0,0,0,.6);}
+.g-title{font-family:'Fredoka One',cursive;color:var(--gold);font-size:15px;letter-spacing:2px;}
+.g-exit{background:linear-gradient(135deg,#2d0606,#5a0e0e);
+  border:1px solid rgba(229,57,53,.3);color:#ff9999;
+  border-radius:8px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;}
+.g-exit:active{transform:translateY(1px);}
+
+/* Table area */
+.g-body{flex:1;width:100%;display:flex;flex-direction:column;min-height:0;}
+
+/* Opponents area */
+.opponents-area{display:flex;justify-content:space-around;align-items:flex-start;
+  padding:6px 8px 4px;flex-shrink:0;gap:4px;}
+.opp-slot{display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:rgba(10,24,60,.5);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:6px 10px;min-width:70px;
+  transition:all .3s;}
+.opp-slot.active-turn{
+  border-color:rgba(255,215,64,.5);
+  box-shadow:0 0 14px rgba(255,215,64,.2);
+  background:rgba(20,40,90,.7);}
+.opp-slot.eliminated{opacity:.35;filter:grayscale(.8);}
+.opp-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;
+  border:2px solid rgba(255,255,255,.2);}
+.opp-name{color:#aac4ff;font-size:10px;font-weight:800;text-align:center;max-width:65px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.opp-count{color:#ffd740;font-size:11px;font-weight:900;}
+.opp-cards-mini{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;}
+.mini-card{width:10px;height:14px;background:linear-gradient(135deg,#1a3a8a,#0d2060);
+  border-radius:2px;border:1px solid rgba(255,255,255,.15);}
+
+/* Table center */
+.table-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px;min-height:0;position:relative;}
+.table-felt{
+  width:100%;max-width:360px;min-height:100px;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 50%,rgba(10,40,100,.4) 0%,transparent 70%),
+    rgba(5,15,40,.6);
+  border:1.5px solid rgba(26,106,245,.15);border-radius:20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px;gap:6px;
+  box-shadow:inset 0 2px 20px rgba(0,0,0,.3),0 4px 20px rgba(0,0,0,.3);}
+.table-label{color:rgba(255,255,255,.25);font-size:11px;font-weight:700;letter-spacing:2px;}
+.table-cards-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:50px;align-items:center;}
+.table-type-badge{
+  background:linear-gradient(135deg,rgba(26,106,245,.3),rgba(13,61,153,.3));
+  border:1px solid rgba(26,106,245,.3);border-radius:8px;
+  color:#aac4ff;font-size:11px;font-weight:800;padding:3px 10px;}
+.msg-box{color:#e8f0ff;font-size:12px;font-weight:700;text-align:center;
+  max-width:280px;line-height:1.4;min-height:18px;}
+
+/* Playing cards */
+.card{
+  width:42px;height:60px;border-radius:7px;
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:4px 5px;cursor:pointer;flex-shrink:0;
+  box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .15s,box-shadow .15s;
+  border:1.5px solid rgba(255,255,255,.2);
+  position:relative;
+  background:linear-gradient(145deg,#fff,#f0f4ff);}
+.card.red-card{background:linear-gradient(145deg,#fff8f8,#fff0f0);}
+.card-val{font-size:13px;font-weight:900;line-height:1;}
+.card-suit{font-size:11px;line-height:1;}
+.card-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;}
+.card.selected{transform:translateY(-10px);box-shadow:0 12px 20px rgba(255,215,64,.4),0 0 0 2px var(--gold);}
+.card.black-card .card-val,.card.black-card .card-suit{color:#1a1a2e;}
+.card.red-card .card-val,.card.red-card .card-suit{color:#c62828;}
+.card.special-3{background:linear-gradient(145deg,#e8f5e9,#f1f8e9);}
+.card.special-3 .card-val,.card.special-3 .card-suit{color:#1b5e20;}
+.card.special-2{background:linear-gradient(145deg,#fff8e1,#fffde7);}
+.card.special-2 .card-val,.card.special-2 .card-suit{color:#e65100;}
+.card-back{
+  width:42px;height:60px;border-radius:7px;flex-shrink:0;
+  background:linear-gradient(135deg,#1a3a8a,#0d2060);
+  border:1.5px solid rgba(255,255,255,.1);
+  box-shadow:0 3px 8px rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;font-size:16px;}
+
+/* Player hand */
+.player-area{flex-shrink:0;padding:6px 6px 10px;display:flex;flex-direction:column;gap:6px;}
+.player-info-row{display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
+.my-name{color:#ffd740;font-size:13px;font-weight:900;}
+.my-count{color:#aac4ff;font-size:12px;font-weight:700;}
+.turn-indicator{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#3a1a00;font-size:11px;font-weight:900;
+  border-radius:8px;padding:3px 10px;
+  animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,64,.4)}50%{box-shadow:0 0 0 6px rgba(255,215,64,0)}}
+.hand-scroll{overflow-x:auto;padding:4px 4px 6px;}
+.hand-row{display:flex;gap:6px;width:max-content;padding:2px 4px;}
+
+/* Action buttons */
+.action-row{display:flex;gap:8px;padding:0 6px;}
+.btn-play{
+  flex:2;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:14px;padding:13px;
+  font-family:'Fredoka One',cursive;font-size:18px;color:#3a1a00;cursor:pointer;
+  box-shadow:0 5px 0 #a06800;transition:transform .08s,box-shadow .08s;}
+.btn-play:active{transform:translateY(4px);box-shadow:0 1px 0 #a06800;}
+.btn-play:disabled{opacity:.4;cursor:not-allowed;}
+.btn-skip{
+  flex:1;background:linear-gradient(135deg,#1a2a50,#0f1e3d);
+  border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:13px;
+  color:#aac4ff;font-family:'Fredoka One',cursive;font-size:16px;cursor:pointer;
+  box-shadow:0 4px 0 #05090f;transition:transform .08s,box-shadow .08s;}
+.btn-skip:active{transform:translateY(3px);box-shadow:0 1px 0 #05090f;}
+.btn-skip:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Opening phase */
+.opening-banner{
+  background:linear-gradient(135deg,rgba(26,106,245,.2),rgba(13,61,153,.2));
+  border:1.5px solid rgba(26,106,245,.3);border-radius:14px;
+  color:#aac4ff;font-size:12px;font-weight:800;text-align:center;
+  padding:8px 12px;margin:0 6px;}
+.btn-open-discard{
+  flex:2;background:linear-gradient(135deg,#1a6af5,#0d3d99);
+  border:none;border-radius:14px;padding:13px;
+  font-family:'Fredoka One',cursive;font-size:17px;color:#fff;cursor:pointer;
+  box-shadow:0 5px 0 #062060;transition:transform .08s,box-shadow .08s;}
+.btn-open-discard:active{transform:translateY(4px);box-shadow:0 1px 0 #062060;}
+.btn-open-discard:disabled{opacity:.4;}
+.btn-open-skip{
+  flex:1;background:linear-gradient(135deg,#1a2a50,#0f1e3d);
+  border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:13px;
+  color:#aac4ff;font-family:'Fredoka One',cursive;font-size:16px;cursor:pointer;
+  box-shadow:0 4px 0 #05090f;transition:transform .08s,box-shadow .08s;}
+.btn-open-skip:active{transform:translateY(3px);}
+.btn-open-skip:disabled{opacity:.4;}
+
+/* ===== GAME OVER SCREEN ===== */
+#gameOverScreen{
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%,rgba(255,215,64,.07) 0%,transparent 60%),
+    linear-gradient(180deg,#030b18 0%,#040e1c 100%);
+  justify-content:center;gap:16px;padding:20px;}
+.go-trophy{font-size:72px;animation:trophyBounce 1s ease-out both;
+  filter:drop-shadow(0 0 30px #ffd74066);}
+@keyframes trophyBounce{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+.go-title{font-family:'Fredoka One',cursive;font-size:32px;color:var(--gold);
+  text-shadow:0 0 30px rgba(255,215,64,.4);}
+.rankings-list{display:flex;flex-direction:column;gap:8px;width:min(320px,92vw);}
+.rank-row{display:flex;align-items:center;gap:12px;
+  background:rgba(10,24,60,.6);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:12px 16px;
+  box-shadow:0 3px 10px rgba(0,0,0,.3);}
+.rank-row.rank-1{border-color:rgba(255,215,64,.3);background:rgba(60,40,0,.3);}
+.rank-row.rank-2{border-color:rgba(200,200,200,.2);background:rgba(30,30,40,.4);}
+.rank-row.rank-3{border-color:rgba(180,100,40,.25);background:rgba(40,20,10,.4);}
+.rank-emoji{font-size:24px;width:32px;text-align:center;}
+.rank-name{flex:1;color:#fff;font-size:15px;font-weight:800;}
+.rank-badge{color:#aac4ff;font-size:13px;font-weight:700;}
+.go-btns{display:flex;gap:10px;width:min(320px,92vw);}
+.go-btn-again{
+  flex:2;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:16px;padding:15px;
+  font-family:'Fredoka One',cursive;font-size:20px;color:#3a1a00;cursor:pointer;
+  box-shadow:0 5px 0 #a06800;}
+.go-btn-again:active{transform:translateY(4px);}
+.go-btn-menu{
+  flex:1;background:linear-gradient(135deg,#1a2a50,#0f1e3d);
+  border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:15px;
+  color:#aac4ff;font-family:'Fredoka One',cursive;font-size:17px;cursor:pointer;
+  box-shadow:0 4px 0 #05090f;}
+.go-btn-menu:active{transform:translateY(3px);}
+
+/* ===== TOAST ===== */
+#toast{
+  position:fixed;bottom:120px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(10,24,60,.95);border:1.5px solid rgba(255,215,64,.2);
+  border-radius:12px;padding:10px 20px;color:#fff;font-size:13px;font-weight:800;
+  pointer-events:none;opacity:0;transition:all .3s;z-index:999;
+  backdrop-filter:blur(10px);white-space:nowrap;max-width:90vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== PROFILE MODAL ===== */
+#profileModal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:800;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#profileModal.show{display:flex;}
+.pm-box{
+  background:linear-gradient(180deg,#071428,#0a1c3d);
+  border:1.5px solid rgba(255,215,64,.15);border-radius:22px;
+  padding:24px;width:min(320px,92vw);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);}
+.pm-title{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold);text-align:center;margin-bottom:16px;}
+.pm-input{width:100%;background:rgba(10,28,70,.7);border:1.5px solid rgba(255,255,255,.12);
+  border-radius:12px;color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;
+  padding:12px 14px;outline:none;margin-bottom:10px;}
+.pm-input::placeholder{color:rgba(255,255,255,.3);}
+.pm-save{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:14px;padding:14px;
+  font-family:'Fredoka One',cursive;font-size:19px;color:#3a1a00;cursor:pointer;
+  box-shadow:0 5px 0 #a06800;margin-bottom:8px;}
+.pm-cancel{width:100%;background:transparent;border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;padding:12px;color:#aaa;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;}
+
+/* ===== RULES SCREEN ===== */
+#rulesScreen{
+  background:linear-gradient(180deg,#040d22,#071428);
+  padding:16px;gap:10px;justify-content:flex-start;overflow-y:auto;}
+.rules-card{
+  background:rgba(10,24,60,.6);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px 16px;width:100%;}
+.rules-head{font-family:'Fredoka One',cursive;font-size:16px;color:var(--gold);margin-bottom:6px;}
+.rules-text{color:#aac4ff;font-size:13px;line-height:1.6;font-weight:600;}
+.rules-combo{display:flex;flex-direction:column;gap:4px;}
+.rc{display:flex;align-items:center;gap:8px;}
+.rc-name{color:#ffd740;font-size:13px;font-weight:800;width:90px;flex-shrink:0;}
+.rc-desc{color:#8899cc;font-size:12px;}
+
+/* ===== ONLINE LOBBY ===== */
+#lobbyScreen{
+  background:linear-gradient(180deg,#040d22,#071428);
+  padding:16px;gap:10px;justify-content:flex-start;overflow-y:auto;}
+.room-card{
+  background:rgba(10,24,60,.6);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px 16px;width:100%;cursor:pointer;
+  transition:all .15s;}
+.room-card:active{transform:scale(.98);}
+.room-card.mine{border-color:rgba(255,215,64,.25);}
+.room-name{color:#fff;font-size:15px;font-weight:800;}
+.room-info{color:#8899cc;font-size:12px;}
+.room-btn{background:linear-gradient(135deg,var(--accent),#0d3d99);
+  border:none;border-radius:10px;color:#fff;font-weight:800;font-size:13px;
+  padding:7px 16px;cursor:pointer;}
+.waiting-dots span{animation:dot 1.4s infinite;display:inline-block;}
+.waiting-dots span:nth-child(2){animation-delay:.2s;}
+.waiting-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes dot{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ===== MENU ===== -->
+<div id="menuScreen" class="screen active">
+  <div class="menu-stars" id="starsContainer"></div>
+  <div class="menu-top">
+    <div class="menu-logo">
+      <div class="logo-icon">🃏</div>
+      <div class="logo-title">HOKI CARDS</div>
+      <div class="logo-sub">GAME KARTU SERU</div>
+    </div>
+    <div class="menu-cards-row">
+      <div class="mc mc-s" style="--cr:-8deg;--cdelay:.1s">A♠</div>
+      <div class="mc mc-h" style="--cr:-3deg;--cdelay:.2s">K♥</div>
+      <div class="mc mc-d" style="--cr:2deg;--cdelay:.3s">Q♦</div>
+      <div class="mc mc-c" style="--cr:7deg;--cdelay:.4s">J♣</div>
+    </div>
+  </div>
+  <div class="menu-btns">
+    <div class="mb" onclick="go('setupScreen','local')">
+      <div class="mb-ic">🎮</div>
+      <div class="mb-tx">Main Lokal</div>
+      <div class="mb-ar">›</div>
+    </div>
+    <div class="mb" onclick="go('setupScreen','bot')">
+      <div class="mb-ic">🤖</div>
+      <div class="mb-tx">VS Komputer</div>
+      <div class="mb-ar">›</div>
+    </div>
+    <div class="mb" onclick="go('lobbyScreen')">
+      <div class="mb-ic">🌐</div>
+      <div class="mb-tx">Main Online</div>
+      <div class="mb-badge">BARU</div>
+      <div class="mb-ar">›</div>
+    </div>
+    <div class="mb" onclick="go('rulesScreen')">
+      <div class="mb-ic">📖</div>
+      <div class="mb-tx">Cara Main</div>
+      <div class="mb-ar">›</div>
+    </div>
+  </div>
+  <div class="menu-profile" onclick="showProfileModal()">
+    <div class="prof-av" id="menuAvatar">😎</div>
+    <div>
+      <div class="prof-name" id="menuName">Pemain</div>
+      <div class="prof-gems">💎 <span id="menuGems">0</span></div>
+    </div>
+    <div class="prof-edit">✏️ Edit</div>
+  </div>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div id="setupScreen" class="screen">
+  <button class="back-btn" onclick="go('menuScreen')">‹ Kembali</button>
+  <div class="s-title" id="setupTitle">⚙️ Pengaturan Game</div>
+  <div style="width:100%;display:flex;flex-direction:column;gap:8px;" id="setupContent">
+    <!-- Dynamic content -->
+  </div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="gameScreen" class="screen">
+  <div class="g-hd">
+    <div class="g-title">🃏 HOKI CARDS</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div id="phaseTag" class="table-type-badge" style="display:none;"></div>
+      <button class="g-exit" onclick="confirmExit()">✕ Keluar</button>
+    </div>
+  </div>
+  <div class="g-body">
+    <!-- Opponents -->
+    <div class="opponents-area" id="opponentsArea"></div>
+    <!-- Table -->
+    <div class="table-area">
+      <div class="table-felt">
+        <div class="table-label">MEJA</div>
+        <div class="table-cards-row" id="tableCards"></div>
+        <div class="table-type-badge" id="tableTypeBadge" style="display:none;"></div>
+        <div class="msg-box" id="msgBox">Memulai game...</div>
+      </div>
+    </div>
+    <!-- Player hand -->
+    <div class="player-area">
+      <div class="player-info-row">
+        <div>
+          <div class="my-name" id="myName">Kamu</div>
+          <div class="my-count" id="myCount">0 kartu</div>
+        </div>
+        <div id="turnBadge" class="turn-indicator" style="display:none;">GILIRAN KAMU ▶</div>
+      </div>
+      <div class="hand-scroll"><div class="hand-row" id="myHand"></div></div>
+      <div id="openingBanner" class="opening-banner" style="display:none;"></div>
+      <div class="action-row" id="actionRow">
+        <button class="btn-play" id="btnPlay" onclick="playCards()">🃏 Main!</button>
+        <button class="btn-skip" id="btnSkip" onclick="skipTurn()">⏭ Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME OVER ===== -->
+<div id="gameOverScreen" class="screen">
+  <div class="go-trophy" id="goTrophy">🏆</div>
+  <div class="go-title" id="goTitle">Game Selesai!</div>
+  <div class="rankings-list" id="rankingsList"></div>
+  <div class="go-btns">
+    <button class="go-btn-again" onclick="playAgain()">🔄 Main Lagi</button>
+    <button class="go-btn-menu" onclick="go('menuScreen')">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ===== RULES ===== -->
+<div id="rulesScreen" class="screen">
+  <button class="back-btn" onclick="go('menuScreen')">‹ Kembali</button>
+  <div class="s-title">📖 Cara Main</div>
+  <div class="rules-card">
+    <div class="rules-head">🃏 Dasar</div>
+    <div class="rules-text">52 kartu dibagi rata ke semua pemain. Tujuan: habiskan kartu pertama. Urutan nilai: 3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9 &lt; 10 &lt; J &lt; Q &lt; K &lt; A &lt; 2</div>
+  </div>
+  <div class="rules-card">
+    <div class="rules-head">🟢 Fase Pembukaan</div>
+    <div class="rules-text">Pemegang 3♠ wajib keluarkan kartu itu. Pemain lain boleh buang 1 kartu 3 miliknya, atau skip. Serentak, tidak bergilir.</div>
+  </div>
+  <div class="rules-card">
+    <div class="rules-head">⚠️ Kartu Spesial</div>
+    <div class="rules-text">
+      <b style="color:#ffd740">Kartu 3</b> = Pengecoh. Dibuang kapan saja, giliran tetap di kamu.<br>
+      <b style="color:#ff9800">Kartu 2</b> = Terkuat, tapi ada risikonya:<br>
+      • Sisa 2 kartu efektif + ada kartu 2 → WAJIB main 2 duluan<br>
+      • Sisa kartu 2 saja → LANGSUNG KALAH
+    </div>
+  </div>
+  <div class="rules-card">
+    <div class="rules-head">🎯 Kombinasi Kartu</div>
+    <div class="rules-combo">
+      <div class="rc"><div class="rc-name">Single</div><div class="rc-desc">1 kartu</div></div>
+      <div class="rc"><div class="rc-name">Double</div><div class="rc-desc">2 kartu nilai sama</div></div>
+      <div class="rc"><div class="rc-name">Triple</div><div class="rc-desc">3 kartu nilai sama</div></div>
+      <div class="rc"><div class="rc-name">Straight 3+</div><div class="rc-desc">3+ kartu berurutan, 1 jenis (angka saja / huruf saja)</div></div>
+      <div class="rc"><div class="rc-name">Bomb4 💣</div><div class="rc-desc">4 kartu nilai sama — kalahkan kartu 2!</div></div>
+      <div class="rc"><div class="rc-name">JQKA 👑</div><div class="rc-desc">J+Q+K+A 1 jenis — bomb terkuat!</div></div>
+    </div>
+  </div>
+  <div class="rules-card">
+    <div class="rules-head">💥 Efek Spesial</div>
+    <div class="rules-text">
+      • Bomb4/JQKA mengalahkan kartu 2 tunggal<br>
+      • Straight4 men-STOP pemain sebelumnya 1 giliran<br>
+      • Semua pemain skip → meja reset, pemain terakhir main bebas
+    </div>
+  </div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- ===== ONLINE LOBBY ===== -->
+<div id="lobbyScreen" class="screen">
+  <button class="back-btn" onclick="go('menuScreen')">‹ Kembali</button>
+  <div class="s-title">🌐 Main Online</div>
+  <div id="lobbyContent" style="width:100%;display:flex;flex-direction:column;gap:8px;padding:0 2px;">
+    <div style="color:#8899cc;font-size:13px;text-align:center;padding:20px;">
+      Memuat lobby<span class="waiting-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROFILE MODAL ===== -->
+<div id="profileModal">
+  <div class="pm-box">
+    <div class="pm-title">✏️ Edit Profil</div>
+    <input class="pm-input" id="pmNameInput" placeholder="Nama kamu" maxlength="20">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;" id="avatarPicker"></div>
+    <button class="pm-save" onclick="saveProfile()">✅ Simpan</button>
+    <button class="pm-cancel" onclick="closeProfileModal()">Batal</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<script>
+// ===================== FIREBASE CONFIG =====================
+// Ganti dengan config Firebase Anda
+const FB_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let db = null;
+let currentRoomRef = null;
+let onlinePlayerId = null;
+let onlineRoomId = null;
+let onlineUnsubscribes = [];
+
+function initFirebase() {
+  try {
+    if (typeof firebase !== 'undefined' && FB_CONFIG.apiKey !== "YOUR_API_KEY") {
+      if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+      db = firebase.database();
+      return true;
+    }
+  } catch(e) { console.log('Firebase not available:', e.message); }
+  return false;
+}
+
+// ===================== PLAYER PROFILE =====================
+const AVATARS = ['😎','🦊','🐯','🦁','🐺','🦄','🐸','🤖','👾','🎭','😈','🃏'];
+let profile = JSON.parse(localStorage.getItem('hokiProfile') || '{"name":"Pemain","avatar":"😎","gems":0}');
+
+function saveProfileData() { localStorage.setItem('hokiProfile', JSON.stringify(profile)); }
+
+function showProfileModal() {
+  document.getElementById('pmNameInput').value = profile.name;
+  const ap = document.getElementById('avatarPicker');
+  ap.innerHTML = AVATARS.map(a =>
+    `<div onclick="selectAvatar('${a}')" style="font-size:26px;cursor:pointer;padding:4px;border-radius:8px;
+    background:${profile.avatar===a?'rgba(255,215,64,.2)':'transparent'};
+    border:2px solid ${profile.avatar===a?'rgba(255,215,64,.4)':'transparent'};
+    transition:all .15s;" data-av="${a}">${a}</div>`
+  ).join('');
+  document.getElementById('profileModal').classList.add('show');
+}
+function selectAvatar(a) {
+  profile.avatar = a;
+  document.querySelectorAll('[data-av]').forEach(el => {
+    const sel = el.dataset.av === a;
+    el.style.background = sel ? 'rgba(255,215,64,.2)' : 'transparent';
+    el.style.border = `2px solid ${sel?'rgba(255,215,64,.4)':'transparent'}`;
+  });
+}
+function saveProfile() {
+  const n = document.getElementById('pmNameInput').value.trim();
+  if (n) profile.name = n;
+  saveProfileData();
+  updateMenuProfile();
+  closeProfileModal();
+  toast('Profil disimpan!');
+}
+function closeProfileModal() { document.getElementById('profileModal').classList.remove('show'); }
+function updateMenuProfile() {
+  document.getElementById('menuName').textContent = profile.name;
+  document.getElementById('menuGems').textContent = profile.gems;
+  document.getElementById('menuAvatar').textContent = profile.avatar;
+}
+
+// ===================== STARS =====================
+function createStars() {
+  const c = document.getElementById('starsContainer');
+  c.innerHTML = '';
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 1;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;`;
+    c.appendChild(s);
+  }
+}
+
+// ===================== NAVIGATION =====================
+let setupMode = 'local';
+function go(screen, mode) {
+  if (mode) setupMode = mode;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screen).classList.add('active');
+  if (screen === 'setupScreen') buildSetup();
+  if (screen === 'lobbyScreen') initLobby();
+  if (screen === 'menuScreen') updateMenuProfile();
+}
+
+// ===================== SETUP =====================
+const PLAYER_COLORS = ['#e53935','#43a047','#1a6af5','#ff9800'];
+const PLAYER_EMOJIS = ['🔴','🟢','🔵','🟡'];
+let setupPlayers = 2;
+let playerConfigs = [];
+
+function buildSetup() {
+  document.getElementById('setupTitle').textContent =
+    setupMode === 'bot' ? '🤖 VS Komputer' : '🎮 Pengaturan Game';
+  const c = document.getElementById('setupContent');
+  c.innerHTML = '';
+
+  // Number of players
+  const numDiv = document.createElement('div');
+  numDiv.innerHTML = `
+    <div style="color:#aac4ff;font-size:12px;font-weight:800;letter-spacing:1px;margin-bottom:6px;padding:0 4px;">JUMLAH PEMAIN</div>
+    <div class="num-btns">
+      ${[2,3,4].map(n=>`<button class="num-btn${setupPlayers===n?' sel':''}" onclick="setNumPlayers(${n})">${n} Pemain</button>`).join('')}
+    </div>`;
+  c.appendChild(numDiv);
+
+  // Player rows
+  const pDiv = document.createElement('div');
+  pDiv.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+  pDiv.id = 'playerRows';
+  c.appendChild(pDiv);
+  buildPlayerRows();
+
+  // Start button
+  const btn = document.createElement('button');
+  btn.className = 'start-btn';
+  btn.textContent = '▶ Mulai Game!';
+  btn.onclick = startGame;
+  c.appendChild(btn);
+}
+
+function buildPlayerRows() {
+  playerConfigs = [];
+  const container = document.getElementById('playerRows');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < setupPlayers; i++) {
+    const isMe = i === 0;
+    const isBot = setupMode === 'bot' && i > 0;
+    playerConfigs.push({
+      name: isMe ? profile.name : (isBot ? `Bot ${i}` : `Pemain ${i+1}`),
+      type: isBot ? 'bot' : (isMe ? 'human' : 'human'),
+      color: PLAYER_COLORS[i],
+      emoji: PLAYER_EMOJIS[i]
+    });
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="pr-dot" style="background:${PLAYER_COLORS[i]};"></div>
+      <input class="pr-name" value="${playerConfigs[i].name}" 
+        placeholder="Nama pemain ${i+1}"
+        onchange="playerConfigs[${i}].name=this.value"
+        ${isBot?'disabled':''}>
+      <select class="pr-type" onchange="playerConfigs[${i}].type=this.value" ${isMe?'disabled':''}>
+        <option value="human"${!isBot?' selected':''}>👤 Orang</option>
+        <option value="bot"${isBot?' selected':''}>🤖 Bot</option>
+      </select>`;
+    container.appendChild(row);
+  }
+}
+
+function setNumPlayers(n) {
+  setupPlayers = n;
+  document.querySelectorAll('.num-btn').forEach((b,i) => {
+    b.classList.toggle('sel', [2,3,4][i] === n);
+  });
+  buildPlayerRows();
+}
+
+// ===================== GAME LOGIC =====================
+const SUITS = ['S','H','D','C'];
+const SUIT_SYMBOLS = {S:'♠',H:'♥',D:'♦',C:'♣'};
+const SUIT_COLORS = {S:'black',H:'red',D:'red',C:'black'};
+const VALUES = ['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+const VALUE_ORDER = {};
+VALUES.forEach((v,i) => VALUE_ORDER[v] = i);
+const NUMBER_VALUES = new Set(['3','4','5','6','7','8','9','10']);
+const LETTER_VALUES = new Set(['J','Q','K','A']);
+
+let G = null; // game state
+let selectedCards = [];
+let myPlayerIdx = 0;
+let lastSetupConfig = null;
+
+function createDeck() {
+  const d = [];
+  for (const s of SUITS) for (const v of VALUES) d.push({suit:s,value:v});
+  for (let i=d.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
+  return d;
+}
+
+function deal(deck, n) {
+  const hands = Array.from({length:n},()=>[]);
+  deck.forEach((c,i) => hands[i%n].push(c));
+  return hands;
+}
+
+function cardVal(c) { return VALUE_ORDER[c.value]; }
+
+function effectiveHand(hand) { return hand.filter(c => c.value !== '3'); }
+
+function checkInstantLose(hand) {
+  const eff = effectiveHand(hand);
+  if (eff.length === 0 && hand.length > 0) return {lose:true, msg:'Sisa kartu 3 semua (pengecoh) — kalah!'};
+  if (eff.length === 1 && eff[0].value === '2') return {lose:true, msg:'Sisa kartu 2 saja — langsung kalah!'};
+  return {lose:false};
+}
+
+function isAllSameSuit(cards) { return new Set(cards.map(c=>c.suit)).size === 1; }
+
+function isValidStraight(cards) {
+  if (cards.length < 3) return false;
+  if (!isAllSameSuit(cards)) return false;
+  const allNum = cards.every(c => NUMBER_VALUES.has(c.value) && c.value !== '3');
+  const allLet = cards.every(c => LETTER_VALUES.has(c.value));
+  if (!allNum && !allLet) return false;
+  const vals = cards.map(c=>cardVal(c)).sort((a,b)=>a-b);
+  for (let i=1;i<vals.length;i++) if (vals[i]!==vals[i-1]+1) return false;
+  return true;
+}
+
+function isJQKA(cards) {
+  if (cards.length !== 4) return false;
+  const vals = cards.map(c=>c.value).sort().join(',');
+  return vals === 'A,J,K,Q' && isAllSameSuit(cards);
+}
+
+function getPlayType(cards) {
+  const n = cards.length;
+  if (n === 0) return null;
+  if (n === 1) return {type:'single', val:cardVal(cards[0])};
+  if (n === 2) {
+    if (cards[0].value === cards[1].value) return {type:'double', val:cardVal(cards[0])};
+    return null;
+  }
+  if (n === 3) {
+    const vals = cards.map(c=>c.value);
+    if (new Set(vals).size === 1) return {type:'triple', val:cardVal(cards[0])};
+    if (isValidStraight(cards)) return {type:'straight3', val:Math.max(...cards.map(cardVal))};
+    return null;
+  }
+  if (n === 4) {
+    if (isJQKA(cards)) return {type:'jqka', val:99};
+    const vals = cards.map(c=>c.value);
+    if (new Set(vals).size === 1) return {type:'bomb4', val:cardVal(cards[0])};
+    if (isValidStraight(cards)) return {type:'straight4', val:Math.max(...cards.map(cardVal))};
+    return null;
+  }
+  if (n >= 5 && isValidStraight(cards)) return {type:'straight5plus', val:Math.max(...cards.map(cardVal))};
+  return null;
+}
+
+function canBeat(playCards, tableCards, tableType) {
+  if (!tableCards || tableCards.length === 0) return true;
+  const pt = getPlayType(playCards);
+  if (!pt) return false;
+  const tt = getPlayType(tableCards);
+  // Single 2: only bomb4 or jqka beats it
+  if (tableType === 'single' && tableCards[0].value === '2') {
+    return pt.type === 'bomb4' || pt.type === 'jqka';
+  }
+  // Double 2: unbeatable
+  if (tableType === 'double' && tableCards.every(c=>c.value==='2')) return false;
+  if (pt.type !== tableType) return false;
+  if (['straight3','straight4','straight5plus'].includes(tableType) && playCards.length !== tableCards.length) return false;
+  return pt.val > (tt ? tt.val : 0);
+}
+
+function initGame(configs) {
+  lastSetupConfig = configs;
+  myPlayerIdx = 0;
+  selectedCards = [];
+  const n = configs.length;
+  const deck = createDeck();
+  const hands = deal(deck, n);
+
+  // Find 3♠ holder
+  let openerIdx = 0;
+  for (let i = 0; i < n; i++) {
+    for (const c of hands[i]) {
+      if (c.value === '3' && c.suit === 'S') { openerIdx = i; break; }
+    }
+  }
+
+  G = {
+    n, configs, hands,
+    activePlayers: Array.from({length:n},(_,i)=>i),
+    stoppedPlayers: new Set(),
+    skippedThisRound: new Set(),
+    currentPlayer: openerIdx,
+    tableCards: [],
+    tableType: null,
+    lastPlayerPlayed: null,
+    rankings: [],
+    gameOver: false,
+    phase: 'opening',
+    openingDone: new Set(),
+    openerIdx,
+    openingTable: [],
+    decoyCards: [],
+    message: `🃏 Fase pembukaan! Pemain ${openerIdx+1} wajib keluarkan 3♠!`
+  };
+}
+
+// ===================== BOT AI =====================
+function botChooseCards(pidx) {
+  const hand = G.hands[pidx];
+  if (G.phase === 'opening') {
+    const card3 = hand.find(c=>c.value==='3');
+    return card3 ? [card3] : [];
+  }
+
+  const eff = effectiveHand(hand);
+  const isFree = G.tableCards.length === 0;
+
+  // Play decoy (kartu 3) sometimes if stuck
+  if (hand.some(c=>c.value==='3') && !isFree && Math.random() < 0.3) {
+    return [hand.find(c=>c.value==='3')];
+  }
+
+  if (isFree) {
+    // Play lowest single or best combo
+    const sorted = [...eff].sort((a,b)=>cardVal(a)-cardVal(b));
+    // Try combos first: double, triple, straight
+    for (let i = 0; i < sorted.length - 1; i++) {
+      for (let j = i+1; j < sorted.length; j++) {
+        const t = getPlayType([sorted[i],sorted[j]]);
+        if (t) return [sorted[i],sorted[j]];
+      }
+    }
+    return sorted.length > 0 ? [sorted[0]] : [];
+  } else {
+    // Try to beat the table
+    const ttype = G.tableType;
+    const tlen = G.tableCards.length;
+    const sorted = [...eff].sort((a,b)=>cardVal(a)-cardVal(b));
+
+    if (ttype === 'single') {
+      // Single
+      const beat = sorted.filter(c => {
+        const pt = getPlayType([c]);
+        return pt && canBeat([c], G.tableCards, ttype);
+      });
+      if (beat.length > 0) return [beat[0]];
+      // Try bomb
+      const bombs = findBombs(eff);
+      if (bombs.length > 0 && Math.random() < 0.4) return bombs[0];
+    }
+    if (ttype === 'double') {
+      const candidates = findDoubles(eff);
+      const beat = candidates.filter(pair => canBeat(pair, G.tableCards, ttype));
+      if (beat.length > 0) return beat[0];
+    }
+    if (ttype === 'triple') {
+      const candidates = findTriples(eff);
+      const beat = candidates.filter(t => canBeat(t, G.tableCards, ttype));
+      if (beat.length > 0) return beat[0];
+    }
+    if (ttype && ttype.startsWith('straight')) {
+      const candidates = findStraights(eff, tlen);
+      const beat = candidates.filter(s => canBeat(s, G.tableCards, ttype));
+      if (beat.length > 0) return beat[0];
+    }
+    if (ttype === 'bomb4') {
+      const bombs = findBombs(eff);
+      const beat = bombs.filter(b => canBeat(b, G.tableCards, ttype));
+      if (beat.length > 0) return beat[0];
+      const jqkas = findJQKAs(eff);
+      if (jqkas.length > 0 && canBeat(jqkas[0], G.tableCards, ttype)) return jqkas[0];
+    }
+    return []; // skip
+  }
+}
+
+function findDoubles(cards) {
+  const groups = {};
+  cards.forEach(c => { (groups[c.value]=groups[c.value]||[]).push(c); });
+  return Object.values(groups).filter(g=>g.length>=2).map(g=>[g[0],g[1]])
+    .sort((a,b)=>cardVal(a[0])-cardVal(b[0]));
+}
+function findTriples(cards) {
+  const groups = {};
+  cards.forEach(c => { (groups[c.value]=groups[c.value]||[]).push(c); });
+  return Object.values(groups).filter(g=>g.length>=3).map(g=>[g[0],g[1],g[2]])
+    .sort((a,b)=>cardVal(a[0])-cardVal(b[0]));
+}
+function findBombs(cards) {
+  const groups = {};
+  cards.forEach(c => { (groups[c.value]=groups[c.value]||[]).push(c); });
+  return Object.values(groups).filter(g=>g.length>=4).map(g=>[g[0],g[1],g[2],g[3]])
+    .sort((a,b)=>cardVal(a[0])-cardVal(b[0]));
+}
+function findJQKAs(cards) {
+  const suits = {};
+  cards.forEach(c => { if (LETTER_VALUES.has(c.value)) (suits[c.suit]=suits[c.suit]||[]).push(c); });
+  const res = [];
+  for (const s in suits) {
+    const sCards = suits[s];
+    const jqka = ['J','Q','K','A'].map(v=>sCards.find(c=>c.value===v)).filter(Boolean);
+    if (jqka.length === 4) res.push(jqka);
+  }
+  return res;
+}
+function findStraights(cards, len) {
+  // Simple: find runs of same suit
+  const bySuit = {};
+  cards.filter(c=>c.value!=='3').forEach(c => { (bySuit[c.suit]=bySuit[c.suit]||[]).push(c); });
+  const res = [];
+  for (const suit in bySuit) {
+    const sc = bySuit[suit].sort((a,b)=>cardVal(a)-cardVal(b));
+    for (let i = 0; i <= sc.length - len; i++) {
+      const sub = sc.slice(i, i+len);
+      if (isValidStraight(sub)) res.push(sub);
+    }
+  }
+  return res;
+}
+
+// ===================== GAME ACTIONS =====================
+function playOpeningAction(pidx, cards) {
+  if (G.openingDone.has(pidx)) return {ok:false, msg:'Sudah aksi!'};
+  if (pidx === G.openerIdx) {
+    if (!cards.length || cards.length !== 1 || !(cards[0].value==='3' && cards[0].suit==='S'))
+      return {ok:false, msg:'Harus keluarkan 3♠!'};
+  } else {
+    if (cards.length > 0 && (cards.length !== 1 || cards[0].value !== '3'))
+      return {ok:false, msg:'Hanya boleh keluarkan 1 kartu 3!'};
+  }
+  cards.forEach(c => removeFromHand(pidx, c));
+  if (cards.length) G.openingTable.push(...cards);
+  G.openingDone.add(pidx);
+
+  let msg = cards.length
+    ? `${G.configs[pidx].name} buang ${cardStr(cards[0])} (pembukaan)`
+    : `${G.configs[pidx].name} simpan kartu 3`;
+
+  if (G.openingDone.size >= G.activePlayers.length) {
+    G.phase = 'normal';
+    G.currentPlayer = G.openerIdx;
+    G.tableCards = [];
+    G.tableType = null;
+    G.skippedThisRound = new Set();
+    G.lastPlayerPlayed = null;
+    G.openingTable = [];
+    msg += ` | ✅ Pembukaan selesai! ${G.configs[G.openerIdx].name} mulai!`;
+  } else {
+    msg += ` | Menunggu ${G.activePlayers.length - G.openingDone.size} lagi...`;
+  }
+  G.message = msg;
+  return {ok:true, msg};
+}
+
+function playNormalCards(pidx, cards) {
+  if (pidx !== G.currentPlayer) return {ok:false, msg:'Bukan giliran kamu!'};
+  if (!cards.length) return {ok:false, msg:'Pilih kartu dulu!'};
+
+  // Kartu 3 = decoy
+  if (cards.length === 1 && cards[0].value === '3') {
+    removeFromHand(pidx, cards[0]);
+    G.decoyCards = [cards[0]];
+    let msg = `${G.configs[pidx].name} buang ${cardStr(cards[0])} (pengecoh) — harus main lagi!`;
+    const lose = checkInstantLose(G.hands[pidx]);
+    if (lose.lose) {
+      G.hands[pidx] = [];
+      eliminatePlayer(pidx);
+      msg += ` | 💀 ${lose.msg}`;
+    }
+    G.message = msg;
+    return {ok:true, msg};
+  }
+
+  const pt = getPlayType(cards);
+  if (!pt) return {ok:false, msg:'Kombinasi tidak valid!'};
+
+  const isFree = !G.tableCards.length;
+  if (!isFree && !canBeat(cards, G.tableCards, G.tableType))
+    return {ok:false, msg:'Kartu tidak bisa mengalahkan meja!'};
+
+  // Wajib main 2
+  const eff = effectiveHand(G.hands[pidx]);
+  if (eff.length === 2) {
+    const hasTwo = eff.some(c=>c.value==='2');
+    const playingTwo = cards.some(c=>c.value==='2');
+    if (hasTwo && !playingTwo)
+      return {ok:false, msg:'⚠️ Sisa 2 kartu efektif + ada kartu 2 → WAJIB main kartu 2 dulu!'};
+  }
+
+  const prevLast = G.lastPlayerPlayed;
+
+  // Bomb victim
+  let bombVictim = null;
+  if (!isFree && G.tableType === 'single' && G.tableCards[0].value === '2') {
+    if (pt.type === 'bomb4' || pt.type === 'jqka') bombVictim = G.lastPlayerPlayed;
+  }
+
+  cards.forEach(c => removeFromHand(pidx, c));
+  G.tableCards = cards;
+  G.tableType = pt.type;
+  G.lastPlayerPlayed = pidx;
+  G.skippedThisRound = new Set();
+  G.decoyCards = [];
+
+  let msg = `${G.configs[pidx].name}: ${cards.map(cardStr).join(' ')}`;
+
+  if (bombVictim !== null && G.activePlayers.includes(bombVictim)) {
+    eliminatePlayer(bombVictim);
+    msg += ` | 💥 BOM! ${G.configs[bombVictim].name} kalah!`;
+  }
+
+  if (pt.type === 'straight4' && prevLast !== null && prevLast !== pidx && G.activePlayers.includes(prevLast)) {
+    G.stoppedPlayers.add(prevLast);
+    msg += ` | 🛑 ${G.configs[prevLast].name} di-stop 1 ronde!`;
+  }
+
+  const lose = checkInstantLose(G.hands[pidx]);
+  if (lose.lose && G.hands[pidx].length > 0) {
+    G.hands[pidx] = [];
+    eliminatePlayer(pidx);
+    msg += ` | 💀 ${lose.msg}`;
+    G.message = msg;
+    return {ok:true, msg};
+  }
+
+  if (G.hands[pidx].length === 0) {
+    G.rankings.push(pidx);
+    G.activePlayers = G.activePlayers.filter(p=>p!==pidx);
+    msg += ` | 🏆 ${G.configs[pidx].name} Juara ${G.rankings.length}!`;
+    if (G.activePlayers.length <= 1) { G.gameOver = true; }
+    if (!G.gameOver) nextTurn(pidx);
+    G.message = msg;
+    return {ok:true, msg};
+  }
+
+  nextTurn();
+  G.message = msg;
+  return {ok:true, msg};
+}
+
+function skipAction(pidx) {
+  if (G.phase === 'opening') return playOpeningAction(pidx, []);
+  if (pidx !== G.currentPlayer) return {ok:false, msg:'Bukan giliran kamu!'};
+  G.skippedThisRound.add(pidx);
+  G.decoyCards = [];
+  let msg = `${G.configs[pidx].name} skip`;
+  nextTurn();
+
+  const others = G.activePlayers.filter(p=>p!==G.lastPlayerPlayed);
+  if (others.length > 0 && others.every(p=>G.skippedThisRound.has(p))) {
+    G.tableCards = [];
+    G.tableType = null;
+    G.skippedThisRound = new Set();
+    msg += ` | Meja reset! ${G.configs[G.currentPlayer].name} bebas!`;
+  }
+  G.message = msg;
+  return {ok:true, msg};
+}
+
+function eliminatePlayer(pidx) {
+  if (!G.activePlayers.includes(pidx)) return;
+  G.activePlayers = G.activePlayers.filter(p=>p!==pidx);
+  if (G.activePlayers.length <= 1) { G.gameOver = true; }
+  if (!G.gameOver) nextTurn(pidx);
+}
+
+function removeFromHand(pidx, card) {
+  const idx = G.hands[pidx].findIndex(c=>c.suit===card.suit&&c.value===card.value);
+  if (idx !== -1) G.hands[pidx].splice(idx,1);
+}
+
+function nextTurn(fromPlayer) {
+  const active = G.activePlayers;
+  if (!active.length) return;
+  const start = (fromPlayer !== undefined) ? fromPlayer : G.currentPlayer;
+  const startIdx = active.includes(start) ? active.indexOf(start) : 0;
+  for (let i = 1; i <= active.length; i++) {
+    const nxt = active[(startIdx+i) % active.length];
+    if (G.stoppedPlayers.has(nxt)) { G.stoppedPlayers.delete(nxt); continue; }
+    G.currentPlayer = nxt;
+    return;
+  }
+}
+
+function cardStr(c) { return `${c.value}${SUIT_SYMBOLS[c.suit]}`; }
+
+// ===================== RENDER =====================
+function renderGame() {
+  if (!G) return;
+  const myHand = G.hands[myPlayerIdx];
+  const isMyTurn = G.currentPlayer === myPlayerIdx && !G.gameOver;
+  const inOpening = G.phase === 'opening';
+
+  // Message
+  document.getElementById('msgBox').textContent = G.message;
+
+  // Phase tag
+  const phaseTag = document.getElementById('phaseTag');
+  phaseTag.style.display = inOpening ? 'block' : 'none';
+  phaseTag.textContent = inOpening ? '🟢 FASE PEMBUKAAN' : '';
+
+  // Table cards
+  const tc = document.getElementById('tableCards');
+  tc.innerHTML = '';
+  if (G.phase === 'opening' && G.openingTable.length) {
+    G.openingTable.forEach(c => tc.appendChild(makeCardEl(c, false, false)));
+  } else if (G.tableCards.length) {
+    G.tableCards.forEach(c => tc.appendChild(makeCardEl(c, false, false)));
+    if (G.decoyCards.length) {
+      G.decoyCards.forEach(c => { const el = makeCardEl(c,false,false); el.style.opacity='.6'; tc.appendChild(el); });
+    }
+  } else {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:rgba(255,255,255,.2);font-size:13px;font-weight:700;';
+    empty.textContent = inOpening ? 'Fase pembukaan...' : 'Meja kosong — bebas main!';
+    tc.appendChild(empty);
+  }
+
+  // Table type badge
+  const ttb = document.getElementById('tableTypeBadge');
+  if (G.tableType && !inOpening) {
+    ttb.style.display = 'block';
+    ttb.textContent = typeLabel(G.tableType);
+  } else ttb.style.display = 'none';
+
+  // Turn badge
+  const tb = document.getElementById('turnBadge');
+  tb.style.display = (isMyTurn && !G.gameOver) ? 'block' : 'none';
+
+  // My hand
+  const handEl = document.getElementById('myHand');
+  handEl.innerHTML = '';
+  sortHand(myHand).forEach(c => {
+    const el = makeCardEl(c, true, isSelected(c));
+    if (isSelected(c)) el.classList.add('selected');
+    el.onclick = () => toggleCard(c);
+    handEl.appendChild(el);
+  });
+
+  document.getElementById('myName').textContent = G.configs[myPlayerIdx].name;
+  document.getElementById('myCount').textContent = `${myHand.length} kartu`;
+
+  // Opening banner / action row
+  const ob = document.getElementById('openingBanner');
+  const ar = document.getElementById('actionRow');
+  if (inOpening) {
+    ob.style.display = 'block';
+    const myDone = G.openingDone.has(myPlayerIdx);
+    const isOpener = myPlayerIdx === G.openerIdx;
+    if (myDone) {
+      ob.textContent = '✅ Kamu sudah aksi di fase pembukaan. Menunggu pemain lain...';
+    } else if (isOpener) {
+      ob.textContent = '🟢 Kamu pemegang 3♠ — WAJIB keluarkan 3♠!';
+    } else {
+      ob.textContent = '🟢 Pilih kartu 3 untuk dibuang, atau skip untuk simpan.';
+    }
+    ar.innerHTML = myDone ? '' : `
+      <button class="btn-open-discard" onclick="playCards()">🃏 Buang</button>
+      <button class="btn-open-skip" onclick="skipTurn()">⏭ Skip</button>`;
+  } else {
+    ob.style.display = 'none';
+    ar.innerHTML = `
+      <button class="btn-play" id="btnPlay" onclick="playCards()">🃏 Main!</button>
+      <button class="btn-skip" id="btnSkip" onclick="skipTurn()">⏭ Skip</button>`;
+    const canPlay = isMyTurn && selectedCards.length > 0;
+    const canSkip = isMyTurn && G.tableCards.length > 0;
+    document.getElementById('btnPlay').disabled = !isMyTurn;
+    document.getElementById('btnSkip').disabled = !canSkip;
+  }
+
+  // Opponents
+  const oa = document.getElementById('opponentsArea');
+  oa.innerHTML = '';
+  for (let i = 0; i < G.n; i++) {
+    if (i === myPlayerIdx) continue;
+    const slot = document.createElement('div');
+    const isActive = G.activePlayers.includes(i);
+    const isTheirTurn = G.currentPlayer === i && !G.gameOver;
+    slot.className = `opp-slot${isTheirTurn?' active-turn':''}${!isActive?' eliminated':''}`;
+    const count = G.hands[i].length;
+    const minis = Array.from({length:Math.min(count,8)},()=>'<div class="mini-card"></div>').join('');
+    slot.innerHTML = `
+      <div class="opp-av" style="background:${G.configs[i].color}22;border-color:${G.configs[i].color}55;">
+        ${G.configs[i].emoji}
+      </div>
+      <div class="opp-name">${G.configs[i].name}</div>
+      <div class="opp-count">${count} 🃏</div>
+      <div class="opp-cards-mini">${minis}</div>
+      ${isTheirTurn?'<div style="color:#ffd740;font-size:9px;font-weight:900;margin-top:2px;">GILIRAN</div>':''}
+      ${!isActive?'<div style="color:#ff5252;font-size:9px;font-weight:900;">KALAH</div>':''}
+    `;
+    oa.appendChild(slot);
+  }
+
+  if (G.gameOver) {
+    setTimeout(showGameOver, 800);
+  }
+}
+
+function makeCardEl(card, interactive, sel) {
+  const el = document.createElement('div');
+  const isRed = card.suit === 'H' || card.suit === 'D';
+  const is3 = card.value === '3';
+  const is2 = card.value === '2';
+  el.className = `card ${isRed?'red-card':'black-card'}${is3?' special-3':''}${is2?' special-2':''}${sel?' selected':''}`;
+  el.innerHTML = `
+    <div class="card-val">${card.value}</div>
+    <div class="card-suit">${SUIT_SYMBOLS[card.suit]}</div>
+    <div class="card-center">${SUIT_SYMBOLS[card.suit]}</div>`;
+  return el;
+}
+
+function sortHand(hand) {
+  return [...hand].sort((a,b) => cardVal(a) - cardVal(b));
+}
+
+function typeLabel(t) {
+  const map = {single:'Single',double:'Double',triple:'Triple',
+    straight3:'Straight 3',straight4:'Straight 4',straight5plus:'Straight 5+',
+    bomb4:'💣 BOMB!',jqka:'👑 JQKA!'};
+  return map[t] || t;
+}
+
+function isSelected(card) {
+  return selectedCards.some(c => c.suit===card.suit && c.value===card.value);
+}
+
+function toggleCard(card) {
+  const idx = selectedCards.findIndex(c=>c.suit===card.suit&&c.value===card.value);
+  if (idx >= 0) selectedCards.splice(idx,1);
+  else selectedCards.push(card);
+  renderGame();
+}
+
+// ===================== ACTIONS =====================
+function playCards() {
+  if (!G || G.gameOver) return;
+  const pidx = myPlayerIdx;
+  let result;
+  if (G.phase === 'opening') {
+    result = playOpeningAction(pidx, [...selectedCards]);
+  } else {
+    result = playNormalCards(pidx, [...selectedCards]);
+  }
+  if (!result.ok) { toast(result.msg); return; }
+  selectedCards = [];
+  renderGame();
+  if (!G.gameOver) scheduleBots();
+}
+
+function skipTurn() {
+  if (!G || G.gameOver) return;
+  const result = skipAction(myPlayerIdx);
+  if (!result.ok) { toast(result.msg); return; }
+  selectedCards = [];
+  renderGame();
+  if (!G.gameOver) scheduleBots();
+}
+
+let botTimeout = null;
+function scheduleBots() {
+  clearTimeout(botTimeout);
+  botTimeout = setTimeout(runBots, 700);
+}
+
+function runBots() {
+  if (!G || G.gameOver) return;
+
+  // Opening phase: run all bots that haven't acted yet
+  if (G.phase === 'opening') {
+    let acted = false;
+    for (let i = 0; i < G.n; i++) {
+      if (i === myPlayerIdx) continue;
+      if (G.configs[i].type !== 'bot') continue;
+      if (G.openingDone.has(i)) continue;
+      const cards = botChooseCards(i);
+      playOpeningAction(i, cards);
+      acted = true;
+    }
+    renderGame();
+    if (!G.gameOver && G.phase === 'opening') {
+      // Still waiting for human players - check if we're done
+    } else if (!G.gameOver) {
+      scheduleBots();
+    }
+    return;
+  }
+
+  // Normal phase
+  const cur = G.currentPlayer;
+  if (cur === myPlayerIdx) return;
+  if (!G.configs[cur] || G.configs[cur].type !== 'bot') return;
+  if (!G.activePlayers.includes(cur)) { nextTurn(); renderGame(); scheduleBots(); return; }
+
+  const cards = botChooseCards(cur);
+  let result;
+  if (cards.length === 0) {
+    result = skipAction(cur);
+  } else {
+    result = playNormalCards(cur, cards);
+  }
+  renderGame();
+  if (!G.gameOver) scheduleBots();
+}
+
+// ===================== START/END GAME =====================
+function startGame() {
+  const configs = playerConfigs.map((p,i) => ({
+    ...p,
+    name: document.querySelector(`#playerRows .pr-name:nth-of-type(${i+1})`)?.value || p.name
+  }));
+  // Re-read names from inputs
+  const nameInputs = document.querySelectorAll('#playerRows .pr-name');
+  const typeSelects = document.querySelectorAll('#playerRows .pr-type');
+  nameInputs.forEach((inp, i) => { if (configs[i]) configs[i].name = inp.value || configs[i].name; });
+  typeSelects.forEach((sel, i) => { if (configs[i]) configs[i].type = sel.value; });
+
+  initGame(configs);
+  go('gameScreen');
+  renderGame();
+  // Run bots for opening
+  setTimeout(() => {
+    if (G.phase === 'opening') runBots();
+  }, 500);
+}
+
+function confirmExit() {
+  if (confirm('Keluar dari game?')) { G = null; go('menuScreen'); }
+}
+
+function showGameOver() {
+  // Build final rankings
+  const allRanks = [...G.rankings];
+  G.activePlayers.forEach(p => allRanks.push(p));
+
+  const rankEmojis = ['🥇','🥈','🥉','💀','💀'];
+  const list = document.getElementById('rankingsList');
+  list.innerHTML = allRanks.map((pidx,i) => `
+    <div class="rank-row rank-${i+1}">
+      <div class="rank-emoji">${rankEmojis[i]||'💀'}</div>
+      <div class="rank-name">${G.configs[pidx].name}</div>
+      <div class="rank-badge">${i===0?'🏆 Juara!':i<G.rankings.length?`Juara ${i+1}`:'Kalah'}</div>
+    </div>`).join('');
+
+  document.getElementById('goTitle').textContent =
+    allRanks[0] === myPlayerIdx ? '🎉 Kamu Menang!' : `${G.configs[allRanks[0]].name} Menang!`;
+  document.getElementById('goTrophy').textContent = allRanks[0] === myPlayerIdx ? '🏆' : '😢';
+
+  // Award gems
+  if (allRanks[0] === myPlayerIdx) {
+    profile.gems += 10;
+    saveProfileData();
+  }
+
+  go('gameOverScreen');
+}
+
+function playAgain() {
+  if (lastSetupConfig) {
+    initGame(lastSetupConfig);
+    go('gameScreen');
+    renderGame();
+    setTimeout(() => { if (G.phase === 'opening') runBots(); }, 500);
+  } else {
+    go('menuScreen');
+  }
+}
+
+// ===================== ONLINE LOBBY (Firebase) =====================
+function initLobby() {
+  const content = document.getElementById('lobbyContent');
+  if (!initFirebase()) {
+    content.innerHTML = `
+      <div style="background:rgba(229,57,53,.1);border:1.5px solid rgba(229,57,53,.3);
+        border-radius:14px;padding:16px;color:#ff9999;font-size:13px;text-align:center;line-height:1.6;">
+        ⚠️ <b>Firebase belum dikonfigurasi</b><br><br>
+        Untuk mode online, edit file ini dan isi <code style="color:#ffd740;">FB_CONFIG</code> 
+        di bagian atas script dengan konfigurasi Firebase project Anda.<br><br>
+        <span style="color:#8899cc;">Buat project di <b>console.firebase.google.com</b>, 
+        aktifkan Realtime Database, lalu copy config-nya.</span>
+      </div>
+      <div class="rules-card" style="margin-top:8px;">
+        <div class="rules-head">📋 Cara Setup Firebase</div>
+        <div class="rules-text">
+          1. Buat project di <b>firebase.google.com</b><br>
+          2. Aktifkan <b>Realtime Database</b><br>
+          3. Set rules: <code>".read":true, ".write":true</code><br>
+          4. Copy config ke FB_CONFIG di script<br>
+          5. Tambahkan script Firebase di &lt;head&gt;
+        </div>
+      </div>`;
+    return;
+  }
+
+  onlinePlayerId = onlinePlayerId || 'p_' + Math.random().toString(36).substr(2,9);
+  loadRooms();
+}
+
+function loadRooms() {
+  const content = document.getElementById('lobbyContent');
+  if (!db) return;
+
+  const roomsRef = db.ref('hokicards_rooms');
+  roomsRef.once('value', snap => {
+    const rooms = snap.val() || {};
+    content.innerHTML = `
+      <button onclick="createRoom()" style="
+        background:linear-gradient(135deg,var(--gold),var(--gold2));
+        border:none;border-radius:16px;padding:14px;
+        font-family:'Fredoka One',cursive;font-size:19px;color:#3a1a00;
+        cursor:pointer;box-shadow:0 5px 0 #a06800;margin-bottom:4px;">
+        ➕ Buat Room Baru
+      </button>`;
+
+    const roomList = Object.entries(rooms).filter(([,r])=>r.status==='waiting'&&r.players&&Object.keys(r.players).length<4);
+    if (!roomList.length) {
+      content.innerHTML += `<div style="color:#8899cc;font-size:13px;text-align:center;padding:16px;">Belum ada room. Buat yang baru!</div>`;
+    } else {
+      roomList.forEach(([id,room]) => {
+        const count = Object.keys(room.players||{}).length;
+        const div = document.createElement('div');
+        div.className = 'room-card';
+        div.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div class="room-name">🃏 Room ${id.slice(-4).toUpperCase()}</div>
+              <div class="room-info">${count}/4 pemain • Menunggu...</div>
+            </div>
+            <button class="room-btn" onclick="joinRoom('${id}')">Gabung</button>
+          </div>`;
+        content.appendChild(div);
+      });
+    }
+  });
+}
+
+function createRoom() {
+  if (!db) return;
+  const roomId = 'room_' + Date.now();
+  const roomRef = db.ref(`hokicards_rooms/${roomId}`);
+  roomRef.set({
+    status: 'waiting',
+    host: onlinePlayerId,
+    created: Date.now(),
+    players: { [onlinePlayerId]: { name: profile.name, avatar: profile.avatar, ready: false } }
+  }).then(() => joinRoom(roomId));
+}
+
+function joinRoom(roomId) {
+  if (!db) return;
+  onlineRoomId = roomId;
+  const playerRef = db.ref(`hokicards_rooms/${roomId}/players/${onlinePlayerId}`);
+  playerRef.set({ name: profile.name, avatar: profile.avatar, ready: true });
+  showWaitingRoom(roomId);
+}
+
+function showWaitingRoom(roomId) {
+  const content = document.getElementById('lobbyContent');
+  content.innerHTML = `
+    <div style="text-align:center;color:#ffd740;font-family:'Fredoka One',cursive;font-size:20px;margin:10px 0;">
+      Room ${roomId.slice(-4).toUpperCase()}
+    </div>
+    <div id="waitingPlayers" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="color:#8899cc;font-size:13px;text-align:center;margin:10px 0;">
+      Menunggu pemain<span class="waiting-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+    <button onclick="startOnlineGame('${roomId}')" id="startOnlineBtn"
+      style="background:linear-gradient(135deg,var(--gold),var(--gold2));
+      border:none;border-radius:16px;padding:14px;
+      font-family:'Fredoka One',cursive;font-size:19px;color:#3a1a00;
+      cursor:pointer;box-shadow:0 5px 0 #a06800;display:none;">
+      ▶ Mulai Game!
+    </button>
+    <button onclick="leaveRoom('${roomId}')"
+      style="background:rgba(229,57,53,.15);border:1px solid rgba(229,57,53,.3);
+      border-radius:12px;padding:10px;color:#ff9999;
+      font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;">
+      ✕ Tinggalkan Room
+    </button>`;
+
+  const unsub = db.ref(`hokicards_rooms/${roomId}/players`).on('value', snap => {
+    const players = snap.val() || {};
+    const wp = document.getElementById('waitingPlayers');
+    if (!wp) return;
+    wp.innerHTML = Object.entries(players).map(([id,p])=>`
+      <div class="player-row">
+        <div style="font-size:20px;">${p.avatar||'😎'}</div>
+        <div style="flex:1;color:#fff;font-size:14px;font-weight:800;">${p.name}${id===onlinePlayerId?' (Kamu)':''}</div>
+        <div style="color:#43a047;font-size:12px;font-weight:800;">✅</div>
+      </div>`).join('');
+    const count = Object.keys(players).length;
+    const startBtn = document.getElementById('startOnlineBtn');
+    if (startBtn) startBtn.style.display = count >= 2 ? 'block' : 'none';
+  });
+  onlineUnsubscribes.push(() => db.ref(`hokicards_rooms/${roomId}/players`).off('value', unsub));
+}
+
+function startOnlineGame(roomId) {
+  if (!db) return;
+  db.ref(`hokicards_rooms/${roomId}`).once('value', snap => {
+    const room = snap.val();
+    if (!room) return;
+    const players = Object.entries(room.players);
+    const configs = players.map(([id,p],i) => ({
+      name: p.name,
+      type: id === onlinePlayerId ? 'human' : 'online',
+      color: PLAYER_COLORS[i],
+      emoji: PLAYER_EMOJIS[i],
+      uid: id
+    }));
+    myPlayerIdx = players.findIndex(([id])=>id===onlinePlayerId);
+    initGame(configs);
+    db.ref(`hokicards_rooms/${roomId}/status`).set('playing');
+    go('gameScreen');
+    renderGame();
+  });
+}
+
+function leaveRoom(roomId) {
+  if (db && roomId) {
+    db.ref(`hokicards_rooms/${roomId}/players/${onlinePlayerId}`).remove();
+  }
+  onlineUnsubscribes.forEach(fn=>fn());
+  onlineUnsubscribes = [];
+  onlineRoomId = null;
+  initLobby();
+}
+
+// ===================== TOAST =====================
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  createStars();
+  updateMenuProfile();
+
+  // Build avatar picker
+  const ap = document.getElementById('avatarPicker');
+  if (ap) ap.innerHTML = AVATARS.map(a=>
+    `<div onclick="selectAvatar('${a}')" style="font-size:26px;cursor:pointer;padding:4px;border-radius:8px;
+    background:transparent;border:2px solid transparent;transition:all .15s;" data-av="${a}">${a}</div>`
+  ).join('');
+});
+</script>
+
+<!-- Firebase SDK (uncomment and replace with your version if using online mode) -->
+<!--
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
+-->
+
+</body>
+</html>

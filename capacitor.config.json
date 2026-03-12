@@ -1,0 +1,8 @@
+{
+  "appId": "com.hendist.hokicards",
+  "appName": "Hoki Cards",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
