@@ -484,10 +484,10 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 /* Lobby global chat popup */
 #lobby-chat-btn{
-  position:absolute;
+  position:fixed;
   right:14px;
   bottom:14px;
-  z-index:200;
+  z-index:900;
   background:linear-gradient(135deg,#0a5c1a,#27ae60);
   border:none;
   border-radius:24px;
@@ -505,9 +505,9 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   letter-spacing:.5px;
 }
 #lobby-chat-panel{
-  position:absolute;
+  position:fixed;
   right:14px;bottom:62px;
-  z-index:200;
+  z-index:900;
   background:rgba(0,15,5,.97);
   border:1.5px solid rgba(0,200,80,.3);
   border-radius:16px;
@@ -519,6 +519,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   box-shadow:0 8px 32px rgba(0,0,0,.7);
 }
 #lobby-chat-panel.open{display:flex;}
+.lchat-title{font-size:.82em;font-weight:700;color:#5dde7a;letter-spacing:.5px;}
 #lobby-chat-log{
   height:160px;
   overflow-y:auto;
@@ -1161,17 +1162,6 @@ if(typeof io === 'undefined'){
 
 
 
-  <!-- Lobby global chat (hanya online RTDB) -->
-  <button id="lobby-chat-btn" onclick="toggleLobbyChat()" style="display:none;">💬 Chat</button>
-  <div id="lobby-chat-panel">
-    <div style="font-size:.82em;font-weight:700;color:#5dde7a;letter-spacing:.5px;">🌐 Global Chat</div>
-    <div id="lobby-chat-log"></div>
-    <div class="chat-input-row">
-      <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
-        onkeydown="if(event.key==='Enter')sendLobbyChat()">
-      <button onclick="sendLobbyChat()">Kirim</button>
-    </div>
-  </div>
 </div>
 
 <!-- COUNTDOWN -->
@@ -1368,14 +1358,17 @@ function initSock(){
 function go(id){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  // Chat: sembunyikan lobby btn jika bukan s-lobby
-  if(id !== 's-lobby') _showLobbyChatBtn(false);
-  // Init / destroy chat
+  // Global chat btn: tampil di semua layar kecuali s-game
   if(id === 's-game'){
+    _showLobbyChatBtn(false);
     setTimeout(_initChat, 250);
     _stopLobbyChatListener();
   } else {
     _destroyChat();
+    // Tampilkan untuk semua user (termasuk guest bisa baca, tapi kirim diblokir)
+    const _hasUser = !!currentUser;
+    _showLobbyChatBtn(_hasUser);
+    if(_hasUser && !_lobbyChatListener) _startLobbyChatListener();
   }
 }
 function gname(){const n=document.getElementById('inp-name').value.trim();if(!n){toast('Masukkan nama!');return null;}return n;}
@@ -2109,8 +2102,6 @@ async function doCreateOnline(){
     document.getElementById('lob-status').textContent='Menunggu pemain lain...';
     document.getElementById('btn-start').style.display='none';
     go('s-lobby');
-    _showLobbyChatBtn(true);
-    _startLobbyChatListener();
     _listenLobbyOnline(rid);
   }catch(e){
     _rtdbRoom=null;_rtdbIsHost=false;
@@ -2141,8 +2132,6 @@ async function doJoinOnline(){
   document.getElementById('lob-status').textContent='Menunggu host mulai...';
   document.getElementById('btn-start').style.display='none';
   go('s-lobby');
-  _showLobbyChatBtn(true);
-  _startLobbyChatListener();
   _listenLobbyOnline(rid);
   _listenStartOnline(rid,myIdx);
 }
@@ -2679,8 +2668,7 @@ function backMenu(){
 // Cek auto tutorial saat halaman load
 window.addEventListener('load', function(){
   _checkAutoTutorial();
-  // GC global chat setiap 5 menit
-  setInterval(_gcGlobalChat, 5*60*1000);
+  // global_chat TTL otomatis via Firestore
 });
 
 
@@ -2835,6 +2823,9 @@ function loginGuest(){
   currentUser = { uid: 'guest_'+Date.now(), isGuest: true };
   currentUserData = { name: 'Tamu', username: 'guest' };
   go('s-menu');
+  // Guest bisa baca global chat tapi tidak bisa kirim
+  _showLobbyChatBtn(true);
+  _startLobbyChatListener();
 }
 
 function toggleRulesSection(headEl){
@@ -2954,8 +2945,11 @@ function sendChat(){
     // Chat lokal: rooms/{roomId}/chat/{pushId}
     fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').push(msg).catch(()=>{});
   } else {
-    // Chat global: global_chat/{pushId}
-    fbRtdb.ref('global_chat').push(msg).catch(()=>{});
+    // Chat global: Firestore global_chat (dengan TTL 10 menit)
+    const _expireAt = new firebase.firestore.Timestamp(
+      Math.floor((Date.now() + 10*60*1000) / 1000), 0
+    );
+    fbDb.collection('global_chat').add({...msg, expireAt: _expireAt}).catch(()=>{});
   }
 }
 
@@ -2981,24 +2975,30 @@ function _listenLocalChat(){
 
 // ── Listen chat global ──
 function _listenGlobalChat(){
-  if(!fbRtdb) return;
-  const tenMinAgo = Date.now() - 10*60*1000;
-  const ref = fbRtdb.ref('global_chat').orderByChild('ts').startAt(tenMinAgo).limitToLast(30);
-  const fn = ref.on('child_added', snap => {
-    const m = snap.val();
-    if(!m) return;
-    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
-    if(_globalMsgCache.find(x=>x.id===entry.id)) return;
-    _globalMsgCache.push(entry);
-    if(_globalMsgCache.length > 60) _globalMsgCache = _globalMsgCache.slice(-50);
-    if(_chatExpanded && _chatTab==='global'){
-      _appendChatLogItem(entry, true);
-      const log = document.getElementById('chat-log');
-      if(log) log.scrollTop = log.scrollHeight;
-    }
-    _showOverlayMsg(entry, true);
-  });
-  _chatListeners.push(()=>ref.off('child_added', fn));
+  if(!fbDb) return;
+  const tenMinAgo = firebase.firestore.Timestamp.fromMillis(Date.now() - 10*60*1000);
+  const unsub = fbDb.collection('global_chat')
+    .where('expireAt', '>', tenMinAgo)
+    .orderBy('expireAt')
+    .limitToLast(30)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if(change.type !== 'added') return;
+        const m = change.doc.data();
+        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+        if(_globalMsgCache.find(x=>x.id===entry.id)) return;
+        _globalMsgCache.push(entry);
+        _globalMsgCache.sort((a,b)=>a.ts-b.ts);
+        if(_globalMsgCache.length > 60) _globalMsgCache = _globalMsgCache.slice(-50);
+        if(_chatExpanded && _chatTab==='global'){
+          _appendChatLogItem(entry, true);
+          const log = document.getElementById('chat-log');
+          if(log) log.scrollTop = log.scrollHeight;
+        }
+        _showOverlayMsg(entry, true);
+      });
+    }, ()=>{});
+  _chatListeners.push(unsub);
 }
 
 // ── Tambah satu item ke log ──
@@ -3176,37 +3176,50 @@ function toggleLobbyChat(){
 }
 
 function sendLobbyChat(){
-  if(!fbRtdb || !currentUser || currentUser.isGuest) return;
+  if(!fbRtdb || !currentUser){ toast('❌ Login dulu untuk chat!'); return; }
+  if(currentUser.isGuest){ toast('❌ Guest tidak bisa chat. Login akun dulu!'); return; }
   const inp = document.getElementById('lobby-chat-input');
   const text = (inp.value||'').trim().slice(0,80);
   if(!text) return;
   inp.value = '';
   const name = (currentUserData?.name || 'Pemain').slice(0,16);
-  fbRtdb.ref('global_chat').push({ name, text, ts: Date.now(), uid: currentUser.uid }).catch(()=>{});
+  const _expAt = new firebase.firestore.Timestamp(
+    Math.floor((Date.now() + 10*60*1000) / 1000), 0
+  );
+  fbDb.collection('global_chat').add({
+    name, text, ts: Date.now(), uid: currentUser.uid, expireAt: _expAt
+  }).catch(()=>{});
 }
 
 function _startLobbyChatListener(){
-  if(!fbRtdb || _lobbyChatListener) return;
-  const tenMinAgo = Date.now() - 10*60*1000;
-  const ref = fbRtdb.ref('global_chat').orderByChild('ts').startAt(tenMinAgo).limitToLast(40);
-  const fn = ref.on('child_added', snap => {
-    const m = snap.val();
-    if(!m) return;
-    if(_lobbyChatCache.find(x=>x.id===snap.key)) return;
-    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
-    _lobbyChatCache.push(entry);
-    if(_lobbyChatCache.length > 60) _lobbyChatCache = _lobbyChatCache.slice(-50);
-    const log = document.getElementById('lobby-chat-log');
-    if(log){
-      const div = document.createElement('div');
-      div.className = 'lchat-item';
-      div.innerHTML = `<span class="lcname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
-      log.appendChild(div);
-      while(log.children.length > 40) log.removeChild(log.firstChild);
-      log.scrollTop = log.scrollHeight;
-    }
-  });
-  _lobbyChatListener = ()=>ref.off('child_added', fn);
+  if(!fbDb || _lobbyChatListener) return;
+  if(!currentUser) return;
+  const tenMinAgo = firebase.firestore.Timestamp.fromMillis(Date.now() - 10*60*1000);
+  const unsub = fbDb.collection('global_chat')
+    .where('expireAt', '>', tenMinAgo)
+    .orderBy('expireAt')
+    .limitToLast(40)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if(change.type !== 'added') return;
+        const m = change.doc.data();
+        if(_lobbyChatCache.find(x=>x.id===change.doc.id)) return;
+        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+        _lobbyChatCache.push(entry);
+        _lobbyChatCache.sort((a,b)=>a.ts-b.ts);
+        if(_lobbyChatCache.length > 60) _lobbyChatCache = _lobbyChatCache.slice(-50);
+        const log = document.getElementById('lobby-chat-log');
+        if(log){
+          const div = document.createElement('div');
+          div.className = 'lchat-item';
+          div.innerHTML = `<span class="lcname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
+          log.appendChild(div);
+          while(log.children.length > 40) log.removeChild(log.firstChild);
+          log.scrollTop = log.scrollHeight;
+        }
+      });
+    }, ()=>{});
+  _lobbyChatListener = unsub;
 }
 
 function _stopLobbyChatListener(){
@@ -3222,16 +3235,7 @@ function _esc(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Cleanup global chat setelah 10 menit (via RTDB rule/manual) ──
-// Cleanup global_chat otomatis dilakukan oleh Firebase Rules TTL di server,
-// atau secara manual di client: hapus entri lebih dari 10 menit
-function _gcGlobalChat(){
-  if(!fbRtdb) return;
-  const cutoff = Date.now() - 10*60*1000;
-  fbRtdb.ref('global_chat').orderByChild('ts').endAt(cutoff).limitToFirst(20).once('value', snap=>{
-    snap.forEach(child=>{ child.ref.remove().catch(()=>{}); });
-  });
-}
+// global_chat TTL dihandle otomatis oleh Firestore TTL policy (field: expireAt)
 
 // go() sudah di-patch langsung di definisi aslinya
 
@@ -3241,5 +3245,17 @@ window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!',
 window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kembali','ok'));
 
 </script>
+
+<!-- Global Chat Button (fixed, semua layar kecuali s-game) -->
+<button id="lobby-chat-btn" onclick="toggleLobbyChat()">💬 Chat</button>
+<div id="lobby-chat-panel">
+  <div class="lchat-title">🌐 Global Chat</div>
+  <div id="lobby-chat-log"></div>
+  <div class="chat-input-row">
+    <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')sendLobbyChat()">
+    <button onclick="sendLobbyChat()">Kirim</button>
+  </div>
+</div>
 </body>
 </html>
