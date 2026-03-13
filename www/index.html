@@ -1140,7 +1140,38 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .rules-card-ex{display:inline-block;background:#fafafa;color:#111;border-radius:5px;padding:1px 6px;font-weight:900;font-size:.85em;border:1.5px solid #ccc;margin:0 2px;font-family:'Rajdhani',sans-serif;}
 .rules-card-ex.red{color:#CC0000;}
 .rules-highlight{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.83em;color:rgba(255,255,255,.8);line-height:1.5;}
-.rules-warn{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.83em;color:#ffaaaa;line-height:1.5;}</style>
+.rules-warn{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.83em;color:#ffaaaa;line-height:1.5;}
+
+/* ── LOBBY SLOTS & INVITE ── */
+.lob-slot{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);transition:all .3s;}
+.lob-slot.filled{background:rgba(0,200,80,.08);border-color:rgba(0,220,100,.25);}
+.lob-slot.me{border-color:rgba(255,215,0,.4);background:rgba(255,215,0,.06);}
+.lob-slot-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3em;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);flex-shrink:0;overflow:hidden;position:relative;}
+.lob-slot-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.lob-slot-name{flex:1;font-size:.88em;color:#ddd;font-weight:600;}
+.lob-slot.filled .lob-slot-name{color:#fff;}
+.lob-slot-tag{font-size:.68em;color:rgba(255,215,0,.6);padding:2px 7px;border-radius:10px;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.06);}
+.lob-slot-empty{font-size:.82em;color:rgba(255,255,255,.3);font-style:italic;}
+.lob-slot-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;}
+.lob-slot-dot.on{background:#4eff9a;box-shadow:0 0 6px #4eff9a;}
+
+/* Invite friend row */
+.lob-inv-row{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:background .2s;}
+.lob-inv-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1em;background:rgba(255,255,255,.08);flex-shrink:0;overflow:hidden;}
+.lob-inv-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.lob-inv-name{flex:1;font-size:.84em;color:#ddd;font-weight:600;}
+.lob-inv-status{font-size:.68em;color:#888;}
+.lob-inv-status.online{color:#4eff9a;}
+.lob-inv-btn{padding:5px 13px;border-radius:8px;font-size:.76em;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.3px;}
+.lob-inv-btn.invite{background:rgba(255,215,0,.2);border:1px solid rgba(255,215,0,.5);color:var(--gold);}
+.lob-inv-btn.invite:active{transform:scale(.95);}
+.lob-inv-btn.sent{background:rgba(0,180,80,.15);border:1px solid rgba(0,220,100,.3);color:#4eff9a;cursor:default;}
+.lob-inv-btn.joined{background:rgba(100,100,100,.2);border:1px solid rgba(255,255,255,.15);color:#888;cursor:default;}
+.lob-inv-btn.offline-disabled{background:rgba(80,80,80,.15);border:1px solid rgba(255,255,255,.1);color:#555;cursor:not-allowed;}
+
+/* Invite popup animation */
+@keyframes inviteSlide{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+</style>
 <script>
 window.onerror=function(m,s,l,c,e){
   var d=document.createElement('div');
@@ -1723,16 +1754,49 @@ if(typeof io === 'undefined'){
 </div>
 
 <!-- LOBBY -->
-<div id="s-lobby" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#1a3a1a,#050e05);gap:14px;">
-  <div style="font-family:'Cinzel',serif;font-size:1.3em;color:var(--gold);letter-spacing:2px;">⏳ LOBBY</div>
-  <div class="panel" style="gap:10px;">
-    <div style="font-size:.78em;color:#aaa;">Kode Room</div>
-    <div class="lcode" id="lob-code">------</div>
-    <div style="font-size:.7em;color:rgba(255,215,0,.45);">Bagikan ke teman</div>
-    <div id="lob-status" style="font-size:.86em;color:#ccc;text-align:center;"></div>
-    <ul class="lplayers" id="lob-players" style="width:100%;"></ul>
-    <button class="btn b-gold" id="btn-start" onclick="doStart()" style="display:none;">▶ MULAI GAME</button>
-    <button class="btn b-gray" onclick="go('s-menu')">← Keluar</button>
+<div id="s-lobby" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#1a3a1a,#050e05);gap:10px;overflow-y:auto;padding-bottom:20px;">
+  <div style="font-family:'Cinzel',serif;font-size:1.3em;color:var(--gold);letter-spacing:2px;margin-top:10px;">⏳ LOBBY</div>
+
+  <!-- Room code + status -->
+  <div class="panel" style="gap:8px;padding:14px 18px;">
+    <div style="font-size:.72em;color:#aaa;letter-spacing:1px;">KODE ROOM</div>
+    <div class="lcode" id="lob-code" onclick="lobCopyCode()" style="cursor:pointer;" title="Tap untuk copy">------</div>
+    <div style="font-size:.68em;color:rgba(255,215,0,.4);">Tap kode untuk copy · Bagikan ke teman</div>
+    <div id="lob-status" style="font-size:.84em;color:#ccc;text-align:center;margin-top:2px;"></div>
+  </div>
+
+  <!-- Player slots realtime -->
+  <div class="panel" style="gap:0;padding:10px 14px;">
+    <div style="font-size:.72em;color:rgba(255,215,0,.6);letter-spacing:1px;margin-bottom:8px;">👥 PEMAIN</div>
+    <div id="lob-slots" style="display:flex;flex-direction:column;gap:6px;width:100%;"></div>
+  </div>
+
+  <!-- Invite Friends (hanya jika punya teman) -->
+  <div class="panel" id="lob-invite-panel" style="gap:8px;padding:10px 14px;display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:.72em;color:rgba(255,215,0,.6);letter-spacing:1px;">📨 INVITE TEMAN</div>
+      <div id="lob-invite-sent-count" style="font-size:.68em;color:rgba(255,215,0,.45);"></div>
+    </div>
+    <div id="lob-friend-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;"></div>
+  </div>
+
+  <button class="btn b-gold" id="btn-start" onclick="doStart()" style="display:none;margin:0 18px;">▶ MULAI GAME</button>
+  <button class="btn b-gray" onclick="lobLeave()" style="margin:0 18px 0;">← Keluar</button>
+</div>
+
+<!-- INVITE NOTIF POPUP (fixed overlay) -->
+<div id="invite-notif" style="
+  display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#1a3d1a,#0d2a0d);
+  border:1.5px solid var(--gold);border-radius:16px;
+  padding:14px 18px;width:min(320px,90vw);z-index:9999;
+  box-shadow:0 8px 32px rgba(0,0,0,.7);animation:inviteSlide .35s ease;">
+  <div style="font-size:.72em;color:rgba(255,215,0,.6);letter-spacing:1px;margin-bottom:6px;">📨 UNDANGAN MAIN</div>
+  <div id="invite-notif-text" style="font-size:.9em;color:#fff;font-weight:600;margin-bottom:10px;"></div>
+  <div id="invite-notif-room" style="font-size:.72em;color:#aaa;margin-bottom:12px;"></div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="acceptInvite()" style="flex:1;padding:9px;background:rgba(0,180,80,.3);border:1px solid rgba(0,220,100,.5);color:#4eff9a;border-radius:10px;font-weight:700;cursor:pointer;">✅ Terima</button>
+    <button onclick="declineInvite()" style="flex:1;padding:9px;background:rgba(180,0,0,.3);border:1px solid rgba(255,80,80,.4);color:#ff8888;border-radius:10px;font-weight:700;cursor:pointer;">❌ Tolak</button>
   </div>
 </div>
 
@@ -2755,9 +2819,12 @@ async function doCreateOnline(){
   try{
     _rtdbRoom=rid; _rtdbIsHost=true; _rtdbMyIdx=0;
     _rtdbPlayerUids={0:currentUser.uid};
+    const playerData={idx:0,name,uid:currentUser.uid,avatar:currentUserData?.avatar||'😎'};
+    if(currentUserData?.photoBase64) playerData.photoBase64=currentUserData.photoBase64;
+    const numP=selNumOnline||2;
     await fbRtdb.ref('rooms/'+rid).set({
-      info:{numPlayers:selNumOnline,started:false,host:currentUser.uid,
-        players:{[currentUser.uid]:{idx:0,name}},
+      info:{numPlayers:numP,started:false,host:currentUser.uid,
+        players:{[currentUser.uid]:playerData},
         playerNames:{0:name},createdAt:Date.now()}
     });
     fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
@@ -2773,11 +2840,11 @@ async function doCreateOnline(){
 }
 
 // Join Room Online
-async function doJoinOnline(){
+async function doJoinOnline(ridOverride){
   if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
-  const rid=(document.getElementById('inp-room-online')?.value||'').trim().toUpperCase();
+  const rid=(ridOverride||(document.getElementById('inp-room-online')?.value||'')).toString().trim().toUpperCase();
   if(!rid){toast('Masukkan kode room!');return;}
   const snap=await fbRtdb.ref('rooms/'+rid+'/info').get();
   if(!snap.exists()){toast('❌ Room '+rid+' tidak ditemukan!');return;}
@@ -2789,29 +2856,56 @@ async function doJoinOnline(){
   const usedIdx=new Set(uids.map(u=>players[u].idx));
   let myIdx=1; for(let i=1;i<info.numPlayers;i++)if(!usedIdx.has(i)){myIdx=i;break;}
   _rtdbRoom=rid; _rtdbIsHost=false; _rtdbMyIdx=myIdx;
-  await fbRtdb.ref('rooms/'+rid+'/info/players/'+currentUser.uid).set({idx:myIdx,name});
+  // Save avatar+photo so host slot renderer can show them
+  const playerData={idx:myIdx,name,uid:currentUser.uid,avatar:currentUserData?.avatar||'😎'};
+  if(currentUserData?.photoBase64) playerData.photoBase64=currentUserData.photoBase64;
+  await fbRtdb.ref('rooms/'+rid+'/info/players/'+currentUser.uid).set(playerData);
   fbRtdb.ref('rooms/'+rid+'/info/players/'+currentUser.uid).onDisconnect().remove();
   document.getElementById('lob-code').textContent=rid;
   document.getElementById('lob-status').textContent='Menunggu host mulai...';
   document.getElementById('btn-start').style.display='none';
+  selNumOnline=info.numPlayers||2;
   go('s-lobby');
   _listenLobbyOnline(rid);
   _listenStartOnline(rid,myIdx);
 }
 
 function _listenLobbyOnline(rid){
-  const ref=fbRtdb.ref('rooms/'+rid+'/info/players');
+  const ref=fbRtdb.ref('rooms/'+rid+'/info');
   const fn=ref.on('value',snap=>{
-    const players=snap.val()||{};
-    const uids=Object.keys(players);
+    const info=snap.val()||{};
+    const players=info.players||{};
+    const numP=info.numPlayers||selNumOnline||2;
+    const joined=Object.keys(players).length;
     const names={};
-    uids.forEach(uid=>{names[players[uid].idx]=players[uid].name;});
-    fbRtdb.ref('rooms/'+rid+'/info/playerNames').set(names);
-    updLobby(names, selNumOnline||2, uids.length);
-    document.getElementById('lob-status').textContent=uids.length+'/'+(selNumOnline||2)+' pemain bergabung';
-    if(_rtdbIsHost&&uids.length>=2)document.getElementById('btn-start').style.display='block';
+    Object.values(players).forEach(p=>{names[p.idx]=p.name;});
+
+    // Enrich players with avatar/photo from currentUserData for host slot
+    _lobCurrentPlayers = players;
+
+    // Sync playerNames node
+    fbRtdb.ref('rooms/'+rid+'/info/playerNames').set(names).catch(()=>{});
+
+    // New slot renderer
+    lobRenderSlots(players, numP);
+
+    document.getElementById('lob-status').textContent=joined+'/'+numP+' pemain bergabung';
+
+    if(_rtdbIsHost){
+      const canStart = joined >= 2;
+      document.getElementById('btn-start').style.display = canStart ? 'block' : 'none';
+    }
+
+    // Update invite buttons for friends who joined
+    Object.values(players).forEach(p=>{
+      const btn = document.getElementById('lob-inv-btn-'+p.uid);
+      if(btn){ btn.className='lob-inv-btn joined'; btn.textContent='Sudah gabung ✓'; btn.disabled=true; }
+    });
   });
   _rtdbListeners.push(()=>ref.off('value',fn));
+
+  // Load friend invite panel (host only — or all players)
+  lobLoadFriendInvite();
 }
 
 function _listenStartOnline(rid,myIdx){
@@ -3404,6 +3498,8 @@ async function onUserLoggedIn(user){
     // ── Profile features ──
     if(typeof _pfSetOnline === 'function')  _pfSetOnline();
     if(typeof _pfUpdateFab === 'function')  _pfUpdateFab();
+    // ── Invite listener ──
+    if(typeof _startListenInvites === 'function') _startListenInvites();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -4666,24 +4762,40 @@ function _pmConvId(a, b){ return [a,b].sort().join('_'); }
 async function _pmLoadMessages(){
   if(!fbDb||!currentUser||!_pmPeerId) return;
   const convId = _pmConvId(currentUser.uid, _pmPeerId);
-  const now = Date.now();
-  const cutoff = now - 24*60*60*1000; // 24 jam
 
   if(_pmListener){ _pmListener(); _pmListener=null; }
+
+  // Hapus expired docs dulu sebelum listen (eager cleanup)
+  await _pmCleanupExpired(convId);
+
   const ref = fbDb.collection('pm').doc(convId).collection('messages')
     .orderBy('ts').limitToLast(60);
 
   const unsub = ref.onSnapshot(snap=>{
+    const cutoff = Date.now() - 24*60*60*1000;
     const log = document.getElementById('pm-log');
     log.innerHTML = '';
     const sys = document.createElement('div');
     sys.className = 'pm-sys'; sys.textContent = '🔒 Pesan hilang setelah 24 jam';
     log.appendChild(sys);
-    snap.docs.forEach(doc=>{
+
+    // Pisahkan expired vs valid
+    const expired = [], valid = [];
+    snap.docs.forEach(doc => {
       const m = doc.data();
-      if(m.ts < cutoff) return; // skip expired
-      _pmAppendBubble(m, doc.id);
+      if(m.ts < cutoff) expired.push(doc);
+      else valid.push({doc, m});
     });
+
+    // Hapus expired dari Firestore (fire-and-forget, batch)
+    if(expired.length){
+      const batch = fbDb.batch();
+      expired.forEach(d => batch.delete(d.ref));
+      batch.commit().catch(()=>{});
+    }
+
+    // Render hanya yang valid
+    valid.forEach(({doc, m}) => _pmAppendBubble(m, doc.id));
     log.scrollTop = log.scrollHeight;
   }, ()=>{});
   _pmListener = unsub;
@@ -4816,6 +4928,255 @@ function _pfCheckUnread(){
 // _esc is already defined above; OK.
 
 // ══════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════
+//  LOBBY INVITE SYSTEM
+// ══════════════════════════════════════════════════════
+
+let _lobInviteListeners = {}; // uid → unsubscribe fn (RTDB)
+let _lobFriendPresence  = {}; // uid → unsubscribe fn (RTDB)
+let _lobSentInvites     = {}; // uid → true (invites we sent this session)
+let _lobInviteListener  = null; // listener for incoming invites (RTDB)
+let _pendingInvite      = null; // { rid, hostName, numPlayers }
+
+// ── Copy room code ──────────────────────────────────────
+function lobCopyCode(){
+  const code = document.getElementById('lob-code')?.textContent||'';
+  if(!code||code==='------') return;
+  if(navigator.clipboard){ navigator.clipboard.writeText(code); }
+  else { const t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
+  toast('Kode '+code+' disalin!','ok');
+}
+
+// ── Leave lobby ─────────────────────────────────────────
+function lobLeave(){
+  _lobCleanup();
+  // Remove player from RTDB if joined
+  if(_rtdbRoom && currentUser && !_rtdbIsHost){
+    fbRtdb.ref('rooms/'+_rtdbRoom+'/info/players/'+currentUser.uid).remove().catch(()=>{});
+  } else if(_rtdbRoom && _rtdbIsHost){
+    fbRtdb.ref('rooms/'+_rtdbRoom).remove().catch(()=>{});
+  }
+  _rtdbRoom=null; _rtdbIsHost=false; _rtdbMyIdx=0;
+  go('s-menu');
+}
+
+function _lobCleanup(){
+  // Detach all RTDB listeners
+  Object.values(_lobFriendPresence).forEach(fn=>{ try{fn();}catch(e){} });
+  _lobFriendPresence = {};
+  _lobSentInvites = {};
+  _lobInviteListeners = {};
+  // Detach incoming invite listener
+  if(_lobInviteListener){ try{_lobInviteListener();}catch(e){} _lobInviteListener=null; }
+}
+
+// ── Render realtime player slots ────────────────────────
+function lobRenderSlots(players, numPlayers){
+  const wrap = document.getElementById('lob-slots');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  // Build idx → player map
+  const byIdx = {};
+  Object.values(players||{}).forEach(p => { byIdx[p.idx] = p; });
+  for(let i=0;i<numPlayers;i++){
+    const p = byIdx[i];
+    const slot = document.createElement('div');
+    const isMe = p && currentUser && p.uid === currentUser.uid;
+    slot.className = 'lob-slot' + (p ? ' filled' : '') + (isMe ? ' me' : '');
+    if(p){
+      const avHtml = p.photoBase64
+        ? `<img src="${p.photoBase64}">`
+        : (p.avatar || (i===0?'👑':'😎'));
+      slot.innerHTML = `
+        <div class="lob-slot-av">${avHtml}</div>
+        <div class="lob-slot-name">${_esc(p.name||'Pemain')}</div>
+        ${isMe ? '<span class="lob-slot-tag">Kamu</span>' : ''}
+        ${i===0 ? '<span class="lob-slot-tag">Host</span>' : ''}
+        <div class="lob-slot-dot on"></div>`;
+    } else {
+      slot.innerHTML = `
+        <div class="lob-slot-av">🪑</div>
+        <div class="lob-slot-empty">Menunggu pemain ${i+1}...</div>
+        <div class="lob-slot-dot"></div>`;
+    }
+    wrap.appendChild(slot);
+  }
+}
+
+// ── Load friend list for invite ──────────────────────────
+async function lobLoadFriendInvite(){
+  const panel = document.getElementById('lob-invite-panel');
+  const list  = document.getElementById('lob-friend-list');
+  if(!panel||!list||!currentUser||currentUser.isGuest||!fbDb) return;
+
+  // Get friends
+  let snap;
+  try { snap = await fbDb.collection('users').doc(currentUser.uid).collection('friends').get(); }
+  catch(e){ return; }
+  if(snap.empty){ panel.style.display='none'; return; }
+
+  panel.style.display='';
+  list.innerHTML='';
+
+  // Cleanup old presence listeners
+  Object.values(_lobFriendPresence).forEach(fn=>{ try{fn();}catch(e){} });
+  _lobFriendPresence = {};
+
+  snap.docs.forEach(doc=>{
+    const f = doc.data(); // { uid, name, avatar, photoBase64 }
+    const row = document.createElement('div');
+    row.className = 'lob-inv-row';
+    row.id = 'lob-inv-'+f.uid;
+    const avHtml = f.photoBase64
+      ? `<img src="${f.photoBase64}">`
+      : (f.avatar||'😎');
+    row.innerHTML = `
+      <div class="lob-inv-av">${avHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="lob-inv-name">${_esc(f.name||'?')}</div>
+        <div class="lob-inv-status" id="lob-inv-st-${f.uid}">⚫ Offline</div>
+      </div>
+      <button class="lob-inv-btn offline-disabled" id="lob-inv-btn-${f.uid}"
+        onclick="lobSendInvite('${f.uid}','${_esc(f.name||'?')}')">Undang</button>`;
+    list.appendChild(row);
+
+    // Listen to online status
+    if(fbRtdb){
+      const ref = fbRtdb.ref('users/'+f.uid+'/online');
+      const fn = ref.on('value', s=>{
+        const online = !!s.val();
+        const stEl  = document.getElementById('lob-inv-st-'+f.uid);
+        const btnEl = document.getElementById('lob-inv-btn-'+f.uid);
+        if(stEl){ stEl.textContent = online?'🟢 Online':'⚫ Offline'; stEl.className='lob-inv-status'+(online?' online':''); }
+        if(btnEl && !_lobSentInvites[f.uid]){
+          if(online){ btnEl.className='lob-inv-btn invite'; btnEl.disabled=false; }
+          else       { btnEl.className='lob-inv-btn offline-disabled'; btnEl.disabled=true; }
+        }
+        // Check if friend already in room
+        const players = _lobCurrentPlayers || {};
+        if(Object.values(players).find(p=>p.uid===f.uid)){
+          if(btnEl){ btnEl.className='lob-inv-btn joined'; btnEl.textContent='Sudah gabung'; btnEl.disabled=true; }
+        }
+      });
+      _lobFriendPresence[f.uid] = ()=> ref.off('value',fn);
+    }
+  });
+}
+
+let _lobCurrentPlayers = {};
+
+// ── Send invite to a friend ──────────────────────────────
+async function lobSendInvite(friendUid, friendName){
+  if(!_rtdbRoom||!currentUser||!fbRtdb) return;
+  const btn = document.getElementById('lob-inv-btn-'+friendUid);
+  if(btn){ btn.className='lob-inv-btn sent'; btn.textContent='Terkirim ✓'; btn.disabled=true; }
+  _lobSentInvites[friendUid] = true;
+
+  const myName = currentUserData?.name || currentUser.displayName || 'Seseorang';
+  const snap = await fbRtdb.ref('rooms/'+_rtdbRoom+'/info').get();
+  const info = snap.val()||{};
+  const numP = info.numPlayers || selNumOnline || 2;
+
+  // Write invite to RTDB under recipient's invites node
+  try {
+    await fbRtdb.ref('users/'+friendUid+'/invites/'+_rtdbRoom).set({
+      rid:      _rtdbRoom,
+      hostUid:  currentUser.uid,
+      hostName: myName,
+      hostAv:   currentUserData?.avatar||'😎',
+      numPlayers: numP,
+      ts:       Date.now()
+    });
+    toast('Undangan dikirim ke '+friendName,'ok');
+    _lobUpdateSentCount();
+  } catch(e){
+    toast('Gagal kirim undangan','warn');
+    _lobSentInvites[friendUid]=false;
+    if(btn){ btn.className='lob-inv-btn invite'; btn.textContent='Undang'; btn.disabled=false; }
+  }
+}
+
+function _lobUpdateSentCount(){
+  const n = Object.values(_lobSentInvites).filter(Boolean).length;
+  const el = document.getElementById('lob-invite-sent-count');
+  if(el) el.textContent = n>0?n+' undangan terkirim':'';
+}
+
+// ── Listen for incoming invites (called on login) ────────
+function _startListenInvites(){
+  if(!currentUser||currentUser.isGuest||!fbRtdb) return;
+  if(_lobInviteListener){ try{_lobInviteListener();}catch(e){} }
+
+  const ref = fbRtdb.ref('users/'+currentUser.uid+'/invites');
+  const fn = ref.on('child_added', async snap=>{
+    const inv = snap.val();
+    if(!inv||!inv.rid) return;
+    // Ignore if already in a game/lobby
+    if(document.getElementById('s-lobby').classList.contains('on') ||
+       document.getElementById('s-game').classList.contains('on')) return;
+    // Ignore if invite is older than 2 minutes
+    if(Date.now() - (inv.ts||0) > 2*60*1000){
+      snap.ref.remove().catch(()=>{}); return;
+    }
+    // Check if room still exists and not full
+    try {
+      const roomSnap = await fbRtdb.ref('rooms/'+inv.rid+'/info').get();
+      if(!roomSnap.exists()){ snap.ref.remove().catch(()=>{}); return; }
+      const info = roomSnap.val();
+      if(info.started){ snap.ref.remove().catch(()=>{}); return; }
+      const joined = Object.keys(info.players||{}).length;
+      if(joined >= info.numPlayers){ snap.ref.remove().catch(()=>{}); return; }
+    } catch(e){ return; }
+
+    _pendingInvite = { rid: inv.rid, hostName: inv.hostName, hostAv: inv.hostAv, numPlayers: inv.numPlayers, snapRef: snap.ref };
+    _showInviteNotif(inv);
+  });
+  _lobInviteListener = ()=> ref.off('child_added', fn);
+}
+
+// ── Show invite popup ────────────────────────────────────
+let _inviteNotifTimer = null;
+function _showInviteNotif(inv){
+  const notif = document.getElementById('invite-notif');
+  const txt   = document.getElementById('invite-notif-text');
+  const rm    = document.getElementById('invite-notif-room');
+  if(!notif) return;
+  txt.textContent  = (inv.hostAv||'😎')+' '+_esc(inv.hostName||'Seseorang')+' mengundang kamu!';
+  rm.textContent   = '🏠 Room: '+inv.rid+' · '+inv.numPlayers+' pemain';
+  notif.style.display = 'block';
+  // Auto-dismiss after 30s
+  if(_inviteNotifTimer) clearTimeout(_inviteNotifTimer);
+  _inviteNotifTimer = setTimeout(()=>{ notif.style.display='none'; _pendingInvite=null; }, 30000);
+}
+
+// ── Accept invite ────────────────────────────────────────
+async function acceptInvite(){
+  const notif = document.getElementById('invite-notif');
+  if(notif) notif.style.display='none';
+  if(_inviteNotifTimer){ clearTimeout(_inviteNotifTimer); _inviteNotifTimer=null; }
+  if(!_pendingInvite){ toast('Undangan sudah kedaluwarsa','warn'); return; }
+  const { rid, snapRef } = _pendingInvite;
+  _pendingInvite = null;
+  if(snapRef) snapRef.remove().catch(()=>{});
+
+  // Fill join-online input and trigger join
+  const inp = document.getElementById('inp-room-online');
+  if(inp) inp.value = rid;
+  await doJoinOnline(rid);
+}
+
+// ── Decline invite ───────────────────────────────────────
+function declineInvite(){
+  const notif = document.getElementById('invite-notif');
+  if(notif) notif.style.display='none';
+  if(_inviteNotifTimer){ clearTimeout(_inviteNotifTimer); _inviteNotifTimer=null; }
+  if(_pendingInvite?.snapRef) _pendingInvite.snapRef.remove().catch(()=>{});
+  _pendingInvite = null;
+}
+
+// ══════════════════════════════════════════════════════
 
 // ── NOTIF KONEKSI INTERNET ──
 window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!','warn'));
