@@ -100,6 +100,117 @@
   --felt:#0a6b30;--felt2:#0e8c3c;--rail:#7B3F00;--rail2:#5C2D00;
   --gold:#FFD700;--gold2:#B8860B;--red:#CC0000;
 }
+/* ── RANKED BUTTON ─────────────────────────────── */
+.mb-ranked{
+  background:linear-gradient(135deg,#7b1a00,#e65c00,#ffd740);
+  color:#fff3e0;box-shadow:0 4px 24px rgba(230,92,0,.55);
+  border:1.5px solid rgba(255,215,0,.3);
+}
+/* Star-rank badge */
+.rbadge{display:inline-flex;align-items:center;gap:3px;
+  padding:2px 9px;border-radius:14px;font-size:.67em;font-weight:800;
+  letter-spacing:.8px;white-space:nowrap;}
+.rb-bronze  {background:linear-gradient(135deg,#5D4037,#8D6E63);color:#fff;}
+.rb-silver  {background:linear-gradient(135deg,#546E7A,#90A4AE);color:#fff;}
+.rb-gold    {background:linear-gradient(135deg,#e65100,#FFD700);color:#1a0800;}
+.rb-platinum{background:linear-gradient(135deg,#00695C,#4DB6AC);color:#fff;}
+.rb-diamond {background:linear-gradient(135deg,#1565C0,#42A5F5);color:#fff;}
+.rb-legend  {background:linear-gradient(135deg,#6A1B9A,#FF8F00,#AB47BC);color:#fff;}
+/* Ranked indicator in game */
+#ranked-ind{position:absolute;top:7px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#e65100,#FFD700);color:#1a0800;
+  font-size:.6em;font-weight:800;padding:2px 11px;border-radius:10px;
+  letter-spacing:1px;z-index:6;pointer-events:none;}
+/* RP delta */
+#rp-delta-wrap{margin:10px 0 2px;min-height:28px;text-align:center;}
+.rp-gain{color:#4caf50;font-weight:800;font-size:.95em;}
+.rp-loss{color:#f44336;font-weight:800;font-size:.95em;}
+/* Streak */
+.streak-pill{display:inline-flex;align-items:center;gap:3px;
+  padding:2px 8px;border-radius:8px;font-size:.68em;font-weight:800;
+  background:linear-gradient(135deg,#b71c1c,#ff5722);color:#fff;}
+/* ── RANKED LOBBY SCREEN ─────────────────────── */
+#s-ranked{background:radial-gradient(ellipse at 50% 18%,#1a0a00,#0a0f1e);
+  flex-direction:column;align-items:center;
+  justify-content:center;gap:16px;padding:28px 22px;}
+.ranked-np-btn{flex:1;padding:10px 0;border:1.5px solid rgba(255,215,0,.22);
+  border-radius:10px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);
+  font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;
+  cursor:pointer;transition:.15s;}
+.ranked-np-btn.on{background:linear-gradient(135deg,#e65100,#FFD700);
+  color:#1a0800;border-color:transparent;}
+/* ── MATCHMAKING SCREEN ─────────────────────── */
+#s-ranked-search{background:radial-gradient(ellipse at 50% 20%,#1a0a00,#0a0f1e);
+  flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+#s-ranked-ready{background:radial-gradient(ellipse at 50% 20%,#0a1a00,#0a0f1e);
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.mm-ring{width:100px;height:100px;border-radius:50%;
+  border:3px solid rgba(255,215,0,.15);
+  border-top-color:#FFD700;border-right-color:#e65100;
+  animation:mmSpin 1.2s linear infinite;position:relative;}
+.mm-ring::after{content:'⚔️';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);font-size:2em;animation:mmSpin 1.2s linear infinite reverse;}
+@keyframes mmSpin{to{transform:rotate(360deg);}}
+.mm-title{font-family:'Cinzel',serif;font-size:1.1em;color:#FFD700;letter-spacing:2px;}
+.mm-status{font-size:.82em;color:rgba(255,255,255,.5);text-align:center;}
+.mm-timer{font-size:2.2em;font-weight:800;color:#FFD700;min-width:50px;text-align:center;
+  font-family:'Rajdhani',sans-serif;}
+.mm-timer.urgent{color:#f44336;animation:mmPulse .5s ease-in-out infinite alternate;}
+@keyframes mmPulse{from{opacity:1;transform:scale(1);}to{opacity:.7;transform:scale(1.08);}}
+.mm-slots{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:300px;}
+.mm-slot{width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;font-size:1.5em;
+  background:rgba(255,255,255,.05);position:relative;transition:.3s;}
+.mm-slot.filled{border-color:#FFD700;background:rgba(255,215,0,.12);}
+.rdy-slots{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:320px;}
+.rdy-slot{display:flex;flex-direction:column;align-items:center;gap:5px;width:72px;transition:opacity .4s;}
+.rdy-slot.waiting{opacity:.45;}
+.rdy-slot.ready{opacity:1;}
+.rdy-av{width:58px;height:58px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:1.6em;
+  background:rgba(255,255,255,.06);transition:.35s;position:relative;}
+.rdy-av.ready{border-color:#4caf50;box-shadow:0 0 16px rgba(76,175,80,.55);}
+.rdy-name{font-size:.67em;color:rgba(255,255,255,.7);text-align:center;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;}
+.rdy-name.me{color:#FFD700;}
+.rdy-status{font-size:.58em;font-weight:700;letter-spacing:.4px;text-align:center;}
+.rdy-status.on{color:#4caf50;}.rdy-status.wait{color:#FF9800;}
+.rdy-btn{padding:14px 32px;background:linear-gradient(135deg,#1b5e20,#4caf50);
+  border:none;border-radius:14px;font-family:'Rajdhani',sans-serif;
+  font-size:1.15em;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px;
+  box-shadow:0 4px 20px rgba(76,175,80,.4);transition:.15s;}
+.rdy-btn:active{transform:scale(.96);}
+.rdy-btn.done{background:linear-gradient(135deg,#1b5e20,#388e3c);opacity:.7;cursor:default;}
+.rdy-countdown{font-size:1.6em;font-weight:800;color:#FF9800;font-family:'Rajdhani',sans-serif;}
+.rdy-countdown.urgent{color:#f44336;animation:mmPulse .5s ease-in-out infinite alternate;}
+/* ── LEADERBOARD ─────────────────────────────── */
+#s-leaderboard{background:radial-gradient(ellipse at 50% 20%,#0a0f1e,#04090e);
+  flex-direction:column;align-items:center;padding-bottom:80px;}
+.lb-hd{width:100%;max-width:440px;padding:18px 18px 0;display:flex;align-items:center;gap:10px;}
+.lb-back{background:rgba(255,255,255,.08);border:none;color:#fff;
+  font-size:1.1em;padding:8px 14px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+.lb-title{font-family:'Cinzel',serif;font-size:1.2em;color:#FFD700;letter-spacing:2px;flex:1;text-align:center;}
+.lb-tabs{display:flex;gap:8px;width:100%;max-width:440px;padding:12px 18px 4px;}
+.lb-tab{flex:1;padding:10px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;
+  font-size:.9em;font-weight:700;cursor:pointer;background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.45);letter-spacing:.5px;transition:.2s;}
+.lb-tab.on{background:linear-gradient(135deg,#e65100,#FFD740);color:#1a0800;}
+.lb-list{width:100%;max-width:440px;padding:2px 14px;display:flex;flex-direction:column;gap:6px;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);}
+.lb-row.me{border-color:rgba(255,215,0,.4);background:rgba(255,215,0,.08);}
+.lb-row.top1{background:linear-gradient(135deg,rgba(255,215,0,.16),rgba(255,152,0,.07));border-color:rgba(255,215,0,.5);}
+.lb-row.top2{background:linear-gradient(135deg,rgba(192,192,192,.13),rgba(144,164,174,.06));border-color:rgba(192,192,192,.4);}
+.lb-row.top3{background:linear-gradient(135deg,rgba(139,90,43,.16),rgba(141,110,99,.07));border-color:rgba(205,127,50,.4);}
+.lb-pos{width:26px;text-align:center;font-weight:800;font-size:.88em;color:rgba(255,255,255,.38);}
+.lb-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.3em;background:rgba(255,255,255,.07);flex-shrink:0;}
+.lb-info{flex:1;min-width:0;}
+.lb-name{font-weight:700;font-size:.93em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-sub{font-size:.7em;color:rgba(255,255,255,.42);display:flex;align-items:center;gap:5px;margin-top:1px;}
+.lb-stars{font-weight:800;font-size:.98em;color:#FFD700;white-space:nowrap;}
+.lb-empty{text-align:center;color:rgba(255,255,255,.28);padding:44px 0;font-size:.9em;}
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#050e05;}
 body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:column;}
@@ -209,168 +320,6 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   color:#f3e5f5;box-shadow:0 4px 20px rgba(123,31,162,.4);
 }
 .menu-wrap{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;z-index:1;}
-
-
-/* ── RANKED / LEADERBOARD ─────────────────────────────────── */
-/* Ranked menu button */
-.mb-ranked{
-  background:linear-gradient(135deg,#7b1a00,#e65c00,#ffd740);
-  color:#fff3e0;box-shadow:0 4px 24px rgba(230,92,0,.55);
-  border:1.5px solid rgba(255,215,0,.3);
-}
-/* Ranked player count selector */
-.ranked-np-btn{flex:1;padding:10px 0;border:1.5px solid rgba(255,215,0,.22);
-  border-radius:10px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);
-  font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;
-  cursor:pointer;transition:.15s;}
-.ranked-np-btn.on{background:linear-gradient(135deg,#e65100,#FFD700);
-  color:#1a0800;border-color:transparent;}
-/* Star-rank badge (inline) */
-.rbadge{display:inline-flex;align-items:center;gap:3px;
-  padding:2px 9px;border-radius:14px;font-size:.67em;font-weight:800;
-  letter-spacing:.8px;white-space:nowrap;}
-.rb-bronze  {background:linear-gradient(135deg,#5D4037,#8D6E63);color:#fff;}
-.rb-silver  {background:linear-gradient(135deg,#546E7A,#90A4AE);color:#fff;}
-.rb-gold    {background:linear-gradient(135deg,#e65100,#FFD700);color:#1a0800;}
-.rb-platinum{background:linear-gradient(135deg,#00695C,#4DB6AC);color:#fff;}
-.rb-diamond {background:linear-gradient(135deg,#1565C0,#42A5F5);color:#fff;}
-.rb-legend  {background:linear-gradient(135deg,#6A1B9A,#FF8F00,#AB47BC);color:#fff;}
-/* Streak badge */
-.streak-pill{display:inline-flex;align-items:center;gap:3px;
-  padding:2px 8px;border-radius:8px;font-size:.68em;font-weight:800;
-  background:linear-gradient(135deg,#b71c1c,#ff5722);color:#fff;}
-/* RP delta in game-over modal */
-#rp-delta-wrap{margin:10px 0 2px;min-height:28px;text-align:center;}
-.rp-gain{color:#4caf50;font-weight:800;font-size:.95em;}
-.rp-loss{color:#f44336;font-weight:800;font-size:.95em;}
-/* RANKED indicator floating */
-#ranked-ind{position:absolute;top:7px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(135deg,#e65100,#FFD700);color:#1a0800;
-  font-size:.6em;font-weight:800;padding:2px 11px;border-radius:10px;
-  letter-spacing:1px;z-index:6;pointer-events:none;}
-/* ── LEADERBOARD SCREEN ──────────────────────────────────── */
-#s-leaderboard{background:radial-gradient(ellipse at 50% 20%,#0a0f1e,#04090e);
-  display:flex;flex-direction:column;align-items:center;padding-bottom:80px;}
-.lb-hd{width:100%;max-width:440px;padding:18px 18px 0;
-  display:flex;align-items:center;gap:10px;}
-.lb-back{background:rgba(255,255,255,.08);border:none;color:#fff;
-  font-size:1.1em;padding:8px 14px;border-radius:10px;cursor:pointer;
-  font-family:'Rajdhani',sans-serif;}
-.lb-title{font-family:'Cinzel',serif;font-size:1.2em;color:#FFD700;
-  letter-spacing:2px;flex:1;text-align:center;}
-.lb-tabs{display:flex;gap:8px;width:100%;max-width:440px;padding:12px 18px 4px;}
-.lb-tab{flex:1;padding:10px;border:none;border-radius:10px;
-  font-family:'Rajdhani',sans-serif;font-size:.9em;font-weight:700;
-  cursor:pointer;background:rgba(255,255,255,.07);color:rgba(255,255,255,.45);
-  letter-spacing:.5px;transition:.2s;}
-.lb-tab.on{background:linear-gradient(135deg,#e65100,#FFD740);color:#1a0800;}
-.lb-mystrip{width:100%;max-width:440px;padding:6px 18px;}
-.lb-mystrip-in{border:1px solid rgba(255,215,0,.25);border-radius:12px;
-  padding:10px 14px;background:rgba(255,215,0,.06);
-  display:flex;align-items:center;gap:10px;}
-.lb-myrn{font-size:1.05em;font-weight:800;color:#FFD700;}
-.lb-list{width:100%;max-width:440px;padding:2px 14px;
-  display:flex;flex-direction:column;gap:6px;}
-.lb-row{display:flex;align-items:center;gap:10px;padding:10px 14px;
-  border-radius:12px;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.07);}
-.lb-row.me{border-color:rgba(255,215,0,.4);background:rgba(255,215,0,.08);}
-.lb-row.top1{background:linear-gradient(135deg,rgba(255,215,0,.16),rgba(255,152,0,.07));
-  border-color:rgba(255,215,0,.5);}
-.lb-row.top2{background:linear-gradient(135deg,rgba(192,192,192,.13),rgba(144,164,174,.06));
-  border-color:rgba(192,192,192,.4);}
-.lb-row.top3{background:linear-gradient(135deg,rgba(139,90,43,.16),rgba(141,110,99,.07));
-  border-color:rgba(205,127,50,.4);}
-.lb-pos{width:26px;text-align:center;font-weight:800;font-size:.88em;
-  color:rgba(255,255,255,.38);}
-.lb-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:1.3em;background:rgba(255,255,255,.07);
-  overflow:hidden;flex-shrink:0;}
-.lb-av img{width:100%;height:100%;object-fit:cover;}
-.lb-info{flex:1;min-width:0;}
-.lb-name{font-weight:700;font-size:.93em;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;}
-.lb-sub{font-size:.7em;color:rgba(255,255,255,.42);
-  display:flex;align-items:center;gap:5px;margin-top:1px;}
-.lb-stars{font-weight:800;font-size:.98em;color:#FFD700;white-space:nowrap;}
-.lb-empty{text-align:center;color:rgba(255,255,255,.28);
-  padding:44px 0;font-size:.9em;}
-/* ── RANKED LOBBY SCREEN ─────────────────────────────────── */
-#s-ranked{background:radial-gradient(ellipse at 50% 18%,#1a0a00,#0a0f1e);
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:16px;padding:28px 22px;}
-
-
-/* ── MATCHMAKING & READY SCREEN ─────────────────────── */
-#s-ranked-search{background:radial-gradient(ellipse at 50% 20%,#1a0a00,#0a0f1e);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
-#s-ranked-ready{background:radial-gradient(ellipse at 50% 20%,#0a1a00,#0a0f1e);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-
-/* Spinning search ring */
-.mm-ring{width:100px;height:100px;border-radius:50%;
-  border:3px solid rgba(255,215,0,.15);
-  border-top-color:#FFD700;border-right-color:#e65100;
-  animation:mmSpin 1.2s linear infinite;position:relative;}
-.mm-ring::after{content:'⚔️';position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);font-size:2em;animation:mmSpin 1.2s linear infinite reverse;}
-@keyframes mmSpin{to{transform:rotate(360deg);}}
-
-.mm-title{font-family:'Cinzel',serif;font-size:1.1em;color:#FFD700;letter-spacing:2px;}
-.mm-status{font-size:.82em;color:rgba(255,255,255,.5);text-align:center;}
-.mm-timer{font-size:2.2em;font-weight:800;color:#FFD700;min-width:50px;text-align:center;
-  font-family:'Rajdhani',sans-serif;}
-.mm-timer.urgent{color:#f44336;animation:mmPulse .5s ease-in-out infinite alternate;}
-@keyframes mmPulse{from{opacity:1;transform:scale(1);}to{opacity:.7;transform:scale(1.08);}}
-
-/* Player slots di matchmaking */
-.mm-slots{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:300px;}
-.mm-slot{width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,.15);
-  display:flex;align-items:center;justify-content:center;font-size:1.5em;
-  background:rgba(255,255,255,.05);position:relative;transition:.3s;}
-.mm-slot.filled{border-color:#FFD700;background:rgba(255,215,0,.12);}
-.mm-slot.filled::after{content:'✓';position:absolute;bottom:-4px;right:-4px;
-  background:#4caf50;border-radius:50%;width:18px;height:18px;font-size:.65em;
-  display:flex;align-items:center;justify-content:center;font-weight:800;}
-.mm-slot.bot{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);}
-.mm-slot.bot::after{content:'🤖';position:absolute;bottom:-4px;right:-4px;
-  font-size:.75em;}
-
-/* Ready screen */
-.rdy-slots{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:320px;}
-.rdy-slot{display:flex;flex-direction:column;align-items:center;gap:5px;width:72px;
-  transition:opacity .4s;}
-.rdy-slot.waiting{opacity:.45;}
-.rdy-slot.ready{opacity:1;}
-.rdy-av{width:58px;height:58px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);
-  display:flex;align-items:center;justify-content:center;font-size:1.6em;
-  background:rgba(255,255,255,.06);transition:.35s;position:relative;overflow:hidden;}
-.rdy-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.rdy-av.ready{border-color:#4caf50;box-shadow:0 0 16px rgba(76,175,80,.55);}
-.rdy-av.ready::after{content:'✓';position:absolute;bottom:-2px;right:-2px;
-  background:#4caf50;border-radius:50%;width:20px;height:20px;font-size:.65em;
-  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;
-  border:2px solid #0a1a00;}
-.rdy-av.bot-av{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);}
-.rdy-av.bot-av.ready{border-color:rgba(100,200,100,.5);box-shadow:0 0 10px rgba(76,175,80,.3);}
-.rdy-av.kicked{border-color:#f44336;opacity:.3;}
-.rdy-name{font-size:.67em;color:rgba(255,255,255,.7);text-align:center;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;}
-.rdy-name.me{color:#FFD700;}
-.rdy-status{font-size:.58em;font-weight:700;letter-spacing:.4px;text-align:center;}
-.rdy-status.on{color:#4caf50;}.rdy-status.wait{color:#FF9800;}.rdy-status.bot{color:rgba(255,255,255,.3);}
-/* Rank badge kecil di bawah avatar */
-.rdy-rank{font-size:.55em;margin-top:1px;}
-
-/* Ready button */
-.rdy-btn{padding:14px 32px;background:linear-gradient(135deg,#1b5e20,#4caf50);
-  border:none;border-radius:14px;font-family:'Rajdhani',sans-serif;
-  font-size:1.15em;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px;
-  box-shadow:0 4px 20px rgba(76,175,80,.4);transition:.15s;position:relative;overflow:hidden;}
-.rdy-btn:active{transform:scale(.96);}
-.rdy-btn.done{background:linear-gradient(135deg,#1b5e20,#388e3c);opacity:.7;cursor:default;}
-.rdy-countdown{font-size:1.6em;font-weight:800;color:#FF9800;font-family:'Rajdhani',sans-serif;}
-.rdy-countdown.urgent{color:#f44336;animation:mmPulse .5s ease-in-out infinite alternate;}
 
 /* BUTTONS */
 .btn{padding:14px 20px;border:none;border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:1.1em;font-weight:700;cursor:pointer;letter-spacing:1px;width:100%;transition:transform .1s;}
@@ -1469,24 +1418,15 @@ window.addEventListener('unhandledrejection',function(e){
       <button class="mode-btn mb-ranked" onclick="goRanked()">
         <span class="mode-icon">⚔️</span>
         <span class="mode-text">
-          <span class="mode-title">RANKED</span>
-          <span class="mode-desc">Main kompetitif &amp; raih bintang</span>
+          <span class="mode-title">RANKED MATCH</span>
+          <span class="mode-desc">Lawan pemain lain, raih bintang</span>
         </span>
-        <span class="mode-badge" id="menu-rank-badge" style="font-size:.65em;padding:3px 8px;">⭐ 0</span>
+        <span class="mode-badge">RANKED</span>
       </button>
     </div>
 
 
-    <button class="mode-btn" onclick="goLeaderboard()" style="margin-top:4px;background:linear-gradient(135deg,#0d2b4a,#1565C0,#0d2b4a);color:#e3f2fd;box-shadow:0 4px 18px rgba(21,101,192,.4);">
-      <span class="mode-icon">📊</span>
-      <span class="mode-text">
-        <span class="mode-title">LEADERBOARD</span>
-        <span class="mode-desc">Papan peringkat global &amp; mingguan</span>
-      </span>
-      <span class="mode-badge" style="background:rgba(21,101,192,.5);">TOP 50</span>
-    </button>
-
-        <button class="mode-btn mb-tutorial" onclick="goTutorial()" style="margin-top:4px;">
+    <button class="mode-btn mb-tutorial" onclick="goTutorial()" style="margin-top:4px;">
       <span class="mode-icon">🎓</span>
       <span class="mode-text">
         <span class="mode-title">TUTORIAL</span>
@@ -1571,17 +1511,6 @@ window.addEventListener('unhandledrejection',function(e){
           <div class="pf-stat wr">
             <span class="pf-stat-val" id="pf-s-wr">0%</span>
             <span class="pf-stat-lbl">WIN RATE</span>
-          </div>
-        </div>
-        <!-- Ranked stats row -->
-        <div style="display:flex;gap:10px;margin-top:8px;">
-          <div class="pf-stat" style="flex:1;background:rgba(255,215,0,.07);border-radius:10px;padding:8px 6px;">
-            <span class="pf-stat-val" id="pf-s-stars" style="color:#FFD700;font-size:.95em;">⭐ 0</span>
-            <span class="pf-stat-lbl">BINTANG</span>
-          </div>
-          <div class="pf-stat" style="flex:1;background:rgba(255,100,0,.07);border-radius:10px;padding:8px 6px;">
-            <span class="pf-stat-val" id="pf-s-streak" style="color:#FF9800;font-size:.95em;">—</span>
-            <span class="pf-stat-lbl">STREAK 🔥</span>
           </div>
         </div>
       </div>
@@ -2101,7 +2030,6 @@ window.addEventListener('unhandledrejection',function(e){
   <div class="modal">
     <h2>🏆 GAME SELESAI</h2>
     <ul class="rlist" id="rank-list"></ul>
-    <div id="rp-delta-wrap"></div>
     <button class="btn b-gold" onclick="backMenu()">Main Lagi</button>
   </div>
 </div>
@@ -2282,11 +2210,7 @@ function initSock(){
 }
 
 function go(id){
-  // Guard: layar matchmaking hanya boleh dibuka lewat fungsi resmi
-  if((id==='s-ranked-search'||id==='s-ranked-ready') &&
-     (typeof _mmPhase==='undefined'||(_mmPhase!=='searching'&&_mmPhase!=='creating'&&_mmPhase!=='ready'))){
-    return; // abaikan jika state tidak sesuai
-  }
+
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   // Profile FAB: hanya di menu utama
@@ -3638,16 +3562,13 @@ function backMenu(){
 }
 // Cek auto tutorial saat halaman load
 window.addEventListener('load', function(){
-  // Hard reset semua layar ke state awal (fix Capacitor WebView state restore)
-  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
-  const loginScr = document.getElementById('loginScreen');
-  if(loginScr) loginScr.classList.add('on');
-
-  // Reset matchmaking state supaya layar ready/search tidak muncul sendiri
-  if(typeof _mmCleanup === 'function') _mmCleanup();
-
+  // Pastikan ranked tidak bisa jalan sebelum user login
+  if(typeof _mmAuthReady !== 'undefined') _mmAuthReady = false;
+  if(typeof _mmPhase     !== 'undefined') _mmPhase     = 'idle';
   _checkAutoTutorial();
 });
+
+
 
 
 
@@ -3734,6 +3655,8 @@ async function onUserLoggedIn(user){
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
+  // Ranked matchmaking boleh jalan sekarang
+  if(typeof _mmAuthReady !== 'undefined') _mmAuthReady = true;
 }
 
 // Tab switch
@@ -4498,21 +4421,7 @@ function _esc(str){
 
 const PF_EMOJIS = ['😎','🧑','👦','👩','🧔','👱','🧑‍🦱','👩‍🦰','🥷','🧙','🧝','🦸','🦹','🧟','👻','🐱','🐶','🦊','🐼','🦁'];
 
-// ── Rank calculator by stars (sistem baru) ──
-function _calcRankByStars(s){
-  s = s||0;
-  if(s <  50) return {label:'BRONZE',   icon:'🥉',cls:'pf-rank-bronze',  rb:'rb-bronze',  min:0,  max:49 };
-  if(s < 150) return {label:'SILVER',   icon:'🥈',cls:'pf-rank-silver',  rb:'rb-silver',  min:50, max:149};
-  if(s < 250) return {label:'GOLD',     icon:'🥇',cls:'pf-rank-gold',    rb:'rb-gold',    min:150,max:249};
-  if(s < 500) return {label:'PLATINUM', icon:'💠',cls:'pf-rank-platinum',rb:'rb-platinum',min:250,max:499};
-  if(s < 800) return {label:'DIAMOND',  icon:'💎',cls:'pf-rank-diamond', rb:'rb-diamond', min:500,max:799};
-  return             {label:'LEGEND',   icon:'👑',cls:'pf-rank-legend',  rb:'rb-legend',  min:800,max:Infinity};
-}
-function _rankBadgeHtml(stars,extraCss=''){
-  const r=_calcRankByStars(stars);
-  return `<span class="rbadge ${r.rb}" style="${extraCss}">${r.icon} ${r.label}</span>`;
-}
-// ── Rank calculator (legacy – masih dipakai di beberapa tempat) ──
+// ── Rank calculator ──
 function _calcRank(wins){
   if(wins < 10)  return {label:'🥉 BRONZE',   cls:'pf-rank-bronze'};
   if(wins < 30)  return {label:'🥈 SILVER',   cls:'pf-rank-silver'};
@@ -4610,11 +4519,12 @@ async function pfLoadMyProfile(){
       if(fi) fi.remove();
     }
 
-    // Rank (berdasarkan bintang)
-    const stars = d.stars || 0;
-    const rankS = _calcRankByStars(stars);
+    // Rank
+    const wins = d.wins || 0;
+    const rank = _calcRank(wins);
     const rb = document.getElementById('pf-rank-badge');
-    if(rb){ rb.textContent = rankS.icon+' '+rankS.label; rb.className='pf-rank '+rankS.cls; }
+    rb.textContent = rank.label;
+    rb.className = 'pf-rank ' + rank.cls;
 
     // Nama
     document.getElementById('pf-name-display').textContent = d.name || '—';
@@ -4629,13 +4539,6 @@ async function pfLoadMyProfile(){
     document.getElementById('pf-s-win').textContent   = d.wins  || 0;
     document.getElementById('pf-s-lose').textContent  = d.losses|| 0;
     document.getElementById('pf-s-wr').textContent    = wr + '%';
-    // Bintang & streak
-    const stEl=document.getElementById('pf-s-stars');
-    if(stEl) stEl.textContent='⭐ '+stars;
-    const skEl=document.getElementById('pf-s-streak');
-    if(skEl) skEl.textContent=(d.streak||0)>=3?'🔥 '+(d.streak||0):'—';
-    // Refresh ranked displays
-    _rnkRefreshUI();
   } catch(e){ console.warn('[pfLoadMyProfile]', e); }
 }
 
@@ -4791,7 +4694,7 @@ async function pfSaveMatchResult(st){
   const oppNames = Object.entries(names)
     .filter(([k])=> parseInt(k) !== myIdx)
     .map(([,v])=>v).join(', ') || 'Bot';
-  const mode = (typeof _isRankedMode!=='undefined'&&_isRankedMode) ? 'Ranked' : (_rtdbRoom ? 'Online' : (_botGame ? 'Bot' : 'Bot'));
+  const mode = _rtdbRoom ? 'Online' : (_botGame ? 'Bot' : 'Bot');
 
   // Simpan riwayat match
   const matchData = { result: isWin?'win':'lose', opponents: oppNames, mode, ts: Date.now() };
@@ -4952,10 +4855,10 @@ async function pfViewFriendProfile(uid){
     } else {
       avEl.textContent = d.avatar || '😎';
     }
-    // Rank (berdasarkan bintang)
+    // Rank
     const rb = document.getElementById('pfm-rank-badge');
-    const rankFr = _calcRankByStars(d.stars||0);
-    if(rb){ rb.textContent=rankFr.icon+' '+rankFr.label; rb.className='pf-rank '+rankFr.cls; }
+    const rank = _calcRank(d.wins||0);
+    rb.textContent = rank.label; rb.className = 'pf-rank '+rank.cls;
     // Stats
     document.getElementById('pfm-name').textContent = d.name || '?';
     document.getElementById('pfm-uid').textContent  = d.shortId || uid.slice(0,8);
@@ -5462,133 +5365,92 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
   </div>
 </div>
 
-<!-- ══════════════════════════════ LEADERBOARD SCREEN ══════ -->
-<div id="s-leaderboard" class="scr">
-  <div class="lb-hd">
-    <button class="lb-back" onclick="go('s-menu')">← Menu</button>
-    <span class="lb-title">📊 LEADERBOARD</span>
-    <div style="width:46px;"></div>
-  </div>
-  <div class="lb-tabs">
-    <button class="lb-tab on" id="lb-tab-g" onclick="lbTab('g')">🌍 Global</button>
-    <button class="lb-tab"   id="lb-tab-w" onclick="lbTab('w')">📅 Mingguan</button>
-  </div>
-  <!-- My rank strip -->
-  <div class="lb-mystrip" id="lb-mystrip" style="display:none;">
-    <div class="lb-mystrip-in">
-      <div style="flex:1;">
-        <div style="font-size:.68em;color:rgba(255,215,0,.65);letter-spacing:1px;font-weight:700;">RANKINGMU</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;">
-          <span id="lb-my-pos"  class="lb-myrn">#—</span>
-          <span id="lb-my-rbadge"></span>
-          <span id="lb-my-stars" style="color:#FFD700;font-weight:800;font-size:.88em;">⭐ —</span>
-          <span id="lb-my-streak"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="lb-list" id="lb-list">
-    <div class="lb-empty">Memuat…</div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════ RANKED LOBBY SCREEN ══════ -->
+<!-- ══════════════════ RANKED LOBBY ══════════════════════════ -->
 <div id="s-ranked" class="scr">
-  <div style="font-family:'Cinzel',serif;font-size:1.35em;color:#FFD700;letter-spacing:3px;text-align:center;">⚔️ RANKED</div>
-  <div style="font-size:.78em;color:rgba(255,255,255,.45);text-align:center;margin-top:-4px;">Raih bintang, naiki ranking!</div>
-
-  <!-- My rank card -->
-  <div style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:14px 22px;text-align:center;width:100%;max-width:280px;">
-    <div style="font-size:.68em;color:rgba(255,215,0,.6);letter-spacing:1px;font-weight:700;margin-bottom:6px;">RANKING KAMU</div>
-    <div id="rnk-badge-disp" style="font-size:1em;font-weight:800;min-height:22px;"></div>
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:14px;">
-      <span id="rnk-stars-disp" style="color:#FFD700;font-weight:800;font-size:.95em;">⭐ 0</span>
-      <span id="rnk-streak-disp"></span>
-    </div>
-    <div style="margin-top:8px;font-size:.64em;color:rgba(255,255,255,.3);line-height:1.7;">
-      Juara 1: <b style="color:#ffd740;">+12⭐</b> &nbsp;·&nbsp; Juara 2: <b style="color:#ffd740;">+10⭐</b> &nbsp;·&nbsp; Juara 3: <b style="color:#ffd740;">+8⭐</b><br>
-      Kalah: <b style="color:#f44336;">-5⭐</b> &nbsp;·&nbsp; Keluar: <b style="color:#f44336;">-8⭐</b> &nbsp;·&nbsp; Streak min 3×: <b style="color:#ff9800;">+bonus🔥</b>
-    </div>
-  </div>
-
-  <!-- Player count -->
-  <div style="width:100%;max-width:280px;">
-    <div style="font-size:.7em;color:rgba(255,255,255,.38);letter-spacing:1px;margin-bottom:8px;text-align:center;font-weight:700;">JUMLAH PEMAIN</div>
+  <div class="panel-title" style="font-family:'Cinzel',serif;font-size:1.3em;color:#FFD700;letter-spacing:2px;">⚔️ RANKED MATCH</div>
+  <div id="rnk-rank-display" style="margin:4px 0 8px;text-align:center;font-size:.85em;color:rgba(255,255,255,.5);">Memuat rank...</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
+    <div style="font-size:.78em;color:rgba(255,255,255,.4);text-align:center;letter-spacing:1px;">JUMLAH PEMAIN</div>
     <div style="display:flex;gap:8px;">
       <button class="ranked-np-btn on" id="rnp-2" onclick="setRankedNp(2)">2 P</button>
       <button class="ranked-np-btn"    id="rnp-3" onclick="setRankedNp(3)">3 P</button>
       <button class="ranked-np-btn"    id="rnp-4" onclick="setRankedNp(4)">4 P</button>
     </div>
+    <button onclick="startRanked()" style="width:100%;padding:14px;background:linear-gradient(135deg,#e65100,#FFD700);border:none;border-radius:14px;font-family:'Rajdhani',sans-serif;font-size:1.1em;font-weight:800;color:#1a0800;cursor:pointer;letter-spacing:1px;">
+      ⚔️ MULAI RANKED
+    </button>
+    <button onclick="goLeaderboard()" style="width:100%;padding:11px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;color:#FFD700;cursor:pointer;">
+      🏆 Leaderboard
+    </button>
+    <button onclick="go('s-menu')" style="width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:.9em;color:rgba(255,255,255,.5);cursor:pointer;">
+      ← Kembali
+    </button>
   </div>
+</div>
 
-  <button onclick="startRanked()" style="width:100%;max-width:280px;padding:14px;background:linear-gradient(135deg,#e65100,#FFD700);border:none;border-radius:14px;font-family:'Rajdhani',sans-serif;font-size:1.1em;font-weight:800;color:#1a0800;cursor:pointer;letter-spacing:1px;">
-    ⚔️ MULAI RANKED
-  </button>
-  <button onclick="go('s-menu')" style="background:none;border:none;color:rgba(255,255,255,.3);font-family:'Rajdhani',sans-serif;font-size:.85em;cursor:pointer;padding:4px 0;">
-    ← Kembali ke Menu
-  </button>
+<!-- ranked search & ready screens dihapus - langsung ke game -->
+
+<!-- ══════════════════ LEADERBOARD ═══════════════════════════ -->
+<div id="s-leaderboard" class="scr">
+  <div class="lb-hd">
+    <button class="lb-back" onclick="go('s-ranked')">←</button>
+    <div class="lb-title">🏆 LEADERBOARD</div>
+  </div>
+  <div class="lb-tabs">
+    <button class="lb-tab on" id="lbt-g" onclick="lbTab('g')">Global</button>
+    <button class="lb-tab"    id="lbt-w" onclick="lbTab('w')">Mingguan</button>
+  </div>
+  <div class="lb-list" id="lb-list"><div class="lb-empty">Memuat...</div></div>
 </div>
 
 
 <script>
 // ══════════════════════════════════════════════════════════════
-//  RANKED SYSTEM  ·  Bintang · Streak · Leaderboard
+//  RANKED MATCHMAKING SYSTEM
+//  Fix: _mmAuthReady flag mencegah layar ready muncul sebelum login
 // ══════════════════════════════════════════════════════════════
 
 // ── Konstanta ──
-const RNK_WIN    = [12, 10, 8];   // poin untuk juara 1/2/3
-const RNK_LOSE   = -5;
-const RNK_QUIT   = -8;
-const RNK_STREAK_MIN   = 3;       // min juara-1 berturut supaya streak aktif
-const RNK_STREAK_BONUS = 1;       // +1 per level streak di atas min
-const RNK_STREAK_MAX   = 50;      // batas bonus streak
+const RNK_WIN      = [8, 4, 0, -4];   // poin per posisi (1st,2nd,3rd,4th)
+const RNK_LOSE     = -4;
+const RNK_QUIT     = -8;
+const RNK_STREAK_MIN = 3;
+const RNK_STREAK_MAX = 50;
+const MM_SEARCH_MAX  = 30;
+const MM_SEARCH_RETRY = 15;
+const MM_READY_MAX   = 10;
 
-// ── State ──
-let _isRankedMode = false;
-let _rankedNp     = 2;            // jumlah pemain ranked
+// ── State matchmaking ──
+var _mmNp           = 2;
+var _mmMyName       = '';
+var _mmTimerEl      = null;
+var _mmInterval     = null;
+var _mmQueueRef     = null;
+var _mmRoomRef      = null;
+var _mmRoomId       = null;
+var _mmQListener    = null;
+var _mmRListener    = null;
+var _mmPhase        = 'idle';   // idle | searching | creating | ready | ingame
+var _mmAuthReady    = false;    // ← KUNCI: hanya true setelah user login selesai
+var _mmCurrentPlayers = {};
+var _mmSearchSec    = 30;
+var _mmReadySec     = 10;
+var _mmIReady       = false;
+var _mmReduceTimer  = false;
+var _isRankedMode   = false;
+var _rankedNp       = 2;
 
-// ── Hitung week ID (key Senin 00:00) ──
-function _weekId(){
-  const now=new Date(), day=now.getDay();
-  const diff = day===0?-6:1-day;
-  const mon=new Date(now);
-  mon.setDate(now.getDate()+diff);
-  mon.setHours(0,0,0,0);
-  return 'week_'+mon.getFullYear()+'_'+String(mon.getMonth()+1).padStart(2,'0')+'_'+String(mon.getDate()).padStart(2,'0');
+function _rankBadgeHtml(stars, extraStyle=''){
+  let cls='rb-bronze', lbl='🥉 BRONZE';
+  if(stars>=200){cls='rb-legend';lbl='👑 LEGEND';}
+  else if(stars>=100){cls='rb-diamond';lbl='💎 DIAMOND';}
+  else if(stars>=50){cls='rb-platinum';lbl='💠 PLATINUM';}
+  else if(stars>=20){cls='rb-gold';lbl='🥇 GOLD';}
+  else if(stars>=8){cls='rb-silver';lbl='🥈 SILVER';}
+  return '<span class="rbadge '+cls+'" style="'+extraStyle+'">'+lbl+' · '+stars+'⭐</span>';
 }
 
-// ── Refresh semua UI elemen berbasis stars ──
-function _rnkRefreshUI(){
-  if(!currentUserData) return;
-  const stars  = currentUserData.stars  || 0;
-  const streak = currentUserData.streak || 0;
-  const r = _calcRankByStars(stars);
-
-  // Menu badge
-  const mb=document.getElementById('menu-rank-badge');
-  if(mb) mb.textContent=r.icon+' '+stars+'⭐';
-
-  // Profil rank badge
-  const pb=document.getElementById('pf-rank-badge');
-  if(pb){ pb.textContent=r.icon+' '+r.label; pb.className='pf-rank '+r.cls; }
-
-  // Profil stars/streak
-  const se=document.getElementById('pf-s-stars');
-  if(se) se.textContent='⭐ '+stars;
-  const sk=document.getElementById('pf-s-streak');
-  if(sk) sk.textContent=streak>=3?'🔥 '+streak:'—';
-
-  // Ranked lobby display
-  const bd=document.getElementById('rnk-badge-disp');
-  if(bd) bd.innerHTML=_rankBadgeHtml(stars);
-  const sd=document.getElementById('rnk-stars-disp');
-  if(sd) sd.textContent='⭐ '+stars;
-  const st=document.getElementById('rnk-streak-disp');
-  if(st) st.innerHTML=streak>=RNK_STREAK_MIN
-    ?`<span class="streak-pill">🔥 ${streak} Streak</span>`:'';
-}
-
-// ── Buka layar Ranked ──
+// ── Navigasi ──
 function goRanked(){
   if(!currentUser||currentUser.isGuest){
     toast('Login dulu untuk main Ranked! 🔒','warn'); return;
@@ -5597,7 +5459,6 @@ function goRanked(){
   _rnkRefreshUI();
 }
 
-// ── Set jumlah pemain Ranked ──
 function setRankedNp(n){
   _rankedNp=n;
   [2,3,4].forEach(x=>{
@@ -5606,7 +5467,6 @@ function setRankedNp(n){
   });
 }
 
-// ── Mulai game Ranked (vs Bot engine sementara, siap swap matchmaking) ──
 function startRanked(){
   const name=(document.getElementById('inp-name')?.value?.trim()||currentUserData?.name||'Pemain');
   if(!name){ toast('Isi nama dulu!','warn'); return; }
@@ -5615,684 +5475,186 @@ function startRanked(){
   _mmStartMatchmaking(_rankedNp, name);
 }
 
-// ── Hitung & simpan perubahan bintang ke Firestore ──
-async function _rnkUpdateStars(myRankPos, didQuit){
-  if(!currentUser||currentUser.isGuest||!fbDb) return null;
-  const uid=currentUser.uid;
-  const wid=_weekId();
-
-  // Hitung poin dasar
-  let delta = didQuit ? RNK_QUIT
-    : (myRankPos>=0 && myRankPos<RNK_WIN.length ? RNK_WIN[myRankPos] : RNK_LOSE);
-
-  try {
-    const userRef = fbDb.collection('users').doc(uid);
-    const snap    = await userRef.get();
-    const data    = snap.data()||{};
-    const oldStars  = data.stars  || 0;
-    const oldStreak = data.streak || 0;
-
-    // Hitung streak
-    let newStreak = 0;
-    let bonusPts  = 0;
-    if(myRankPos===0 && !didQuit){
-      newStreak = oldStreak+1;
-      if(newStreak >= RNK_STREAK_MIN){
-        // Level: 3→+1, 4→+2, 5→+3, dst (max +50)
-        bonusPts = Math.min(newStreak - RNK_STREAK_MIN + 1, RNK_STREAK_MAX);
-        delta   += bonusPts;
-      }
-    }
-    // streak putus jika tidak juara 1
-    // (newStreak sudah 0 di atas jika bukan juara 1)
-
-    const newStars = Math.max(0, oldStars + delta);
-
-    // Tulis ke users/{uid}
-    await userRef.update({
-      stars:  newStars,
-      streak: newStreak,
-      rp:     newStars,   // alias buat query lama
-    });
-
-    // Update cache lokal
-    if(currentUserData){
-      currentUserData.stars  = newStars;
-      currentUserData.streak = newStreak;
-      currentUserData.rp     = newStars;
-    }
-
-    // ── Leaderboard global ──
-    const lbEntry = {
-      uid, name: currentUserData?.name||data.name||'?',
-      avatar: currentUserData?.avatar||data.avatar||'😎',
-      stars: newStars, streak: newStreak,
-      updatedAt: Date.now(),
-    };
-    await fbDb.collection('leaderboard').doc(uid).set(lbEntry, {merge:true});
-
-    // ── Leaderboard mingguan (hanya tambah, tidak kurangi) ──
-    const wRef  = fbDb.collection('leaderboard_weekly').doc(wid).collection('entries').doc(uid);
-    const wSnap = await wRef.get();
-    const wOld  = wSnap.exists ? (wSnap.data().stars||0) : 0;
-    const wGain = Math.max(0, delta);   // weekly hanya catat gain
-    if(wGain>0){
-      await wRef.set({
-        uid, name:lbEntry.name, avatar:lbEntry.avatar,
-        stars: wOld+wGain, updatedAt:Date.now(),
-      },{merge:true});
-    }
-
-    _rnkRefreshUI();
-    return { delta, bonusPts, newStars, newStreak };
-  } catch(e){
-    console.warn('[_rnkUpdateStars]',e);
-    return null;
-  }
+function _rnkRefreshUI(){
+  const el = document.getElementById('rnk-rank-display');
+  if(!el || !currentUserData) return;
+  const stars = currentUserData.stars||0;
+  el.innerHTML = _rankBadgeHtml(stars);
 }
-
-// ══════════════════════════════════════════════════════
-//  Override showOver → tambah RP delta setelah Ranked
-// ══════════════════════════════════════════════════════
-const _showOverOrig = showOver;
-showOver = async function(st){
-  _showOverOrig(st);
-
-  // Bersihkan delta row dulu
-  const dw=document.getElementById('rp-delta-wrap');
-  if(dw) dw.innerHTML='';
-
-  if(!_isRankedMode) return;
-
-  const rankings = st.rankings||[];
-  const myPos    = rankings.indexOf(myIdx);
-  const result   = await _rnkUpdateStars(myPos, false);
-  if(!result||!dw) return;
-
-  const {delta,bonusPts,newStars} = result;
-  const sign = delta>=0?'+':'';
-  const bonStr= bonusPts>0?` (+${bonusPts}🔥streak)`:'';
-  dw.innerHTML=`<div class="${delta>=0?'rp-gain':'rp-loss'}">${sign}${delta}⭐${bonStr} → Total: ${newStars}⭐</div>`;
-};
-
-// ══════════════════════════════════════════════════════
-//  Override backMenu → reset ranked flag + cleanup
-// ══════════════════════════════════════════════════════
-const _backMenuOrig = backMenu;
-backMenu = function(){
-  // Hapus ranked indicator
-  const ind=document.getElementById('ranked-ind');
-  if(ind) ind.remove();
-  _isRankedMode=false;
-  _backMenuOrig();
-};
-
-// ══════════════════════════════════════════════════════
-//  Quit Ranked → kena penalti -8
-//  (ditangkap dari tombol ✓ Keluar di modal-exit)
-// ══════════════════════════════════════════════════════
-// Patch tombol Keluar agar _rnkQuit() dipanggil dulu
-(function(){
-  // Tunggu DOM siap
-  window.addEventListener('DOMContentLoaded',()=>{
-    const btn=document.querySelector('#modal-exit .btn[onclick="backMenu()"]');
-    if(btn){
-      btn.setAttribute('onclick','_rnkQuit()');
-    }
-  });
-})();
-async function _rnkQuit(){
-  if(_isRankedMode){
-    await _rnkUpdateStars(-1, true);  // didQuit=true → -8
-    const dw=document.getElementById('rp-delta-wrap');
-    if(dw) dw.innerHTML=`<div class="rp-loss">-8⭐ (keluar)</div>`;
-  }
-  backMenu();
-}
-
-// ══════════════════════════════════════════════════════
-//  LEADERBOARD
-// ══════════════════════════════════════════════════════
-let _lbTab = 'g';
-
-function goLeaderboard(){
-  go('s-leaderboard');
-  lbTab('g');
-}
-
-function lbTab(t){
-  _lbTab=t;
-  document.getElementById('lb-tab-g').classList.toggle('on',t==='g');
-  document.getElementById('lb-tab-w').classList.toggle('on',t==='w');
-  _lbLoad(t);
-}
-
-async function _lbLoad(tab){
-  const el=document.getElementById('lb-list');
-  const ms=document.getElementById('lb-mystrip');
-  el.innerHTML='<div class="lb-empty">Memuat…</div>';
-  if(ms) ms.style.display='none';
-  if(!fbDb){ el.innerHTML='<div class="lb-empty">Login untuk lihat leaderboard</div>'; return; }
-
-  try {
-    let snap;
-    if(tab==='g'){
-      snap = await fbDb.collection('leaderboard')
-        .orderBy('stars','desc').limit(50).get();
-    } else {
-      const wid=_weekId();
-      snap = await fbDb.collection('leaderboard_weekly').doc(wid)
-        .collection('entries').orderBy('stars','desc').limit(50).get();
-    }
-
-    if(snap.empty){
-      el.innerHTML='<div class="lb-empty">Belum ada data. Jadilah yang pertama! 🏆</div>';
-      return;
-    }
-
-    el.innerHTML='';
-    let myPos=null;
-    snap.docs.forEach((doc,idx)=>{
-      const d=doc.data(), rank=idx+1;
-      const isMe=!!(currentUser&&doc.id===currentUser.uid);
-      if(isMe) myPos=rank;
-
-      const posIcon = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
-      const rb      = _calcRankByStars(d.stars||0);
-      const avHtml  = (d.avatar&&(d.avatar.startsWith('data:')||d.avatar.startsWith('http')))
-        ? `<img src="${d.avatar}">`
-        : (d.avatar||'😎');
-      const strHtml = (d.streak||0)>=3
-        ? `<span class="streak-pill" style="font-size:.6em;padding:1px 6px;">🔥${d.streak}</span>` : '';
-
-      const row=document.createElement('div');
-      row.className='lb-row'+(isMe?' me':'')+(rank===1?' top1':rank===2?' top2':rank===3?' top3':'');
-      row.innerHTML=`
-        <div class="lb-pos">${posIcon||rank}</div>
-        <div class="lb-av">${avHtml}</div>
-        <div class="lb-info">
-          <div class="lb-name">${_esc(d.name||'?')}${isMe?' <span style="color:#FFD700;font-size:.72em;">(Kamu)</span>':''}</div>
-          <div class="lb-sub"><span class="rbadge ${rb.rb}" style="font-size:.6em;">${rb.icon} ${rb.label}</span>${strHtml}</div>
-        </div>
-        <div class="lb-stars">⭐ ${d.stars||0}</div>`;
-      el.appendChild(row);
-    });
-
-    // My rank strip
-    if(currentUser&&myPos&&ms){
-      const myStars  = currentUserData?.stars  || 0;
-      const myStreak = currentUserData?.streak || 0;
-      const myR      = _calcRankByStars(myStars);
-      document.getElementById('lb-my-pos').textContent   = '#'+myPos;
-      document.getElementById('lb-my-rbadge').innerHTML  = _rankBadgeHtml(myStars,'font-size:.63em;');
-      document.getElementById('lb-my-stars').textContent = '⭐ '+myStars;
-      const skEl=document.getElementById('lb-my-streak');
-      if(skEl) skEl.innerHTML=myStreak>=3?`<span class="streak-pill" style="font-size:.63em;">🔥${myStreak}</span>`:'';
-      ms.style.display='block';
-    }
-
-  } catch(e){
-    el.innerHTML='<div class="lb-empty">Gagal memuat. Coba lagi.</div>';
-    console.warn('[leaderboard]',e);
-  }
-}
-
-// ══════════════════════════════════════════════════════
-//  Init: refresh UI setelah user data tersedia
-// ══════════════════════════════════════════════════════
-// Dipanggil dari akhir pfLoadMyProfile (sudah ada kalimat _rnkRefreshUI() di sana)
-// Juga dipanggil langsung saat goRanked()
-</script>
-
-
-<!-- ══════════════════ RANKED MATCHMAKING SCREEN ══════════════ -->
-<div id="s-ranked-search" class="scr">
-  <div class="mm-title">🔍 MENCARI LAWAN</div>
-  <div class="mm-ring"></div>
-  <div class="mm-timer" id="mm-timer">30</div>
-  <div class="mm-status" id="mm-status">Mencari pemain ranked…</div>
-  <div class="mm-slots" id="mm-slots"></div>
-  <button onclick="cancelMatchmaking()" style="margin-top:10px;background:rgba(255,50,50,.15);
-    border:1px solid rgba(255,80,80,.3);color:rgba(255,150,150,.8);
-    font-family:'Rajdhani',sans-serif;font-size:.85em;font-weight:700;
-    padding:8px 22px;border-radius:10px;cursor:pointer;letter-spacing:.5px;">
-    ✕ Batalkan
-  </button>
-</div>
-
-<!-- ══════════════════ RANKED READY SCREEN ═════════════════════ -->
-<div id="s-ranked-ready" class="scr">
-  <div class="mm-title" style="margin-bottom:2px;">⚔️ LAWAN DITEMUKAN!</div>
-  <div style="font-size:.73em;color:rgba(255,255,255,.38);letter-spacing:.5px;">Pencet SIAP sebelum waktu habis</div>
-
-  <!-- Player slots dengan avatar + nama -->
-  <div class="rdy-slots" id="rdy-slots" style="margin:6px 0 2px;"></div>
-
-  <!-- Progress bar -->
-  <div style="width:100%;max-width:300px;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin:4px 0;">
-    <div id="rdy-progress" style="height:100%;background:linear-gradient(90deg,#e65100,#FFD700);transition:width .3s;width:0%;border-radius:4px;"></div>
-  </div>
-
-  <!-- Countdown -->
-  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-    <div style="font-size:.68em;color:rgba(255,255,255,.35);letter-spacing:.5px;">WAKTU TERSISA</div>
-    <div class="rdy-countdown" id="rdy-countdown">10</div>
-  </div>
-
-  <!-- Tombol SIAP -->
-  <button id="rdy-btn" class="rdy-btn" onclick="pressReady()">✓ SIAP!</button>
-
-  <div style="font-size:.63em;color:rgba(255,255,255,.22);text-align:center;max-width:240px;line-height:1.7;">
-    Tidak pencet SIAP → dikick & diganti bot
-  </div>
-</div>
-
-
-<script>
-// ══════════════════════════════════════════════════════════════
-//  RANKED MATCHMAKING SYSTEM
-//  Flow:
-//  1. _mmStartMatchmaking() → tulis ke RTDB ranked_queue/{np}/{uid}
-//  2. Listen queue → saat cukup pemain → host buat room → ready phase
-//  3. Ready phase: 10 detik siap. Tidak siap → dikick, timer jadi 15 detik
-//  4. Semua siap → mulai game
-//  5. Fallback: kalau 30 detik tidak cukup pemain → isi bot → ready phase
-// ══════════════════════════════════════════════════════════════
-
-// ── State matchmaking ──
-let _mmNp        = 2;       // target jumlah pemain
-let _mmMyName    = '';
-let _mmTimerEl   = null;
-let _mmInterval  = null;
-let _mmQueueRef  = null;    // RTDB ref queue kita
-let _mmRoomRef   = null;    // RTDB ref room matchmaking
-let _mmRoomId    = null;
-let _mmQListener = null;    // unsubscribe queue listener
-let _mmRListener = null;    // unsubscribe room listener
-let _mmPhase        = 'idle';  // idle | searching | ready | ingame
-let _mmCurrentPlayers = {};   // snapshot players saat ini di ready phase
-let _mmSearchSec = 30;      // detik tersisa di fase search
-let _mmReadySec  = 10;      // detik tersisa di fase ready
-let _mmIReady    = false;   // sudah pencet SIAP?
-let _mmReduceTimer = false; // flag timer sudah dikurangi (retry 15 detik)
-
-const MM_SEARCH_MAX  = 30;
-const MM_SEARCH_RETRY = 15;
-const MM_READY_MAX   = 10;
 
 // ── Mulai matchmaking ──
+// _mmAuthReady HARUS true — dijamin oleh onUserLoggedIn
 async function _mmStartMatchmaking(np, name){
-  if(!fbRtdb||!currentUser){ toast('Koneksi bermasalah','warn'); return; }
-  _mmNp      = np;
-  _mmMyName  = name;
-  _mmPhase   = 'searching';
+  if(!fbRtdb||!currentUser||!_mmAuthReady){
+    toast('Koneksi bermasalah','warn'); return;
+  }
+
+  // Hapus entry lama sebelum mulai
+  try{ await fbRtdb.ref('ranked_queue/'+np+'/'+currentUser.uid).remove(); }catch(_){}
+
+  _mmNp        = np;
+  _mmMyName    = name;
+  _mmPhase     = 'searching';
   _mmSearchSec = MM_SEARCH_MAX;
   _mmReduceTimer = false;
 
-  // Tampilkan layar searching
-  go('s-ranked-search');
-  _mmRenderSearchSlots([currentUser.uid]);
-  document.getElementById('mm-status').textContent = 'Mencari pemain ranked…';
-  document.getElementById('mm-timer').textContent  = _mmSearchSec;
-  document.getElementById('mm-timer').classList.remove('urgent');
+  toast('🔍 Mencari lawan ranked…');
 
-  // Tulis entry kita ke queue
   _mmQueueRef = fbRtdb.ref('ranked_queue/'+np+'/'+currentUser.uid);
   await _mmQueueRef.set({
-    uid: currentUser.uid,
-    name: name,
+    uid: currentUser.uid, name: name,
     avatar: currentUserData?.avatar||'😎',
     stars: currentUserData?.stars||0,
     ts: Date.now(),
   });
-  // Auto-remove saat disconnect
   _mmQueueRef.onDisconnect().remove();
 
-  // Mulai timer search
   _mmInterval = setInterval(_mmSearchTick, 1000);
 
-  // Listen perubahan queue
   const queueListenRef = fbRtdb.ref('ranked_queue/'+np);
+  let _hostCreateCalled = false;
   const qFn = queueListenRef.on('value', snap=>{
     if(_mmPhase !== 'searching') return;
     const entries = snap.val()||{};
-    const uids    = Object.keys(entries).filter(u=>entries[u]&&entries[u].uid);
+    const uids = Object.keys(entries).filter(u=>entries[u]&&entries[u].uid);
     _mmRenderSearchSlots(uids, np);
-
-    // Cek apakah sudah cukup pemain
-    if(uids.length >= np){
-      // Hanya UID terkecil yang jadi "host" untuk buat room
+    if(uids.length >= np && !_hostCreateCalled){
+      _hostCreateCalled = true;
       const sorted = uids.slice().sort();
-      if(sorted[0] === currentUser.uid){
-        _mmHostCreateRoom(entries, uids, np);
-      }
-      // Lainnya tunggu room dibuat (listen di _mmWaitForRoom)
-      else {
-        _mmWaitForRoom(np);
-      }
+      if(sorted[0] === currentUser.uid) _mmHostCreateRoom(entries, uids, np);
+      else _mmWaitForRoom(np);
     }
   });
   _mmQListener = ()=> queueListenRef.off('value', qFn);
 }
 
-// ── Search tick: countdown, fallback bot ──
 function _mmSearchTick(){
   if(_mmPhase !== 'searching'){ clearInterval(_mmInterval); return; }
   _mmSearchSec--;
   const el = document.getElementById('mm-timer');
-  if(el){
-    el.textContent = _mmSearchSec;
-    el.classList.toggle('urgent', _mmSearchSec <= 5);
-  }
-  if(_mmSearchSec <= 0){
-    clearInterval(_mmInterval);
-    _mmFallbackBot();
-  }
+  if(el){ el.textContent=_mmSearchSec; el.classList.toggle('urgent',_mmSearchSec<=5); }
+  if(_mmSearchSec <= 0){ clearInterval(_mmInterval); _mmFallbackBot(); }
 }
 
-// ── Fallback: isi sisa slot dengan bot ──
 async function _mmFallbackBot(){
   if(_mmPhase !== 'searching') return;
   if(_mmQListener){ _mmQListener(); _mmQListener=null; }
-
-  // Ambil pemain yang ada di queue sekarang
   const snap = await fbRtdb.ref('ranked_queue/'+_mmNp).get();
+  if(_mmPhase !== 'searching') return; // cek ulang setelah await
   const entries = snap.val()||{};
   const uids = Object.keys(entries).filter(u=>entries[u]&&entries[u].uid);
-
-  // Status update
-  const statusEl = document.getElementById('mm-status');
-  if(statusEl) statusEl.textContent = 'Tidak cukup pemain, mengisi dengan bot…';
-
-  // Siapkan daftar pemain: player nyata + bot pengisi
   const players = {};
-  uids.forEach((uid,i)=>{ players[uid] = {...entries[uid], idx:i, isBot:false}; });
-  const realCount = uids.length;
-  for(let i=realCount; i<_mmNp; i++){
-    const botId = 'bot_'+i+'_'+Date.now();
-    players[botId] = {uid:botId, name:'Bot '+i, avatar:'🤖', idx:i, isBot:true, stars:0};
+  uids.forEach((uid,i)=>{ players[uid]={...entries[uid],idx:i,isBot:false}; });
+  for(let i=uids.length;i<_mmNp;i++){
+    const botId='bot_'+i+'_'+Date.now();
+    players[botId]={uid:botId,name:'Bot '+i,avatar:'🤖',idx:i,isBot:true,stars:0};
   }
-
-  // Host = uid terkecil yang nyata (atau diri sendiri)
-  const realUids = uids.slice().sort();
-  const isHost = realUids.length===0 || realUids[0]===currentUser.uid;
-
-  if(isHost){
-    _mmHostCreateRoom(players, Object.keys(players), _mmNp, true);
-  } else {
-    _mmWaitForRoom(_mmNp);
-  }
+  const realUids=uids.slice().sort();
+  const iAmHost=realUids.length===0||realUids[0]===currentUser.uid;
+  if(iAmHost) _mmHostCreateRoom(players, Object.keys(players), _mmNp, true);
+  else _mmWaitForRoom(_mmNp);
 }
 
-// ── Host buat room matchmaking di RTDB ──
 async function _mmHostCreateRoom(entries, uids, np, withBots=false){
   if(_mmPhase !== 'searching') return;
+  if(!currentUser||!_mmAuthReady){ _mmCleanup(); return; }
   _mmPhase = 'creating';
   clearInterval(_mmInterval);
   if(_mmQListener){ _mmQListener(); _mmQListener=null; }
 
-  // Buat room ID unik
-  const rid = 'rnk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  const rid = 'rnk_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   _mmRoomId = rid;
 
-  // Bangun data pemain
-  const playerMap = {};
+  const playerMap={};
   let idx=0;
-  for(const [uid, data] of Object.entries(entries)){
-    playerMap[uid] = {
-      uid, name: data.name||'?', avatar: data.avatar||'😎',
-      idx: idx++, isBot: data.isBot||false, ready: data.isBot||false,
-    };
+  for(const [uid,data] of Object.entries(entries)){
+    playerMap[uid]={uid,name:data.name||'?',avatar:data.avatar||'😎',idx:idx++,isBot:data.isBot||false,ready:data.isBot||false};
   }
 
-  // Jika semua bot (tidak ada player lain), gunakan local room
-  const hasOtherPlayers = Object.values(playerMap).some(p=>!p.isBot&&p.uid!==currentUser.uid);
-  const finalRid = hasOtherPlayers ? rid : 'local_'+Date.now().toString(36);
-  _mmRoomId = finalRid;
+  const hasOtherPlayers=Object.values(playerMap).some(p=>!p.isBot&&p.uid!==currentUser.uid);
+  const finalRid=hasOtherPlayers?rid:'local_'+Date.now().toString(36);
+  _mmRoomId=finalRid;
 
   if(hasOtherPlayers){
-    // Tulis room ke RTDB
-    await fbRtdb.ref('ranked_rooms/'+rid).set({
-      np, players: playerMap,
-      phase: 'ready',
-      createdAt: Date.now(),
-      host: currentUser.uid,
-    });
+    await fbRtdb.ref('ranked_rooms/'+rid).set({players:playerMap,np,createdAt:Date.now()});
     fbRtdb.ref('ranked_rooms/'+rid).onDisconnect().remove();
+    for(const uid of Object.keys(playerMap)){
+      if(!playerMap[uid].isBot) fbRtdb.ref('ranked_queue/'+np+'/'+uid).remove().catch(()=>{});
+    }
+    await _mmNotifyQueuePlayers(playerMap,rid,np);
+  } else {
+    for(const uid of Object.keys(playerMap)){
+      if(!playerMap[uid].isBot) fbRtdb.ref('ranked_queue/'+np+'/'+uid).remove().catch(()=>{});
+    }
   }
 
-  // Hapus semua pemain dari queue
-  for(const uid of Object.keys(playerMap)){
-    if(!playerMap[uid].isBot)
-      fbRtdb.ref('ranked_queue/'+np+'/'+uid).remove().catch(()=>{});
-  }
-
-  // Notify pemain lain di queue tentang roomId
-  await _mmNotifyQueuePlayers(playerMap, rid, np);
-
-  // Masuk ke fase ready
+  if(_mmPhase !== 'creating') return; // bisa di-cancel saat await
   _mmEnterReady(finalRid, playerMap, np);
 }
 
-// ── Non-host: tunggu room muncul ──
 function _mmWaitForRoom(np){
-  // Listen queue entry kita untuk mendapat roomId yang di-set oleh host
-  // Host akan set roomId di entry masing2 pemain
-  const ref = fbRtdb.ref('ranked_queue/'+np+'/'+currentUser.uid+'/roomId');
+  const ref=fbRtdb.ref('ranked_queue/'+np+'/'+currentUser.uid+'/roomId');
   let waited=0;
-  const poll = setInterval(async ()=>{
+  const poll=setInterval(async()=>{
     if(_mmPhase!=='searching'){ clearInterval(poll); return; }
     waited++;
-    const snap = await ref.get();
+    const snap=await ref.get();
+    if(_mmPhase!=='searching'){ clearInterval(poll); return; } // cek ulang setelah await
     if(snap.val()){
       clearInterval(poll);
-      const rid = snap.val();
-      _mmRoomId = rid;
-      const roomSnap = await fbRtdb.ref('ranked_rooms/'+rid).get();
-      if(roomSnap.val()){
-        _mmEnterReady(rid, roomSnap.val().players, np);
-      }
+      const rid=snap.val();
+      _mmRoomId=rid;
+      const roomSnap=await fbRtdb.ref('ranked_rooms/'+rid).get();
+      if(_mmPhase!=='searching') return; // cek ulang setelah await
+      if(roomSnap.val()) _mmEnterReady(rid,roomSnap.val().players,np);
     }
-    if(waited>15){ clearInterval(poll); } // timeout
-  }, 1000);
+    if(waited>15){ clearInterval(poll); }
+  },1000);
 }
 
-// Saat host buat room, tulis roomId ke entry tiap pemain di queue
-async function _mmNotifyQueuePlayers(entries, rid, np){
+async function _mmNotifyQueuePlayers(entries,rid,np){
   for(const uid of Object.keys(entries)){
-    if(!entries[uid].isBot && uid!==currentUser.uid){
+    if(!entries[uid].isBot&&uid!==currentUser.uid){
       await fbRtdb.ref('ranked_queue/'+np+'/'+uid+'/roomId').set(rid).catch(()=>{});
     }
   }
 }
 
-// ── Masuk fase Ready ──
+// _mmEnterReady: langsung launch game tanpa layar ready/siap
 function _mmEnterReady(rid, playerMap, np){
-  _mmPhase   = 'ready';
-  _mmRoomId  = rid;
-  _mmIReady  = false;
-  _mmReadySec = MM_READY_MAX;
-  _mmCurrentPlayers = playerMap; // simpan untuk fallback
-
-  go('s-ranked-ready');
-  _mmRenderReadySlots(playerMap);
-
-  const cdEl = document.getElementById('rdy-countdown');
-  if(cdEl){ cdEl.textContent=_mmReadySec; cdEl.classList.remove('urgent'); }
-  const rdyBtn = document.getElementById('rdy-btn');
-  if(rdyBtn){ rdyBtn.disabled=false; rdyBtn.className='rdy-btn'; rdyBtn.textContent='✓ SIAP!'; }
-
-  // Countdown ready
-  clearInterval(_mmInterval);
-  _mmInterval = setInterval(()=>_mmReadyTick(rid, playerMap, np), 1000);
-
-  // Listen perubahan ready status dari RTDB
-  _mmRoomRef = fbRtdb.ref('ranked_rooms/'+rid+'/players');
-  const rFn = _mmRoomRef.on('value', snap=>{
-    if(_mmPhase!=='ready') return;
-    const players = snap.val()||{};
-    _mmRenderReadySlots(players);
-
-    // Cek apakah semua pemain nyata sudah ready
-    const realPlayers = Object.values(players).filter(p=>!p.isBot);
-    const allReady    = realPlayers.every(p=>p.ready);
-    if(allReady && realPlayers.length > 0){
-      clearInterval(_mmInterval);
-      _mmRListener = ()=> _mmRoomRef.off('value', rFn);
-      if(_mmRListener){ _mmRListener(); _mmRListener=null; }
-      _mmLaunchGame(rid, players, np);
-    }
-  });
-  _mmRListener = ()=> _mmRoomRef.off('value', rFn);
-
-  // Set diri sendiri ready jika bot (sudah di-set saat buat room)
+  _mmRoomId = rid;
+  _mmCurrentPlayers = playerMap;
+  _mmLaunchGame(rid, playerMap, np);
 }
 
-// ── Ready tick ──
-function _mmReadyTick(rid, playerMap, np){
-  if(_mmPhase!=='ready'){ clearInterval(_mmInterval); return; }
-  _mmReadySec--;
-  const cdEl = document.getElementById('rdy-countdown');
-  if(cdEl){
-    cdEl.textContent = _mmReadySec;
-    cdEl.classList.toggle('urgent', _mmReadySec<=3);
-  }
-  if(_mmReadySec<=0){
-    clearInterval(_mmInterval);
-    _mmHandleNotReady(rid, np);
-  }
-}
-
-// ── Tekan tombol SIAP ──
-async function pressReady(){
-  if(_mmIReady) return;
-  if(_mmPhase!=='ready'){
-    // Fallback: kalau phase belum di-set tapi tombol kelihatan, set manual
-    console.warn('[pressReady] phase='+_mmPhase+', forcing ready');
-    _mmPhase='ready';
-  }
-  _mmIReady = true;
-  const btn = document.getElementById('rdy-btn');
-  if(btn){ btn.disabled=true; btn.className='rdy-btn done'; btn.textContent='✓ Sudah Siap!'; }
-  if(_mmRoomId && _mmRoomId.startsWith('local_')){
-    // Bot game lokal: langsung launch tanpa RTDB
-    clearInterval(_mmInterval);
-    // Set self ready di players map lokal
-    if(_mmCurrentPlayers[currentUser.uid]) _mmCurrentPlayers[currentUser.uid].ready=true;
-    _mmRenderReadySlots(_mmCurrentPlayers);
-    setTimeout(()=>_mmLaunchGame(_mmRoomId, _mmCurrentPlayers, _mmNp), 600);
-  } else if(fbRtdb&&_mmRoomId&&currentUser){
-    await fbRtdb.ref('ranked_rooms/'+_mmRoomId+'/players/'+currentUser.uid+'/ready').set(true).catch(console.warn);
-  }
-}
-
-// ── Tidak siap dalam waktu → kick ──
-async function _mmHandleNotReady(rid, np){
-  if(_mmPhase!=='ready') return;
-  if(_mmRListener){ _mmRListener(); _mmRListener=null; }
-
-  if(!_mmIReady){
-    // Kita yang tidak siap → dikick
-    toast('⏰ Waktu habis! Kamu dikeluarkan dari match.','error');
-    if(fbRtdb && rid && !rid.startsWith('local_')){
-      await fbRtdb.ref('ranked_rooms/'+rid+'/players/'+currentUser.uid+'/kicked').set(true).catch(()=>{});
-    }
-    _mmCleanup();
-    go('s-ranked');
-    _rnkRefreshUI();
-    return;
-  }
-
-  // Untuk local room (bot) - jika kita sudah siap, langsung launch
-  if(rid && rid.startsWith('local_')){
-    _mmLaunchGame(rid, _mmCurrentPlayers, _mmNp);
-    return;
-  }
-
-  // Kita sudah siap tapi ada pemain lain yang tidak siap
-  // Ambil snapshot room terkini
-  const snap = await fbRtdb.ref('ranked_rooms/'+rid).get();
-  const room = snap.val()||{};
-  const players = room.players||{};
-
-  // Kick pemain yang tidak siap
-  const kicked = [];
-  for(const [uid, p] of Object.entries(players)){
-    if(!p.isBot && !p.ready && !p.kicked){
-      kicked.push(uid);
-      await fbRtdb.ref('ranked_rooms/'+rid+'/players/'+uid+'/kicked').set(true);
-    }
-  }
-
-  if(kicked.length===0){
-    // Semua sudah siap, lanjut game
-    _mmLaunchGame(rid, players, np);
-    return;
-  }
-
-  // Isi slot yang dikick dengan bot
-  const newPlayers = {...players};
-  for(const uid of kicked){
-    const botId = 'bot_k_'+uid.slice(-4);
-    newPlayers[botId] = {
-      uid:botId, name:'Bot', avatar:'🤖',
-      idx: players[uid].idx, isBot:true, ready:true,
-    };
-    delete newPlayers[uid];
-  }
-
-  // Update room dengan bot pengganti
-  await fbRtdb.ref('ranked_rooms/'+rid+'/players').set(newPlayers);
-
-  // Jika masih ada pemain nyata lain → retry ready dengan timer 15 detik
-  const remaining = Object.values(newPlayers).filter(p=>!p.isBot);
-  if(remaining.length >= 1){
-    toast('⏰ Ada pemain tidak siap, diganti bot. Bersiap lagi…','warn');
-    _mmReadySec = MM_SEARCH_RETRY;
-    _mmIReady   = true; // kita sudah siap
-    _mmEnterReady(rid, newPlayers, np);
-  } else {
-    _mmLaunchGame(rid, newPlayers, np);
-  }
-}
-
-// ── Launch game setelah semua ready ──
-async function _mmLaunchGame(rid, players, np){
+async function _mmLaunchGame(rid,players,np){
   if(_mmPhase==='ingame') return;
-  _mmPhase = 'ingame';
+  _mmPhase='ingame';
   clearInterval(_mmInterval);
   if(_mmRListener){ _mmRListener(); _mmRListener=null; }
 
-  // Buat ordered player list berdasarkan idx
-  const sortedPlayers = Object.values(players)
-    .filter(p=>!p.kicked)
-    .sort((a,b)=>a.idx-b.idx);
-
-  const n = sortedPlayers.length || np;
-  const names = {};
-  let myPlayerIdx = 0;
+  const sortedPlayers=Object.values(players).filter(p=>!p.kicked).sort((a,b)=>a.idx-b.idx);
+  const n=sortedPlayers.length||np;
+  const names={};
+  let myPlayerIdx=0;
   sortedPlayers.forEach((p,i)=>{ names[i]=p.name; if(!p.isBot&&p.uid===currentUser.uid) myPlayerIdx=i; });
 
-  // Setup bot game engine
-  _isRankedMode = true;
-  _botNum  = n;
-  _botDiff = 'medium';
-  _botGame = new _GameState(n);
+  _isRankedMode=true;
+  _botNum=n; _botDiff='medium';
+  _botGame=new _GameState(n);
   _botGame.startGame();
   myIdx=myPlayerIdx; myRoom='ranked_'+rid; isHost=true;
-  _botGame._playerNames = names;
+  _botGame._playerNames=names;
 
-  const st = _botGame.toState(myPlayerIdx);
-  st.player_names = names;
+  const st=_botGame.toState(myPlayerIdx);
+  st.player_names=names;
   handOrder=[]; curSt=st;
 
-  // Hapus room dari RTDB (hanya kalau bukan local)
   if(!rid.startsWith('local_')) fbRtdb.ref('ranked_rooms/'+rid).remove().catch(()=>{});
 
   countdown(()=>{
     go('s-game');
     renderGame(st,true);
-    // Tampilkan indikator RANKED
     setTimeout(()=>{
       if(document.getElementById('ranked-ind')) return;
       const wrap=document.getElementById('s-game');
@@ -6305,111 +5667,133 @@ async function _mmLaunchGame(rid, players, np){
   });
 }
 
-// ── Batalkan matchmaking ──
 async function cancelMatchmaking(){
   _mmCleanup();
-  go('s-ranked');
-  _rnkRefreshUI();
+  go('s-ranked'); _rnkRefreshUI();
 }
 
-// ── Cleanup semua listener & RTDB refs ──
 function _mmCleanup(){
-  clearInterval(_mmInterval);
-  if(_mmQListener){ _mmQListener(); _mmQListener=null; }
-  if(_mmRListener){ _mmRListener(); _mmRListener=null; }
+  clearInterval(_mmInterval); _mmInterval=null;
+  if(_mmQListener){ try{_mmQListener();}catch(_){} _mmQListener=null; }
+  if(_mmRListener){ try{_mmRListener();}catch(_){} _mmRListener=null; }
   if(_mmQueueRef){ _mmQueueRef.remove().catch(()=>{}); _mmQueueRef=null; }
-  _mmPhase  = 'idle';
-  _mmRoomId = null;
+  _mmPhase='idle'; _mmRoomId=null;
 }
 
-// ── Render slot di layar search ──
-function _mmRenderSearchSlots(uids, np){
-  const el = document.getElementById('mm-slots');
-  if(!el) return;
-  const total = np || _mmNp;
-  el.innerHTML='';
+function _mmRenderSearchSlots(uids,np){
+  const el=document.getElementById('mm-slots'); if(!el) return;
+  const total=np||_mmNp; el.innerHTML='';
   for(let i=0;i<total;i++){
     const div=document.createElement('div');
-    const uid = uids[i];
-    if(uid){
-      div.className='mm-slot filled';
-      div.textContent = uid===currentUser.uid ? (currentUserData?.avatar||'😎') : '👤';
-      div.title = uid===currentUser.uid ? _mmMyName : 'Pemain lain';
-    } else {
-      div.className='mm-slot';
-      div.textContent='?';
-    }
+    const uid=uids[i];
+    if(uid){ div.className='mm-slot filled'; div.textContent=uid===currentUser.uid?(currentUserData?.avatar||'😎'):'👤'; }
+    else { div.className='mm-slot'; div.textContent='?'; }
     el.appendChild(div);
   }
-  const status = document.getElementById('mm-status');
-  if(status) status.textContent = uids.length+'/'+total+' pemain ditemukan…';
+  const status=document.getElementById('mm-status');
+  if(status) status.textContent=uids.length+'/'+(np||_mmNp)+' pemain ditemukan…';
 }
 
-// ── Render slot di layar ready ──
-// Opacity 50% = belum siap, 100% = sudah siap
 function _mmRenderReadySlots(playerMap){
-  const el = document.getElementById('rdy-slots');
-  if(!el) return;
+  const el=document.getElementById('rdy-slots'); if(!el) return;
   el.innerHTML='';
-  const sorted = Object.values(playerMap).filter(p=>!p.kicked).sort((a,b)=>a.idx-b.idx);
-
-  let readyCount=0, totalReal=0;
+  const sorted=Object.values(playerMap).filter(p=>!p.kicked).sort((a,b)=>a.idx-b.idx);
+  let readyCount=0,totalReal=0;
   sorted.forEach(p=>{
-    const isMe = !p.isBot && p.uid===currentUser.uid;
-    const isReady = p.ready||false;
+    const isMe=!p.isBot&&p.uid===currentUser.uid;
+    const isReady=p.ready||false;
     if(!p.isBot){ totalReal++; if(isReady) readyCount++; }
-
     const wrap=document.createElement('div');
     wrap.className='rdy-slot '+(isReady?'ready':'waiting');
-
-    // Avatar
     const avDiv=document.createElement('div');
-    let avClass = 'rdy-av';
-    if(p.isBot) avClass+=' bot-av';
-    if(isReady) avClass+=' ready';
-    if(p.kicked) avClass+=' kicked';
-    avDiv.className=avClass;
-    // Foto atau emoji
-    if(p.photoBase64){
-      avDiv.innerHTML=`<img src="${p.photoBase64}">`;
-    } else {
-      avDiv.textContent = p.avatar||'😎';
-    }
-
-    // Nama
+    avDiv.className='rdy-av'+(isReady?' ready':'');
+    avDiv.textContent=p.avatar||'😎';
     const nameDiv=document.createElement('div');
     nameDiv.className='rdy-name'+(isMe?' me':'');
-    nameDiv.textContent = isMe ? '★ '+(p.name||'Kamu') : _esc(p.name||'?');
-
-    // Status
+    nameDiv.textContent=isMe?'★ '+(p.name||'Kamu'):p.name||'?';
     const stDiv=document.createElement('div'); stDiv.className='rdy-status';
-    if(p.isBot){ stDiv.className+=' bot'; stDiv.textContent='🤖 Auto'; }
+    if(p.isBot){ stDiv.className+=' on'; stDiv.textContent='🤖 Auto'; }
     else if(isReady){ stDiv.className+=' on'; stDiv.textContent='✓ SIAP'; }
     else { stDiv.className+=' wait'; stDiv.textContent='⏳ Belum'; }
-
-    // Rank badge kecil
-    const rankDiv=document.createElement('div'); rankDiv.className='rdy-rank';
-    rankDiv.innerHTML=_rankBadgeHtml(p.stars||0,'font-size:.55em;');
-
-    wrap.appendChild(avDiv);
-    wrap.appendChild(nameDiv);
-    wrap.appendChild(stDiv);
-    wrap.appendChild(rankDiv);
+    wrap.appendChild(avDiv); wrap.appendChild(nameDiv); wrap.appendChild(stDiv);
     el.appendChild(wrap);
   });
-
-  // Update progress bar
-  const prog = document.getElementById('rdy-progress');
-  if(prog && totalReal>0){
-    prog.style.width = Math.round(readyCount/totalReal*100)+'%';
-  }
+  const prog=document.getElementById('rdy-progress');
+  if(prog&&totalReal>0) prog.style.width=Math.round(readyCount/totalReal*100)+'%';
 }
 
-// ── Override backMenu untuk cleanup matchmaking ──
-const _backMenuMM = backMenu;
+// ── Hitung & simpan perubahan bintang ──
+async function _rnkUpdateStars(myRankPos,didQuit){
+  if(!currentUser||currentUser.isGuest||!fbDb) return null;
+  const uid=currentUser.uid;
+  let delta=didQuit?RNK_QUIT:(myRankPos>=0&&myRankPos<RNK_WIN.length?RNK_WIN[myRankPos]:RNK_LOSE);
+  try{
+    const userRef=fbDb.collection('users').doc(uid);
+    const snap=await userRef.get();
+    const data=snap.data()||{};
+    const oldStars=data.stars||0;
+    const newStars=Math.max(0,oldStars+delta);
+    await userRef.update({stars:newStars,rp:newStars});
+    if(currentUserData){ currentUserData.stars=newStars; }
+    // Update leaderboard
+    try{
+      await fbDb.collection('leaderboard').doc(uid).set({
+        uid,name:currentUserData?.name||'?',
+        stars:newStars,updatedAt:Date.now()
+      },{merge:true});
+    }catch(_){}
+    return {delta,newStars};
+  }catch(e){ console.warn('[rnkUpdateStars]',e); return null; }
+}
+
+async function _rnkQuit(){
+  if(_isRankedMode){
+    const res=await _rnkUpdateStars(-1,true);
+    const dw=document.getElementById('rp-delta-wrap');
+    if(dw&&res) dw.innerHTML='<div class="rp-loss">'+res.delta+'⭐ (keluar)</div>';
+  }
+  backMenu();
+}
+
+// ── Leaderboard ──
+var _lbTab='g';
+function goLeaderboard(){ go('s-leaderboard'); lbTab('g'); }
+function lbTab(t){
+  _lbTab=t;
+  document.getElementById('lbt-g').classList.toggle('on',t==='g');
+  document.getElementById('lbt-w').classList.toggle('on',t==='w');
+  _lbLoad(t);
+}
+async function _lbLoad(t){
+  const el=document.getElementById('lb-list');
+  if(!el) return;
+  el.innerHTML='<div class="lb-empty">Memuat...</div>';
+  try{
+    const snap=await fbDb.collection('leaderboard').orderBy('stars','desc').limit(30).get();
+    if(snap.empty){ el.innerHTML='<div class="lb-empty">Belum ada data.</div>'; return; }
+    el.innerHTML='';
+    snap.docs.forEach((doc,i)=>{
+      const d=doc.data();
+      const isMe=currentUser&&d.uid===currentUser.uid;
+      const row=document.createElement('div');
+      row.className='lb-row'+(isMe?' me':'')+(i===0?' top1':i===1?' top2':i===2?' top3':'');
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      row.innerHTML=
+        '<div class="lb-pos">'+(medal||'#'+(i+1))+'</div>'+
+        '<div class="lb-av">'+(d.avatar||'😎')+'</div>'+
+        '<div class="lb-info"><div class="lb-name">'+(isMe?'★ ':'')+_esc(d.name||'?')+'</div></div>'+
+        '<div class="lb-stars">'+_rankBadgeHtml(d.stars||0)+'</div>';
+      el.appendChild(row);
+    });
+  }catch(e){ el.innerHTML='<div class="lb-empty">Gagal memuat.</div>'; }
+}
+
+// ── Override backMenu untuk handle ranked ──
+const _backMenuOriginal = backMenu;
 backMenu = function(){
   if(_mmPhase!=='idle') _mmCleanup();
-  _backMenuMM();
+  _isRankedMode=false;
+  _backMenuOriginal();
 };
 </script>
 
