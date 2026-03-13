@@ -1,7 +1,10 @@
-apply plugin: 'com.android.application'
+```
+Cari baris `applicationId` → ganti jadi:
+```
+applicationId "com.hoki.cards"	apply plugin: 'com.android.application'
 
 android {
-    namespace "com.hendist.hokicards"
+    namespace "com.hoki.cards"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.hendist.hokicards"
