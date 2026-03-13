@@ -519,7 +519,7 @@ if(typeof io === 'undefined'){
   <div class="panel">
     <div class="panel-title">🚪 GABUNG ROOM</div>
     <div style="font-size:.8em;color:#aaa;">Masukkan kode dari teman</div>
-    <input class="inp" id="inp-room-mabar" placeholder="ABC123" maxlength="6"
+    <input class="inp" id="inp-room-mabar" placeholder="192.168.43.1" maxlength="15"
       oninput="this.value=this.value.toUpperCase()"
       style="letter-spacing:8px;font-size:1.35em;text-align:center;">
     <button class="btn b-gold" onclick="doJoinMabar()">Gabung ▶</button>
@@ -767,30 +767,15 @@ function setBotDiff(d){botDiff=d;document.getElementById('bot-easy').classList.t
 let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
-async function doCreate(){
+function doCreate(){
   const name=gname();if(!name)return;
-  if(!fbRtdb){toast('❌ Tidak ada koneksi!');return;}
-  const uid=currentUser?currentUser.uid:('guest_'+Date.now());
-  const rid=Math.random().toString(36).slice(2,6).toUpperCase();
-  _rtdbRoom=rid;_rtdbIsHost=true;_rtdbMyIdx=0;
-  _rtdbPlayerUids={0:uid};
-  await fbRtdb.ref('rooms/'+rid).set({
-    info:{numPlayers:selNum,started:false,host:uid,
-      players:{[uid]:{idx:0,name}},
-      playerNames:{0:name},createdAt:Date.now()}
-  });
-  fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
-  document.getElementById('lob-code').textContent=rid;
-  document.getElementById('lob-status').textContent='Menunggu pemain lain...';
-  document.getElementById('btn-start').style.display='none';
-  go('s-lobby');
-  _listenLobbyOnline(rid);
+  window.open('http://localhost:3000?name='+encodeURIComponent(name),'_system');
 }
 function doJoinMabar(){
   const name=gname()||'Pemain';
-  const rid=document.getElementById('inp-room-mabar').value.trim().toUpperCase();
-  if(!rid){toast('Masukkan kode room!');return;}
-  sock.emit('join_room_game',{room_id:rid,name});
+  const ip=document.getElementById('inp-room-mabar').value.trim();
+  if(!ip){toast('Masukkan IP host!');return;}
+  window.open('http://'+ip+':3000?name='+encodeURIComponent(name),'_system');
 }
 
 
