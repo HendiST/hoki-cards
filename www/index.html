@@ -596,17 +596,22 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   font-weight:700;
   font-family:'Rajdhani',sans-serif;
   color:#fff;
-  cursor:pointer;
+  cursor:grab;
   box-shadow:0 4px 16px rgba(0,0,0,.5);
   display:none;
   align-items:center;justify-content:center;
   gap:6px;
   letter-spacing:.5px;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:box-shadow .15s, transform .1s;
 }
+#lobby-chat-btn.dragging{ cursor:grabbing; transform:scale(1.08); box-shadow:0 6px 24px rgba(0,0,0,.7); }
 #lobby-chat-panel{
   position:fixed;
   right:14px;bottom:62px;
-  z-index:900;
+  z-index:899;
   background:rgba(0,15,5,.97);
   border:1.5px solid rgba(0,200,80,.3);
   border-radius:16px;
@@ -3196,6 +3201,7 @@ function _appendChatLogItem(entry, isGlobal){
 // ── Swipe kanan untuk reply ──
 function _attachSwipeReply(row){
   let startX=0, startY=0, swiping=false, triggered=false;
+  const isMe = row.classList.contains('mine');
 
   row.addEventListener('touchstart', e=>{
     startX = e.touches[0].clientX;
@@ -3208,11 +3214,16 @@ function _attachSwipeReply(row){
     if(!swiping) return;
     const dx = e.touches[0].clientX - startX;
     const dy = e.touches[0].clientY - startY;
-    if(Math.abs(dy) > Math.abs(dx)){ swiping=false; return; }
-    if(dx > 0){
-      const move = Math.min(dx * 0.5, 55);
-      row.style.transform = `translateX(${move}px)`;
-      if(move >= 50 && !triggered){
+    if(Math.abs(dy) > Math.abs(dx) + 5){ swiping=false; return; }
+    // mine → swipe kiri (dx negatif), theirs → swipe kanan (dx positif)
+    const swipeDir = isMe ? -dx : dx;
+    if(swipeDir > 0){
+      const move = Math.min(swipeDir * 0.5, 55);
+      // mine bergerak ke kiri, theirs ke kanan
+      row.style.transform = isMe
+        ? `translateX(-${move}px)`
+        : `translateX(${move}px)`;
+      if(move >= 48 && !triggered){
         triggered = true;
         _triggerReply(row);
       }
@@ -3221,7 +3232,7 @@ function _attachSwipeReply(row){
 
   row.addEventListener('touchend', ()=>{
     swiping = false;
-    row.style.transition = 'transform .18s ease';
+    row.style.transition = 'transform .2s ease';
     row.style.transform = 'translateX(0)';
   });
 }
@@ -3471,16 +3482,30 @@ function _appendLobbyChatBubble(entry){
   bubble.textContent = entry.text;
   row.appendChild(bubble);
 
-  // Swipe reply
+  // Swipe reply: mine→kiri, theirs→kanan
+  const _lIsMe = isMe;
   let sx=0, sy=0, sw=false, st=false;
   row.addEventListener('touchstart', e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; sw=true; st=false; row.style.transition='none'; }, {passive:true});
   row.addEventListener('touchmove', e=>{
     if(!sw) return;
     const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
-    if(Math.abs(dy)>Math.abs(dx)){sw=false;return;}
-    if(dx>0){ const mv=Math.min(dx*.5,55); row.style.transform=`translateX(${mv}px)`; if(mv>=50&&!st){st=true;if(navigator.vibrate)navigator.vibrate(30);_lobbyReplyTo={id:row.dataset.id,name:row.dataset.name,text:row.dataset.text};document.getElementById('lobby-rb-name').textContent=_lobbyReplyTo.name+':';document.getElementById('lobby-rb-text').textContent=_lobbyReplyTo.text;document.getElementById('lobby-reply-bar').classList.add('show');document.getElementById('lobby-chat-input').focus();} }
+    if(Math.abs(dy)>Math.abs(dx)+5){sw=false;return;}
+    const sd = _lIsMe ? -dx : dx;
+    if(sd>0){
+      const mv=Math.min(sd*.5,55);
+      row.style.transform=_lIsMe?`translateX(-${mv}px)`:`translateX(${mv}px)`;
+      if(mv>=48&&!st){
+        st=true;
+        if(navigator.vibrate)navigator.vibrate(30);
+        _lobbyReplyTo={id:row.dataset.id,name:row.dataset.name,text:row.dataset.text};
+        document.getElementById('lobby-rb-name').textContent=_lobbyReplyTo.name+':';
+        document.getElementById('lobby-rb-text').textContent=_lobbyReplyTo.text;
+        document.getElementById('lobby-reply-bar').classList.add('show');
+        document.getElementById('lobby-chat-input').focus();
+      }
+    }
   }, {passive:true});
-  row.addEventListener('touchend', ()=>{ sw=false; row.style.transition='transform .18s ease'; row.style.transform='translateX(0)'; });
+  row.addEventListener('touchend', ()=>{ sw=false; row.style.transition='transform .2s ease'; row.style.transform='translateX(0)'; });
 
   log.appendChild(row);
   while(log.children.length > 60) log.removeChild(log.firstChild);
@@ -3527,6 +3552,93 @@ function _esc(str){
 
 // go() sudah di-patch langsung di definisi aslinya
 
+// ── Draggable 💬 Chat button ──
+(function _makeLobbyBtnDraggable(){
+  let dragging=false, moved=false;
+  let startX=0, startY=0, startRight=0, startBottom=0;
+
+  function getBtn(){ return document.getElementById('lobby-chat-btn'); }
+  function getPanel(){ return document.getElementById('lobby-chat-panel'); }
+
+  function _syncPanel(btn){
+    const panel = getPanel();
+    if(!panel) return;
+    const bRect = btn.getBoundingClientRect();
+    const panelH = panel.offsetHeight || 220;
+    const panelW = panel.offsetWidth  || 300;
+    // Panel selalu di atas tombol
+    let pBottom = window.innerHeight - bRect.top + 8;
+    let pRight  = window.innerWidth - bRect.right;
+    // Jangan keluar layar
+    pBottom = Math.max(8, Math.min(pBottom, window.innerHeight - panelH - 8));
+    pRight  = Math.max(8, Math.min(pRight,  window.innerWidth  - panelW - 8));
+    panel.style.bottom = pBottom + 'px';
+    panel.style.right  = pRight  + 'px';
+  }
+
+  function onStart(e){
+    const btn = getBtn(); if(!btn) return;
+    dragging = true; moved = false;
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX; startY = t.clientY;
+    const style = window.getComputedStyle(btn);
+    startRight  = parseInt(style.right)  || 14;
+    startBottom = parseInt(style.bottom) || 14;
+    btn.classList.add('dragging');
+    document.addEventListener('mousemove', onMove, {passive:false});
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('mouseup',   onEnd);
+    document.addEventListener('touchend',  onEnd);
+  }
+
+  function onMove(e){
+    if(!dragging) return;
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+    if(!moved) return;
+    e.preventDefault();
+    const btn = getBtn(); if(!btn) return;
+    // right berkurang saat geser kanan, bertambah saat geser kiri
+    const newRight  = Math.max(4, Math.min(window.innerWidth  - btn.offsetWidth  - 4, startRight  - dx));
+    const newBottom = Math.max(4, Math.min(window.innerHeight - btn.offsetHeight - 4, startBottom - dy));
+    btn.style.right  = newRight  + 'px';
+    btn.style.bottom = newBottom + 'px';
+    _syncPanel(btn);
+  }
+
+  function onEnd(){
+    const btn = getBtn(); if(!btn) return;
+    btn.classList.remove('dragging');
+    // Kalau tidak bergerak → toggle chat (tap biasa)
+    if(!moved) toggleLobbyChat();
+    // Snap ke tepi terdekat (kiri atau kanan)
+    if(moved){
+      const r = parseFloat(btn.style.right)||14;
+      const w = btn.offsetWidth;
+      const mid = (window.innerWidth - w) / 2;
+      const snapRight = r < mid ? 14 : window.innerWidth - w - 14;
+      btn.style.transition = 'right .2s ease, bottom .2s ease, box-shadow .15s, transform .1s';
+      btn.style.right = snapRight + 'px';
+      setTimeout(()=>{ btn.style.transition='box-shadow .15s, transform .1s'; _syncPanel(btn); }, 220);
+    }
+    dragging = false; moved = false;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('mouseup',   onEnd);
+    document.removeEventListener('touchend',  onEnd);
+  }
+
+  // Pasang listener — gunakan capture agar tidak konflik dg onclick
+  document.addEventListener('mousedown', e=>{
+    if(e.target.closest('#lobby-chat-btn')) { e.preventDefault(); onStart(e); }
+  }, true);
+  document.addEventListener('touchstart', e=>{
+    if(e.target.closest('#lobby-chat-btn')) onStart(e);
+  }, {passive:true, capture:true});
+})();
+
 
 // ── NOTIF KONEKSI INTERNET ──
 window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!','warn'));
@@ -3535,7 +3647,7 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
 </script>
 
 <!-- Global Chat Button (fixed, semua layar kecuali s-game) -->
-<button id="lobby-chat-btn" onclick="toggleLobbyChat()">💬 Chat</button>
+<button id="lobby-chat-btn">💬 Chat</button>
 <div id="lobby-chat-panel">
   <div class="lchat-title">🌐 Global Chat</div>
   <div id="lobby-chat-log"></div>
