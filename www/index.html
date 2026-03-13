@@ -355,8 +355,10 @@ window.addEventListener('unhandledrejection',function(e){
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
 // Socket.io stub untuk APK (mode bot & online pakai RTDB, bukan socket.io)
+// Hanya aktif jika socket.io gagal load (APK mode tidak ada server)
 if(typeof io === 'undefined'){
   window.io = function(){ return { on:function(){}, emit:function(){}, disconnect:function(){} }; };
 }
@@ -971,8 +973,14 @@ function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).c
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
 function doCreate(){
   const name=gname();if(!name)return;
+  toast('Menghubungkan ke server...','info');
   initSock();
-  sock.emit('create_room',{name:name,num_players:selNum});
+  sock.once('connect',()=>{
+    sock.emit('create_room',{name:name,num_players:selNum});
+  });
+  sock.once('connect_error',()=>{
+    toast('Gagal terhubung ke server! Pastikan server.js berjalan.','error');
+  });
 }
 function openLocalhost(){
   window.location.href='http://localhost:3000';
@@ -981,8 +989,14 @@ function doJoinMabar(){
   const name=gname();if(!name)return;
   const code=document.getElementById('inp-room-mabar').value.trim().toUpperCase();
   if(!code){toast('Masukkan kode room!');return;}
+  toast('Menghubungkan ke server...','info');
   initSock();
-  sock.emit('join_room',{name:name,room_id:code});
+  sock.once('connect',()=>{
+    sock.emit('join_room',{name:name,room_id:code});
+  });
+  sock.once('connect_error',()=>{
+    toast('Gagal terhubung ke server! Pastikan server.js berjalan.','error');
+  });
 }
 
 
