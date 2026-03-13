@@ -306,7 +306,37 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 @keyframes dealIn{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
 @keyframes floatCard{0%{transform:rotate(var(--r,5deg)) translateY(0) scale(var(--s,1));}100%{transform:rotate(calc(var(--r,5deg) + 8deg)) translateY(-20px) scale(var(--s,1));}}
-</style>
+
+/* RULES BUTTON */
+.mb-rules{
+  background:linear-gradient(135deg,#2a2a00,#7a6800,#2a2a00);
+  color:#fff9c4;box-shadow:0 4px 20px rgba(120,100,0,.4);
+}
+/* RULES SCREEN */
+#s-rules{background:radial-gradient(ellipse at 50% 20%,#0d2b0d,#050e05);flex-direction:column;justify-content:flex-start;align-items:stretch;overflow:hidden;}
+.rules-header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(255,215,0,.2);flex-shrink:0;}
+.rules-back-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:8px 14px;color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;}
+.rules-back-btn:active{transform:scale(.94);}
+.rules-title{font-family:'Cinzel',serif;font-size:1.2em;color:var(--gold);letter-spacing:2px;flex:1;text-align:center;}
+.rules-scroll{flex:1;overflow-y:auto;padding:14px 14px 30px;-webkit-overflow-scrolling:touch;}
+.rules-scroll::-webkit-scrollbar{width:3px;}
+.rules-scroll::-webkit-scrollbar-thumb{background:rgba(255,215,0,.3);border-radius:3px;}
+.rules-section{background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.15);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.rules-sec-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;background:rgba(255,215,0,.05);user-select:none;}
+.rules-sec-head:active{background:rgba(255,215,0,.1);}
+.rules-sec-icon{font-size:1.4em;flex-shrink:0;}
+.rules-sec-title{font-family:'Rajdhani',sans-serif;font-size:1em;font-weight:700;color:var(--gold);letter-spacing:.5px;flex:1;}
+.rules-sec-arrow{font-size:.9em;color:rgba(255,215,0,.5);transition:transform .25s;}
+.rules-section.open .rules-sec-arrow{transform:rotate(90deg);}
+.rules-sec-body{display:none;padding:12px 14px 14px;border-top:1px solid rgba(255,215,0,.1);}
+.rules-section.open .rules-sec-body{display:block;}
+.rules-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:9px;font-size:.88em;line-height:1.5;color:rgba(255,255,255,.88);}
+.rules-item:last-child{margin-bottom:0;}
+.rules-dot{flex-shrink:0;margin-top:1px;}
+.rules-card-ex{display:inline-block;background:#fafafa;color:#111;border-radius:5px;padding:1px 6px;font-weight:900;font-size:.85em;border:1.5px solid #ccc;margin:0 2px;font-family:'Rajdhani',sans-serif;}
+.rules-card-ex.red{color:#CC0000;}
+.rules-highlight{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.83em;color:rgba(255,255,255,.8);line-height:1.5;}
+.rules-warn{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.83em;color:#ffaaaa;line-height:1.5;}</style>
 <script>
 window.onerror=function(m,s,l,c,e){
   var d=document.createElement('div');
@@ -437,6 +467,113 @@ if(typeof io === 'undefined'){
         <span class="mode-badge">SEGERA</span>
       </button>
     </div>
+
+    <button class="mode-btn mb-rules" onclick="go('s-rules')" style="margin-top:4px;">
+      <span class="mode-icon">📖</span>
+      <span class="mode-text">
+        <span class="mode-title">CARA BERMAIN</span>
+        <span class="mode-desc">Aturan &amp; panduan lengkap game</span>
+      </span>
+      <span class="mode-badge">RULES</span>
+    </button>
+  </div>
+</div>
+
+<!-- RULES / CARA BERMAIN -->
+<div id="s-rules" class="scr">
+  <div class="rules-header">
+    <button class="rules-back-btn" onclick="go('s-menu')">← Kembali</button>
+    <div class="rules-title">📖 CARA BERMAIN</div>
+    <div style="width:70px;"></div>
+  </div>
+  <div class="rules-scroll">
+
+    <div class="rules-section open">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">🏆</span><span class="rules-sec-title">TUJUAN GAME</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">🎯</span><span>Jadilah pemain pertama yang <strong>menghabiskan semua kartu</strong> di tangan sebelum lawan.</span></div>
+        <div class="rules-item"><span class="rules-dot">🃏</span><span>Gunakan 1 deck kartu remi standar (52 kartu), dibagikan rata ke semua pemain.</span></div>
+        <div class="rules-item"><span class="rules-dot">📊</span><span>Urutan nilai (terendah→tertinggi):<br><strong>3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → J → Q → K → A → 2</strong></span></div>
+        <div class="rules-item"><span class="rules-dot">♠</span><span>Urutan suit (terendah→tertinggi): <strong>♦ → ♣ → ♥ → ♠</strong></span></div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">🚀</span><span class="rules-sec-title">FASE PEMBUKAAN</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">🃏</span><span>Pemain yang memegang <span class="rules-card-ex">3♠</span> <strong>wajib bermain pertama</strong> dan harus memainkan kartu yang mengandung <span class="rules-card-ex">3♠</span>.</span></div>
+        <div class="rules-item"><span class="rules-dot">📤</span><span>Semua pemain <strong>wajib membuang kartu 3</strong> yang dipegang di fase pembukaan.</span></div>
+        <div class="rules-highlight">💡 Kartu 3 bisa dibuang sebagai <strong>pengecoh</strong> kapan saja, bahkan di luar fase pembukaan!</div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">🔄</span><span class="rules-sec-title">FASE NORMAL</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">↩️</span><span>Giliran berputar searah jarum jam.</span></div>
+        <div class="rules-item"><span class="rules-dot">⚔️</span><span>Harus <strong>mengalahkan kombinasi di meja</strong> dengan jenis yang sama tapi nilai lebih tinggi.</span></div>
+        <div class="rules-item"><span class="rules-dot">⏭️</span><span>Tidak bisa atau tidak mau main? Pilih <strong>SKIP</strong>.</span></div>
+        <div class="rules-item"><span class="rules-dot">🆕</span><span>Jika semua pemain lain skip, kamu bebas main kombinasi apa saja.</span></div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">🃏</span><span class="rules-sec-title">JENIS KOMBINASI</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">1️⃣</span><span><strong>Single</strong> — 1 kartu. Contoh: <span class="rules-card-ex">7♠</span></span></div>
+        <div class="rules-item"><span class="rules-dot">2️⃣</span><span><strong>Pair</strong> — 2 kartu nilai sama. Contoh: <span class="rules-card-ex">J♣</span><span class="rules-card-ex">J♦</span></span></div>
+        <div class="rules-item"><span class="rules-dot">3️⃣</span><span><strong>Triple</strong> — 3 kartu nilai sama. Contoh: <span class="rules-card-ex">9♦</span><span class="rules-card-ex">9♣</span><span class="rules-card-ex">9♥</span></span></div>
+        <div class="rules-item"><span class="rules-dot">📏</span><span><strong>Straight 3 kartu</strong> — 3 kartu berurutan. Contoh: <span class="rules-card-ex">5♦</span><span class="rules-card-ex">6♣</span><span class="rules-card-ex">7♠</span></span></div>
+        <div class="rules-item"><span class="rules-dot">💥</span><span><strong>Straight 4 kartu</strong> — BOM STOP, menghentikan giliran pemain sebelumnya.</span></div>
+        <div class="rules-item"><span class="rules-dot">📏</span><span><strong>Straight 5+ kartu</strong> — Bom, bisa kalahkan kartu 2. Contoh: <span class="rules-card-ex">6</span><span class="rules-card-ex">7</span><span class="rules-card-ex">8</span><span class="rules-card-ex">9</span><span class="rules-card-ex">10</span></span></div>
+        <div class="rules-item"><span class="rules-dot">💣</span><span><strong>Bom 4 (Four of a Kind)</strong> — 4 kartu nilai sama, kalahkan kartu 2. Contoh: <span class="rules-card-ex">8♦</span><span class="rules-card-ex">8♣</span><span class="rules-card-ex">8♥</span><span class="rules-card-ex">8♠</span></span></div>
+        <div class="rules-item"><span class="rules-dot">👑</span><span><strong>J-Q-K-A satu suit</strong> — Bom terkuat! Contoh: <span class="rules-card-ex red">J♥</span><span class="rules-card-ex red">Q♥</span><span class="rules-card-ex red">K♥</span><span class="rules-card-ex red">A♥</span></span></div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">💥</span><span class="rules-sec-title">SISTEM BOM</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">🛑</span><span><strong>Straight 4</strong> → pemain sebelumnya di-STOP, giliran langsung lanjut.</span></div>
+        <div class="rules-item"><span class="rules-dot">💣</span><span><strong>Bom 4 &amp; Straight 5+</strong> → bisa dimainkan kapan saja, mengalahkan kartu 2.</span></div>
+        <div class="rules-item"><span class="rules-dot">👑</span><span><strong>J-Q-K-A suit sama</strong> → bom terkuat, mengalahkan semua kombinasi.</span></div>
+        <div class="rules-highlight">⚡ <strong>Urutan kekuatan bom:</strong><br>Straight4 (stop) &lt; Bom4 = Straight5+ &lt; Royal Flush</div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">💀</span><span class="rules-sec-title">KONDISI KALAH OTOMATIS</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">❌</span><span><strong>Sisa kartu semua adalah kartu 2</strong> → langsung kalah!</span></div>
+        <div class="rules-item"><span class="rules-dot">❌</span><span><strong>Main kartu 2 sebagai kartu terakhir</strong> → kalah!</span></div>
+        <div class="rules-warn">⚠️ Rencanakan strategi agar kartu 2 tidak jadi kartu terakhir di tangan kamu.</div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="rules-sec-head" onclick="toggleRulesSection(this)">
+        <span class="rules-sec-icon">💡</span><span class="rules-sec-title">TIPS &amp; STRATEGI</span><span class="rules-sec-arrow">▶</span>
+      </div>
+      <div class="rules-sec-body">
+        <div class="rules-item"><span class="rules-dot">🃏</span><span>Simpan <strong>Bom</strong> untuk menghadang lawan yang hampir habis kartunya.</span></div>
+        <div class="rules-item"><span class="rules-dot">🎯</span><span>Buang kartu kecil duluan agar tidak terjebak kartu besar di akhir.</span></div>
+        <div class="rules-item"><span class="rules-dot">🧠</span><span>Perhatikan jumlah kartu lawan — kalau sedikit, keluarkan Bom!</span></div>
+        <div class="rules-item"><span class="rules-dot">🃏</span><span>Kartu 3 bisa dibuang sebagai <strong>pengecoh</strong> kapan saja untuk mengelabui lawan.</span></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -460,7 +597,7 @@ if(typeof io === 'undefined'){
   </div>
 </div>
 
-<!-- MABAR PRIVAT (panduan & redirect) -->
+<!-- MABAR PRIVAT — PANDUAN (tampil di APK) -->
 <div id="s-mabar" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#2d1200,#050e05);overflow-y:auto;">
   <div class="panel" style="max-width:320px;margin:auto;gap:0;">
     <div class="panel-title" style="margin-bottom:4px;">🏠 MABAR PRIVAT</div>
@@ -471,7 +608,7 @@ if(typeof io === 'undefined'){
       <div style="font-size:.82em;font-weight:700;color:#ffaa55;margin-bottom:8px;">⚠️ MODE INI BUTUH SERVER LOKAL</div>
       <div style="font-size:.76em;color:rgba(255,255,255,.75);line-height:1.6;">
         Mode Mabar Privat berjalan di server Node.js lokal di perangkat host.<br>
-        <strong style="color:#ffcc88;">Tidak bisa dipakai langsung di browser web biasa.</strong>
+        <strong style="color:#ffcc88;">Pastikan server sudah berjalan sebelum membuka game.</strong>
       </div>
     </div>
 
@@ -479,25 +616,37 @@ if(typeof io === 'undefined'){
     <div style="background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:12px 14px;margin-bottom:14px;width:100%;">
       <div style="font-size:.8em;font-weight:700;color:var(--gold);margin-bottom:10px;">📋 CARA MAIN MABAR PRIVAT</div>
       <div style="font-size:.75em;color:rgba(255,255,255,.8);line-height:1.7;">
-        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">1</span>Install & jalankan server di perangkat host:<br>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">1</span>Jalankan server di perangkat ini:<br>
           <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">node server.js</code>
         </div>
-        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">2</span>Aktifkan <strong>Hotspot</strong> di perangkat host, atau pastikan semua perangkat terhubung ke WiFi yang sama.</div>
-        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">3</span>Buka game via <strong>APK</strong> di perangkat host → klik <em>Mabar Privat</em> → otomatis masuk ke server lokal.</div>
-        <div><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">4</span>Pemain lain buka browser → ketik IP host + port:<br>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">2</span>Aktifkan <strong>Hotspot</strong>, pastikan semua pemain terhubung ke WiFi/Hotspot yang sama.</div>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">3</span>Klik tombol di bawah untuk masuk sebagai <strong>Host</strong>.</div>
+        <div><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">4</span>Pemain lain buka browser, ketik IP host + port:<br>
           <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">http://192.168.43.1:3000</code>
         </div>
       </div>
     </div>
 
     <!-- Tombol buka localhost -->
-    <button class="btn b-orange" style="width:100%;margin-bottom:8px;background:linear-gradient(135deg,#7a3200,#e65100,#7a3200);" onclick="openLocalhost()">
+    <button class="btn" style="width:100%;margin-bottom:8px;background:linear-gradient(135deg,#7a3200,#e65100,#7a3200);color:#fff;" onclick="openLocalhost()">
       🌐 BUKA http://localhost:3000
     </button>
     <div style="font-size:.7em;color:rgba(255,255,255,.35);text-align:center;margin-bottom:10px;">
-      ↑ Untuk host yang jalankan server lokal
+      ↑ Klik untuk masuk ke server lokal sebagai host
     </div>
 
+    <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
+  </div>
+</div>
+
+<!-- MABAR PRIVAT — PILIH BUAT/GABUNG (tampil di browser web) -->
+<div id="s-mabar-pick" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#2d1200,#050e05);">
+  <div class="panel">
+    <div class="panel-title">🏠 MABAR PRIVAT</div>
+    <div style="font-size:.8em;color:#aaa;text-align:center;">Main bersama teman via hotspot/WiFi</div>
+    <button class="btn b-gold" style="margin-top:8px;" onclick="go('s-create')">🏗️ BUAT ROOM BARU</button>
+    <div style="color:rgba(255,255,255,.3);font-size:.8em;letter-spacing:2px;">— ATAU —</div>
+    <button class="btn b-green" onclick="go('s-join-mabar')">🚪 GABUNG ROOM</button>
     <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
   </div>
 </div>
@@ -525,7 +674,7 @@ if(typeof io === 'undefined'){
       <button class="nb" id="nb4" onclick="setNum(4)">4</button>
     </div>
     <button class="btn b-gold" onclick="doCreate()">Buat Room ▶</button>
-    <button class="btn b-gray" id="btn-back-create" onclick="go('s-mabar')">← Kembali</button>
+    <button class="btn b-gray" id="btn-back-create" onclick="go('s-mabar-pick')">← Kembali</button>
   </div>
 </div>
 
@@ -553,7 +702,7 @@ if(typeof io === 'undefined'){
       oninput="this.value=this.value.toUpperCase()"
       style="letter-spacing:8px;font-size:1.35em;text-align:center;">
     <button class="btn b-gold" onclick="doJoinMabar()">Gabung ▶</button>
-    <button class="btn b-gray" onclick="go('s-mabar')">← Kembali</button>
+    <button class="btn b-gray" onclick="go('s-mabar-pick')">← Kembali</button>
   </div>
 </div>
 
@@ -799,10 +948,11 @@ function goMabar(){
   if(!gname())return;
   const isApk=!!(window.Capacitor&&window.Capacitor.isNative)||window.location.protocol==='capacitor:';
   if(isApk){
-    const name=document.getElementById('inp-name').value.trim();
-    window.open('http://localhost:3000?name='+encodeURIComponent(name),'_system');
-  } else {
+    // APK: tampilkan layar panduan (ada tombol buka localhost)
     go('s-mabar');
+  } else {
+    // Browser web: langsung ke pilih buat/gabung
+    go('s-mabar-pick');
   }
 }
 
@@ -820,18 +970,15 @@ let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
 function doCreate(){
-  const name=gname();if(!name)return;
-  window.open('http://localhost:3000?name='+encodeURIComponent(name),'_system');
+  window.location.href='http://localhost:3000';
 }
 function openLocalhost(){
-  const name=document.getElementById('inp-name').value.trim()||'Pemain';
-  window.open('http://localhost:3000?name='+encodeURIComponent(name),'_blank');
+  window.location.href='http://localhost:3000';
 }
 function doJoinMabar(){
-  const name=gname()||'Pemain';
   const ip=document.getElementById('inp-room-mabar').value.trim();
   if(!ip){toast('Masukkan IP host!');return;}
-  window.open('http://'+ip+':3000?name='+encodeURIComponent(name),'_system');
+  window.location.href='http://'+ip+':3000';
 }
 
 
@@ -1088,10 +1235,21 @@ function showOver(st){
   document.getElementById('modal-over').classList.add('on');
 }
 
-function toast(msg){
+function toast(msg, type){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),2500);
+  t.textContent=msg;
+  // type: 'error'(default merah), 'info'(biru), 'ok'(hijau), 'warn'(oranye)
+  t.style.background = type==='info' ? 'rgba(21,101,192,.95)'
+    : type==='ok'   ? 'rgba(27,94,32,.95)'
+    : type==='warn' ? 'rgba(180,80,0,.95)'
+    : 'rgba(170,0,0,.95)';
+  t.style.borderColor = type==='info' ? 'rgba(80,160,255,.4)'
+    : type==='ok'   ? 'rgba(80,200,80,.4)'
+    : type==='warn' ? 'rgba(255,140,0,.4)'
+    : 'rgba(255,80,80,.4)';
+  t.classList.add('on');
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.classList.remove('on'),2800);
 }
 
 
@@ -1480,6 +1638,7 @@ function _sendAction(act){
 
 // Buat Room Online
 async function doCreateOnline(){
+  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   const name=(document.getElementById('inp-name')?.value.trim())||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
@@ -1505,6 +1664,7 @@ async function doCreateOnline(){
 
 // Join Room Online
 async function doJoinOnline(){
+  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=(document.getElementById('inp-room-online')?.value||'').trim().toUpperCase();
@@ -1594,6 +1754,7 @@ async function doStart(){
 //  OVERRIDE NAVIGASI & ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function goOnline(){
+  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   go('s-online');
 }
@@ -1815,6 +1976,14 @@ function loginGuest(){
   currentUserData = { name: 'Tamu', username: 'guest' };
   go('s-menu');
 }
+
+function toggleRulesSection(headEl){
+  headEl.closest('.rules-section').classList.toggle('open');
+}
+
+// ── NOTIF KONEKSI INTERNET ──
+window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!','warn'));
+window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kembali','ok'));
 
 </script>
 </body>
