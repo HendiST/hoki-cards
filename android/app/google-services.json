@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "192855960278",
+    "firebase_url": "https://ludo-hoki-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "ludo-hoki",
+    "storage_bucket": "ludo-hoki.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192855960278:android:8950ddd0e931a9cd3c3777",
+        "android_client_info": {
+          "package_name": "com.ludo.hoki"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "192855960278-7okdq8d4nv3knc5rm070rv9m5hkh306k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ludo.hoki",
+            "certificate_hash": "566e425103fb645db07c73121af717c8690304cb"
+          }
+        },
+        {
+          "client_id": "192855960278-2k0pbg6dn2cccuuaqb1ovv3iapcpesja.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRmvhEtCB5Ih2CSLq8n47_XJRJ4W4TZ_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "192855960278-2k0pbg6dn2cccuuaqb1ovv3iapcpesja.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
