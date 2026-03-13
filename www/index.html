@@ -470,7 +470,7 @@ if(typeof io === 'undefined'){
       </button>
     </div>
 
-    <button class="mode-btn mb-rules" onclick="go('s-rules')" style="margin-top:4px;">
+    <button class="mode-btn mb-rules" onclick="go('s-rules-pick')" style="margin-top:4px;">
       <span class="mode-icon">📖</span>
       <span class="mode-text">
         <span class="mode-title">CARA BERMAIN</span>
@@ -482,10 +482,38 @@ if(typeof io === 'undefined'){
 </div>
 
 <!-- RULES / CARA BERMAIN -->
+<!-- PILIH VARIAN ATURAN -->
+<div id="s-rules-pick" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#0d2b0d,#050e05);">
+  <div class="panel" style="gap:12px;">
+    <div class="panel-title" style="margin-bottom:0;">📖 CARA BERMAIN</div>
+    <div style="font-size:.78em;color:rgba(255,215,0,.6);letter-spacing:1px;margin-bottom:4px;text-align:center;">PILIH VARIAN ATURAN</div>
+
+    <!-- Suruan -->
+    <button class="mode-btn mb-rules" onclick="go('s-rules')" style="width:100%;max-width:320px;">
+      <span class="mode-icon">🃏</span>
+      <span class="mode-text">
+        <span class="mode-title">SURUAN</span>
+        <span class="mode-sub">Big Two / Capsa versi lokal</span>
+      </span>
+    </button>
+
+    <!-- Placeholder aturan lain (coming soon) -->
+    <button class="mode-btn" style="width:100%;max-width:320px;opacity:.45;cursor:default;" disabled>
+      <span class="mode-icon">🔒</span>
+      <span class="mode-text">
+        <span class="mode-title">ATURAN LAIN</span>
+        <span class="mode-sub">Segera hadir...</span>
+      </span>
+    </button>
+
+    <button class="btn b-gray" style="margin-top:4px;" onclick="go('s-menu')">← Kembali</button>
+  </div>
+</div>
+
 <div id="s-rules" class="scr">
   <div class="rules-header">
-    <button class="rules-back-btn" onclick="go('s-menu')">← Kembali</button>
-    <div class="rules-title">📖 CARA BERMAIN</div>
+    <button class="rules-back-btn" onclick="go('s-rules-pick')">← Kembali</button>
+    <div class="rules-title">📖 SURUAN</div>
     <div style="width:70px;"></div>
   </div>
   <div class="rules-scroll">
