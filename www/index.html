@@ -338,19 +338,29 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 /* Ready screen */
 .rdy-slots{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:320px;}
-.rdy-slot{display:flex;flex-direction:column;align-items:center;gap:6px;width:70px;}
-.rdy-av{width:54px;height:54px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);
-  display:flex;align-items:center;justify-content:center;font-size:1.5em;
-  background:rgba(255,255,255,.06);transition:.3s;position:relative;}
-.rdy-av.ready{border-color:#4caf50;box-shadow:0 0 14px rgba(76,175,80,.5);}
-.rdy-av.ready::after{content:'✓';position:absolute;bottom:-3px;right:-3px;
-  background:#4caf50;border-radius:50%;width:18px;height:18px;font-size:.65em;
-  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;}
-.rdy-av.kicked{border-color:#f44336;opacity:.4;}
-.rdy-name{font-size:.68em;color:rgba(255,255,255,.55);text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;}
-.rdy-status{font-size:.6em;font-weight:700;letter-spacing:.5px;}
-.rdy-status.on{color:#4caf50;}.rdy-status.wait{color:#FF9800;}.rdy-status.bot{color:rgba(255,255,255,.35);}
+.rdy-slot{display:flex;flex-direction:column;align-items:center;gap:5px;width:72px;
+  transition:opacity .4s;}
+.rdy-slot.waiting{opacity:.45;}
+.rdy-slot.ready{opacity:1;}
+.rdy-av{width:58px;height:58px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:1.6em;
+  background:rgba(255,255,255,.06);transition:.35s;position:relative;overflow:hidden;}
+.rdy-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.rdy-av.ready{border-color:#4caf50;box-shadow:0 0 16px rgba(76,175,80,.55);}
+.rdy-av.ready::after{content:'✓';position:absolute;bottom:-2px;right:-2px;
+  background:#4caf50;border-radius:50%;width:20px;height:20px;font-size:.65em;
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;
+  border:2px solid #0a1a00;}
+.rdy-av.bot-av{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);}
+.rdy-av.bot-av.ready{border-color:rgba(100,200,100,.5);box-shadow:0 0 10px rgba(76,175,80,.3);}
+.rdy-av.kicked{border-color:#f44336;opacity:.3;}
+.rdy-name{font-size:.67em;color:rgba(255,255,255,.7);text-align:center;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;}
+.rdy-name.me{color:#FFD700;}
+.rdy-status{font-size:.58em;font-weight:700;letter-spacing:.4px;text-align:center;}
+.rdy-status.on{color:#4caf50;}.rdy-status.wait{color:#FF9800;}.rdy-status.bot{color:rgba(255,255,255,.3);}
+/* Rank badge kecil di bawah avatar */
+.rdy-rank{font-size:.55em;margin-top:1px;}
 
 /* Ready button */
 .rdy-btn{padding:14px 32px;background:linear-gradient(135deg,#1b5e20,#4caf50);
@@ -2272,6 +2282,11 @@ function initSock(){
 }
 
 function go(id){
+  // Guard: layar matchmaking hanya boleh dibuka lewat fungsi resmi
+  if((id==='s-ranked-search'||id==='s-ranked-ready') &&
+     (typeof _mmPhase==='undefined'||(_mmPhase!=='searching'&&_mmPhase!=='creating'&&_mmPhase!=='ready'))){
+    return; // abaikan jika state tidak sesuai
+  }
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   // Profile FAB: hanya di menu utama
@@ -3627,6 +3642,9 @@ window.addEventListener('load', function(){
   document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
   const loginScr = document.getElementById('loginScreen');
   if(loginScr) loginScr.classList.add('on');
+
+  // Reset matchmaking state supaya layar ready/search tidak muncul sendiri
+  if(typeof _mmCleanup === 'function') _mmCleanup();
 
   _checkAutoTutorial();
 });
@@ -5844,15 +5862,28 @@ async function _lbLoad(tab){
 
 <!-- ══════════════════ RANKED READY SCREEN ═════════════════════ -->
 <div id="s-ranked-ready" class="scr">
-  <div class="mm-title">⚔️ LAWAN DITEMUKAN!</div>
-  <div class="rdy-slots" id="rdy-slots"></div>
-  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-    <div style="font-size:.75em;color:rgba(255,255,255,.4);letter-spacing:.5px;">Waktu tersisa</div>
+  <div class="mm-title" style="margin-bottom:2px;">⚔️ LAWAN DITEMUKAN!</div>
+  <div style="font-size:.73em;color:rgba(255,255,255,.38);letter-spacing:.5px;">Pencet SIAP sebelum waktu habis</div>
+
+  <!-- Player slots dengan avatar + nama -->
+  <div class="rdy-slots" id="rdy-slots" style="margin:6px 0 2px;"></div>
+
+  <!-- Progress bar -->
+  <div style="width:100%;max-width:300px;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin:4px 0;">
+    <div id="rdy-progress" style="height:100%;background:linear-gradient(90deg,#e65100,#FFD700);transition:width .3s;width:0%;border-radius:4px;"></div>
+  </div>
+
+  <!-- Countdown -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+    <div style="font-size:.68em;color:rgba(255,255,255,.35);letter-spacing:.5px;">WAKTU TERSISA</div>
     <div class="rdy-countdown" id="rdy-countdown">10</div>
   </div>
+
+  <!-- Tombol SIAP -->
   <button id="rdy-btn" class="rdy-btn" onclick="pressReady()">✓ SIAP!</button>
-  <div id="rdy-hint" style="font-size:.68em;color:rgba(255,255,255,.3);text-align:center;max-width:260px;line-height:1.6;">
-    Tidak pencet SIAP dalam waktu → dikick dari match
+
+  <div style="font-size:.63em;color:rgba(255,255,255,.22);text-align:center;max-width:240px;line-height:1.7;">
+    Tidak pencet SIAP → dikick & diganti bot
   </div>
 </div>
 
@@ -5878,7 +5909,8 @@ let _mmRoomRef   = null;    // RTDB ref room matchmaking
 let _mmRoomId    = null;
 let _mmQListener = null;    // unsubscribe queue listener
 let _mmRListener = null;    // unsubscribe room listener
-let _mmPhase     = 'idle';  // idle | searching | ready | ingame
+let _mmPhase        = 'idle';  // idle | searching | ready | ingame
+let _mmCurrentPlayers = {};   // snapshot players saat ini di ready phase
 let _mmSearchSec = 30;      // detik tersisa di fase search
 let _mmReadySec  = 10;      // detik tersisa di fase ready
 let _mmIReady    = false;   // sudah pencet SIAP?
@@ -6013,14 +6045,21 @@ async function _mmHostCreateRoom(entries, uids, np, withBots=false){
     };
   }
 
-  // Tulis room ke RTDB
-  await fbRtdb.ref('ranked_rooms/'+rid).set({
-    np, players: playerMap,
-    phase: 'ready',
-    createdAt: Date.now(),
-    host: currentUser.uid,
-  });
-  fbRtdb.ref('ranked_rooms/'+rid).onDisconnect().remove();
+  // Jika semua bot (tidak ada player lain), gunakan local room
+  const hasOtherPlayers = Object.values(playerMap).some(p=>!p.isBot&&p.uid!==currentUser.uid);
+  const finalRid = hasOtherPlayers ? rid : 'local_'+Date.now().toString(36);
+  _mmRoomId = finalRid;
+
+  if(hasOtherPlayers){
+    // Tulis room ke RTDB
+    await fbRtdb.ref('ranked_rooms/'+rid).set({
+      np, players: playerMap,
+      phase: 'ready',
+      createdAt: Date.now(),
+      host: currentUser.uid,
+    });
+    fbRtdb.ref('ranked_rooms/'+rid).onDisconnect().remove();
+  }
 
   // Hapus semua pemain dari queue
   for(const uid of Object.keys(playerMap)){
@@ -6028,8 +6067,11 @@ async function _mmHostCreateRoom(entries, uids, np, withBots=false){
       fbRtdb.ref('ranked_queue/'+np+'/'+uid).remove().catch(()=>{});
   }
 
+  // Notify pemain lain di queue tentang roomId
+  await _mmNotifyQueuePlayers(playerMap, rid, np);
+
   // Masuk ke fase ready
-  _mmEnterReady(rid, playerMap, np);
+  _mmEnterReady(finalRid, playerMap, np);
 }
 
 // ── Non-host: tunggu room muncul ──
@@ -6070,6 +6112,7 @@ function _mmEnterReady(rid, playerMap, np){
   _mmRoomId  = rid;
   _mmIReady  = false;
   _mmReadySec = MM_READY_MAX;
+  _mmCurrentPlayers = playerMap; // simpan untuk fallback
 
   go('s-ranked-ready');
   _mmRenderReadySlots(playerMap);
@@ -6122,12 +6165,24 @@ function _mmReadyTick(rid, playerMap, np){
 
 // ── Tekan tombol SIAP ──
 async function pressReady(){
-  if(_mmIReady||_mmPhase!=='ready') return;
+  if(_mmIReady) return;
+  if(_mmPhase!=='ready'){
+    // Fallback: kalau phase belum di-set tapi tombol kelihatan, set manual
+    console.warn('[pressReady] phase='+_mmPhase+', forcing ready');
+    _mmPhase='ready';
+  }
   _mmIReady = true;
   const btn = document.getElementById('rdy-btn');
-  if(btn){ btn.disabled=true; btn.className='rdy-btn done'; btn.textContent='✓ Sudah Siap'; }
-  if(fbRtdb&&_mmRoomId&&currentUser){
-    await fbRtdb.ref('ranked_rooms/'+_mmRoomId+'/players/'+currentUser.uid+'/ready').set(true);
+  if(btn){ btn.disabled=true; btn.className='rdy-btn done'; btn.textContent='✓ Sudah Siap!'; }
+  if(_mmRoomId && _mmRoomId.startsWith('local_')){
+    // Bot game lokal: langsung launch tanpa RTDB
+    clearInterval(_mmInterval);
+    // Set self ready di players map lokal
+    if(_mmCurrentPlayers[currentUser.uid]) _mmCurrentPlayers[currentUser.uid].ready=true;
+    _mmRenderReadySlots(_mmCurrentPlayers);
+    setTimeout(()=>_mmLaunchGame(_mmRoomId, _mmCurrentPlayers, _mmNp), 600);
+  } else if(fbRtdb&&_mmRoomId&&currentUser){
+    await fbRtdb.ref('ranked_rooms/'+_mmRoomId+'/players/'+currentUser.uid+'/ready').set(true).catch(console.warn);
   }
 }
 
@@ -6139,11 +6194,18 @@ async function _mmHandleNotReady(rid, np){
   if(!_mmIReady){
     // Kita yang tidak siap → dikick
     toast('⏰ Waktu habis! Kamu dikeluarkan dari match.','error');
-    await fbRtdb.ref('ranked_rooms/'+rid+'/players/'+currentUser.uid+'/kicked').set(true);
-    await fbRtdb.ref('ranked_rooms/'+rid+'/players/'+currentUser.uid+'/ready').set(false);
+    if(fbRtdb && rid && !rid.startsWith('local_')){
+      await fbRtdb.ref('ranked_rooms/'+rid+'/players/'+currentUser.uid+'/kicked').set(true).catch(()=>{});
+    }
     _mmCleanup();
     go('s-ranked');
     _rnkRefreshUI();
+    return;
+  }
+
+  // Untuk local room (bot) - jika kita sudah siap, langsung launch
+  if(rid && rid.startsWith('local_')){
+    _mmLaunchGame(rid, _mmCurrentPlayers, _mmNp);
     return;
   }
 
@@ -6224,8 +6286,8 @@ async function _mmLaunchGame(rid, players, np){
   st.player_names = names;
   handOrder=[]; curSt=st;
 
-  // Hapus room dari RTDB
-  fbRtdb.ref('ranked_rooms/'+rid).remove().catch(()=>{});
+  // Hapus room dari RTDB (hanya kalau bukan local)
+  if(!rid.startsWith('local_')) fbRtdb.ref('ranked_rooms/'+rid).remove().catch(()=>{});
 
   countdown(()=>{
     go('s-game');
@@ -6284,26 +6346,63 @@ function _mmRenderSearchSlots(uids, np){
 }
 
 // ── Render slot di layar ready ──
+// Opacity 50% = belum siap, 100% = sudah siap
 function _mmRenderReadySlots(playerMap){
   const el = document.getElementById('rdy-slots');
   if(!el) return;
   el.innerHTML='';
   const sorted = Object.values(playerMap).filter(p=>!p.kicked).sort((a,b)=>a.idx-b.idx);
+
+  let readyCount=0, totalReal=0;
   sorted.forEach(p=>{
     const isMe = !p.isBot && p.uid===currentUser.uid;
-    const wrap=document.createElement('div'); wrap.className='rdy-slot';
+    const isReady = p.ready||false;
+    if(!p.isBot){ totalReal++; if(isReady) readyCount++; }
+
+    const wrap=document.createElement('div');
+    wrap.className='rdy-slot '+(isReady?'ready':'waiting');
+
+    // Avatar
     const avDiv=document.createElement('div');
-    avDiv.className='rdy-av'+(p.ready?' ready':'')+(p.kicked?' kicked':'');
-    avDiv.textContent = p.avatar||'😎';
-    const nameDiv=document.createElement('div'); nameDiv.className='rdy-name';
-    nameDiv.textContent=(isMe?'⭐ ':'')+(_esc(p.name||'?'));
+    let avClass = 'rdy-av';
+    if(p.isBot) avClass+=' bot-av';
+    if(isReady) avClass+=' ready';
+    if(p.kicked) avClass+=' kicked';
+    avDiv.className=avClass;
+    // Foto atau emoji
+    if(p.photoBase64){
+      avDiv.innerHTML=`<img src="${p.photoBase64}">`;
+    } else {
+      avDiv.textContent = p.avatar||'😎';
+    }
+
+    // Nama
+    const nameDiv=document.createElement('div');
+    nameDiv.className='rdy-name'+(isMe?' me':'');
+    nameDiv.textContent = isMe ? '★ '+(p.name||'Kamu') : _esc(p.name||'?');
+
+    // Status
     const stDiv=document.createElement('div'); stDiv.className='rdy-status';
-    if(p.isBot){ stDiv.className+=' bot'; stDiv.textContent='🤖 Bot'; }
-    else if(p.ready){ stDiv.className+=' on'; stDiv.textContent='✓ Siap'; }
-    else { stDiv.className+=' wait'; stDiv.textContent='⏳ Menunggu…'; }
-    wrap.appendChild(avDiv); wrap.appendChild(nameDiv); wrap.appendChild(stDiv);
+    if(p.isBot){ stDiv.className+=' bot'; stDiv.textContent='🤖 Auto'; }
+    else if(isReady){ stDiv.className+=' on'; stDiv.textContent='✓ SIAP'; }
+    else { stDiv.className+=' wait'; stDiv.textContent='⏳ Belum'; }
+
+    // Rank badge kecil
+    const rankDiv=document.createElement('div'); rankDiv.className='rdy-rank';
+    rankDiv.innerHTML=_rankBadgeHtml(p.stars||0,'font-size:.55em;');
+
+    wrap.appendChild(avDiv);
+    wrap.appendChild(nameDiv);
+    wrap.appendChild(stDiv);
+    wrap.appendChild(rankDiv);
     el.appendChild(wrap);
   });
+
+  // Update progress bar
+  const prog = document.getElementById('rdy-progress');
+  if(prog && totalReal>0){
+    prog.style.width = Math.round(readyCount/totalReal*100)+'%';
+  }
 }
 
 // ── Override backMenu untuk cleanup matchmaking ──
