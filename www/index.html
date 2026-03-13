@@ -759,7 +759,7 @@ function goMabar(){if(!gname())return;initSock();go('s-mabar');}
 
 // ── BOT ──
 let botNum=2,botDiff='easy';
-function setBotNum(n){botNum=n;[2,3,4].forEach(i=>{const e=document.getElementById('bot-nb'+i);if(e)e.classList.toggle('on',i===n);});}
+function setBotNum(n){botNum=n;_botNum=n;[2,3,4].forEach(i=>{const e=document.getElementById('bot-nb'+i);if(e)e.classList.toggle('on',i===n);});}
 function setBotDiff(d){botDiff=d;document.getElementById('bot-easy').classList.toggle('on',d==='easy');document.getElementById('bot-hard').classList.toggle('on',d==='hard');}
 
 
@@ -767,7 +767,25 @@ function setBotDiff(d){botDiff=d;document.getElementById('bot-easy').classList.t
 let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
-function doCreate(){const name=gname();if(!name)return;sock.emit('create_room',{num_players:selNum,name});}
+async function doCreate(){
+  const name=gname();if(!name)return;
+  if(!fbRtdb){toast('❌ Tidak ada koneksi!');return;}
+  const uid=currentUser?currentUser.uid:('guest_'+Date.now());
+  const rid=Math.random().toString(36).slice(2,6).toUpperCase();
+  _rtdbRoom=rid;_rtdbIsHost=true;_rtdbMyIdx=0;
+  _rtdbPlayerUids={0:uid};
+  await fbRtdb.ref('rooms/'+rid).set({
+    info:{numPlayers:selNum,started:false,host:uid,
+      players:{[uid]:{idx:0,name}},
+      playerNames:{0:name},createdAt:Date.now()}
+  });
+  fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
+  document.getElementById('lob-code').textContent=rid;
+  document.getElementById('lob-status').textContent='Menunggu pemain lain...';
+  document.getElementById('btn-start').style.display='none';
+  go('s-lobby');
+  _listenLobbyOnline(rid);
+}
 function doJoinMabar(){
   const name=gname()||'Pemain';
   const rid=document.getElementById('inp-room-mabar').value.trim().toUpperCase();
@@ -1393,7 +1411,7 @@ function _sendAction(act){
 // Buat Room Online
 async function doCreateOnline(){
   if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
-  if(!currentUser||currentUser.isGuest){toast('❌ Login dulu untuk Mabar Online!');return;}
+  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
   _rtdbRoom=rid; _rtdbIsHost=true; _rtdbMyIdx=0;
@@ -1414,7 +1432,7 @@ async function doCreateOnline(){
 // Join Room Online
 async function doJoinOnline(){
   if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
-  if(!currentUser||currentUser.isGuest){toast('❌ Login dulu untuk Mabar Online!');return;}
+  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=(document.getElementById('inp-room-online')?.value||'').trim().toUpperCase();
   if(!rid){toast('Masukkan kode room!');return;}
@@ -1503,7 +1521,7 @@ async function doStart(){
 //  OVERRIDE NAVIGASI & ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function goOnline(){
-  if(!currentUser||currentUser.isGuest){toast('❌ Login dulu untuk Mabar Online!');return;}
+  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
   if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   go('s-online');
 }
