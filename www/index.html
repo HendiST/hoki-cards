@@ -603,40 +603,36 @@ if(typeof io === 'undefined'){
     <div class="panel-title" style="margin-bottom:4px;">🏠 MABAR PRIVAT</div>
     <div style="font-size:.75em;color:rgba(255,150,50,.7);letter-spacing:1px;margin-bottom:16px;text-align:center;">VIA HOTSPOT / WIFI LOKAL</div>
 
+    <!-- Info box: butuh server lokal -->
+    <div style="background:rgba(255,120,0,.1);border:1px solid rgba(255,120,0,.35);border-radius:12px;padding:12px 14px;margin-bottom:14px;width:100%;">
+      <div style="font-size:.82em;font-weight:700;color:#ffaa55;margin-bottom:8px;">⚠️ MODE INI BUTUH SERVER LOKAL</div>
+      <div style="font-size:.76em;color:rgba(255,255,255,.75);line-height:1.6;">
+        Mode Mabar Privat berjalan di server Node.js lokal di perangkat host.<br>
+        <strong style="color:#ffcc88;">Pastikan server sudah berjalan sebelum membuka game.</strong>
+      </div>
+    </div>
+
     <!-- Cara main: step by step -->
     <div style="background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:12px 14px;margin-bottom:14px;width:100%;">
       <div style="font-size:.8em;font-weight:700;color:var(--gold);margin-bottom:10px;">📋 CARA MAIN MABAR PRIVAT</div>
       <div style="font-size:.75em;color:rgba(255,255,255,.8);line-height:1.7;">
-        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">1</span>Jalankan server di perangkat host:<br>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">1</span>Jalankan server di perangkat ini:<br>
           <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">node server.js</code>
         </div>
         <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">2</span>Aktifkan <strong>Hotspot</strong>, pastikan semua pemain terhubung ke WiFi/Hotspot yang sama.</div>
-        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">3</span><strong>Host</strong> — salin alamat ini lalu buka di browser:</div>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">3</span>Klik tombol di bawah untuk masuk sebagai <strong>Host</strong>.</div>
+        <div><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">4</span>Pemain lain buka browser, ketik IP host + port:<br>
+          <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">http://192.168.43.1:3000</code>
+        </div>
       </div>
     </div>
 
-    <!-- URL localhost untuk HOST — bisa disalin -->
-    <div style="width:100%;margin-bottom:6px;">
-      <div style="font-size:.72em;color:rgba(255,215,0,.6);margin-bottom:4px;letter-spacing:.5px;">🖥️ UNTUK HOST (perangkat ini)</div>
-      <div onclick="copyUrl('http://localhost:3000',this)"
-        style="background:rgba(0,0,0,.55);border:1.5px solid rgba(255,215,0,.35);border-radius:10px;
-               padding:12px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;
-               transition:border-color .2s;">
-        <code style="color:#aaffaa;font-size:.95em;letter-spacing:.5px;">http://localhost:3000</code>
-        <span style="font-size:.75em;color:rgba(255,215,0,.6);flex-shrink:0;">📋 Salin</span>
-      </div>
-    </div>
-
-    <!-- URL IP untuk TEMAN — bisa disalin, IP dideteksi otomatis -->
-    <div style="width:100%;margin-bottom:16px;">
-      <div style="font-size:.72em;color:rgba(255,215,0,.6);margin-bottom:4px;letter-spacing:.5px;">👥 UNTUK TEMAN (buka di browser mereka)</div>
-      <div onclick="copyUrl(document.getElementById('mabar-ip-url').textContent,this)"
-        style="background:rgba(0,0,0,.55);border:1.5px solid rgba(255,100,0,.35);border-radius:10px;
-               padding:12px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <code id="mabar-ip-url" style="color:#ffcc88;font-size:.95em;letter-spacing:.5px;">http://192.168.43.1:3000</code>
-        <span style="font-size:.75em;color:rgba(255,215,0,.6);flex-shrink:0;">📋 Salin</span>
-      </div>
-      <div style="font-size:.68em;color:rgba(255,255,255,.3);margin-top:4px;text-align:center;">Ganti IP sesuai IP hotspot kamu jika berbeda</div>
+    <!-- Tombol buka localhost -->
+    <button class="btn" style="width:100%;margin-bottom:8px;background:linear-gradient(135deg,#7a3200,#e65100,#7a3200);color:#fff;" onclick="openLocalhost()">
+      🌐 BUKA http://localhost:3000
+    </button>
+    <div style="font-size:.7em;color:rgba(255,255,255,.35);text-align:center;margin-bottom:10px;">
+      ↑ Klik untuk masuk ke server lokal sebagai host
     </div>
 
     <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
@@ -701,8 +697,8 @@ if(typeof io === 'undefined'){
 <div id="s-join-mabar" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#2d1200,#050e05);">
   <div class="panel">
     <div class="panel-title">🚪 GABUNG ROOM</div>
-    <div style="font-size:.8em;color:#aaa;">Masukkan kode dari teman</div>
-    <input class="inp" id="inp-room-mabar" placeholder="192.168.43.1" maxlength="15"
+    <div style="font-size:.8em;color:#aaa;">Masukkan kode room dari host</div>
+    <input class="inp" id="inp-room-mabar" placeholder="AB12" maxlength="6"
       oninput="this.value=this.value.toUpperCase()"
       style="letter-spacing:8px;font-size:1.35em;text-align:center;">
     <button class="btn b-gold" onclick="doJoinMabar()">Gabung ▶</button>
@@ -952,9 +948,10 @@ function goMabar(){
   if(!gname())return;
   const isApk=!!(window.Capacitor&&window.Capacitor.isNative)||window.location.protocol==='capacitor:';
   if(isApk){
+    // APK: tampilkan layar panduan (ada tombol buka localhost)
     go('s-mabar');
-    detectLocalIP();
   } else {
+    // Browser web: langsung ke pilih buat/gabung
     go('s-mabar-pick');
   }
 }
@@ -973,49 +970,19 @@ let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
 function doCreate(){
-  window.location.href='http://localhost:3000';
+  const name=gname();if(!name)return;
+  initSock();
+  sock.emit('create_room',{name:name,num_players:selNum});
 }
 function openLocalhost(){
   window.location.href='http://localhost:3000';
 }
 function doJoinMabar(){
-  const ip=document.getElementById('inp-room-mabar').value.trim();
-  if(!ip){toast('Masukkan IP host!');return;}
-  window.location.href='http://'+ip+':3000';
-}
-
-function copyUrl(url,el){
-  navigator.clipboard.writeText(url).then(()=>{
-    const span=el.querySelector('span:last-child');
-    const orig=span.textContent;
-    span.textContent='✅ Disalin!';
-    el.style.borderColor='rgba(46,204,113,.6)';
-    setTimeout(()=>{span.textContent=orig;el.style.borderColor='';},1800);
-  }).catch(()=>{
-    const ta=document.createElement('textarea');
-    ta.value=url;ta.style.cssText='position:fixed;opacity:0;';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('✅ Alamat disalin!','ok');
-  });
-}
-
-// Deteksi IP lokal via WebRTC saat layar s-mabar dibuka
-function detectLocalIP(){
-  try{
-    const pc=new RTCPeerConnection({iceServers:[]});
-    pc.createDataChannel('');
-    pc.createOffer().then(o=>pc.setLocalDescription(o));
-    pc.onicecandidate=e=>{
-      if(!e||!e.candidate)return;
-      const m=e.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-      if(m&&!m[1].startsWith('127.')){
-        const el=document.getElementById('mabar-ip-url');
-        if(el)el.textContent='http://'+m[1]+':3000';
-        pc.close();
-      }
-    };
-  }catch(e){}
+  const name=gname();if(!name)return;
+  const code=document.getElementById('inp-room-mabar').value.trim().toUpperCase();
+  if(!code){toast('Masukkan kode room!');return;}
+  initSock();
+  sock.emit('join_room',{name:name,room_id:code});
 }
 
 
