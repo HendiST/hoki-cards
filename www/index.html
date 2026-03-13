@@ -10,6 +10,90 @@
 @font-face { font-family:'Cinzel'; src: local('Georgia'), local('serif'); font-weight: 700 900; }
 @font-face { font-family:'Rajdhani'; src: local('Arial'), local('sans-serif'); }
 @font-face { font-family:'Oswald'; src: local('Arial Narrow'), local('sans-serif'); }
+
+/* ═══════════════════════════ TUTORIAL ═══════════════════════════ */
+.mb-tutorial{background:linear-gradient(135deg,rgba(40,0,80,.7),rgba(100,0,180,.35));border-color:rgba(180,100,255,.4)!important;}
+.mb-tutorial .mode-badge{background:linear-gradient(135deg,#7b2fff,#c030ff);}
+/* Overlay gelap di atas game */
+#tut-overlay{
+  position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:transparent;
+  transition:background .3s;
+}
+#tut-overlay.active{pointer-events:none;}
+/* Spotlight: lubang transparan di tengah overlay */
+#tut-spotlight{
+  position:fixed;z-index:901;pointer-events:none;
+  border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.72);
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  border:2px solid rgba(180,100,255,.7);
+}
+/* Tooltip popup */
+#tut-popup{
+  position:fixed;z-index:902;
+  background:linear-gradient(145deg,#1a0a30,#0d0620);
+  border:1.5px solid rgba(180,100,255,.6);
+  border-radius:18px;
+  padding:18px 18px 14px;
+  max-width:300px;width:88vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 24px rgba(120,0,255,.25);
+  font-family:'Rajdhani',sans-serif;
+  transition:opacity .3s ease, transform .3s ease;
+  pointer-events:all;
+  /* Default: center */
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#tut-popup.hidden{opacity:0;}
+#tut-popup.dragging{cursor:grabbing;transition:none;}
+#tut-drag-handle{
+  text-align:center;font-size:.7em;color:rgba(180,100,255,.4);
+  letter-spacing:2px;margin-bottom:4px;margin-top:-4px;
+}
+.tut-step-lbl{font-size:.72em;color:rgba(180,100,255,.75);letter-spacing:1.5px;font-weight:700;margin-bottom:6px;}
+.tut-title{font-family:'Cinzel',serif;font-size:1.05em;color:#d080ff;margin-bottom:8px;letter-spacing:.5px;}
+.tut-body{font-size:.88em;color:rgba(255,255,255,.87);line-height:1.6;margin-bottom:12px;}
+.tut-highlight{background:rgba(180,100,255,.13);border:1px solid rgba(180,100,255,.3);border-radius:8px;padding:7px 10px;margin-bottom:12px;font-size:.82em;color:rgba(220,180,255,.9);line-height:1.5;}
+.tut-actions{display:flex;gap:8px;align-items:center;}
+.tut-btn-prev{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.65);border-radius:10px;padding:8px 14px;font-family:'Rajdhani',sans-serif;font-size:.9em;font-weight:700;cursor:pointer;flex-shrink:0;}
+.tut-btn-prev:active{transform:scale(.94);}
+.tut-btn-next{background:linear-gradient(135deg,#7b2fff,#c030ff);border:none;color:#fff;border-radius:10px;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;flex:1;letter-spacing:.5px;}
+.tut-btn-next:active{transform:scale(.96);}
+.tut-skip{position:fixed;top:14px;right:14px;z-index:903;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:8px;padding:6px 12px;font-family:'Rajdhani',sans-serif;font-size:.8em;font-weight:700;cursor:pointer;letter-spacing:.5px;}
+.tut-skip:active{transform:scale(.94);}
+.tut-progress{display:flex;gap:4px;margin-bottom:12px;}
+.tut-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .25s;}
+.tut-dot.active{background:#c030ff;}
+.tut-dot.done{background:rgba(180,100,255,.5);}
+
+/* Konfirmasi Tutorial */
+#tut-confirm-modal{
+  display:none;position:fixed;inset:0;z-index:910;
+  background:rgba(0,0,0,.82);
+  align-items:center;justify-content:center;
+}
+#tut-confirm-modal.on{display:flex;}
+.tut-confirm-box{
+  background:linear-gradient(145deg,#1a0a30,#0d0620);
+  border:1.5px solid rgba(180,100,255,.6);
+  border-radius:20px;padding:28px 24px 20px;
+  max-width:290px;width:88vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.8);
+  font-family:'Rajdhani',sans-serif;
+  text-align:center;
+}
+.tut-confirm-icon{font-size:2.4em;margin-bottom:10px;}
+.tut-confirm-title{font-family:'Cinzel',serif;font-size:1.1em;color:#d080ff;margin-bottom:8px;}
+.tut-confirm-desc{font-size:.86em;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:20px;}
+.tut-confirm-btns{display:flex;gap:10px;}
+.tut-confirm-cancel{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:11px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;}
+.tut-confirm-cancel:active{transform:scale(.95);}
+.tut-confirm-start{flex:1;background:linear-gradient(135deg,#7b2fff,#c030ff);border:none;color:#fff;border-radius:11px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;letter-spacing:.5px;}
+.tut-confirm-start:active{transform:scale(.96);}
 </style>
 <style>
 :root{
@@ -26,7 +110,11 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 /* MENU */
 #s-menu{
   background:#050e05;
-  overflow:hidden;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  justify-content:flex-start !important;
+  align-items:center;
 }
 .menu-bg-cards{
   position:absolute;inset:0;pointer-events:none;overflow:hidden;
@@ -45,8 +133,9 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 @keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-60%) scale(1);}50%{opacity:1;transform:translate(-50%,-60%) scale(1.15);}}
 .menu-content{
   display:flex;flex-direction:column;align-items:center;
-  width:100%;padding:0 24px;z-index:2;
+  width:100%;padding:28px 24px 40px;z-index:2;
   animation:fadeUp .7s ease both;
+  min-height:min-content;
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
 .menu-logo-wrap{
@@ -233,6 +322,222 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 /* ACTION BAR */
 .actbar{display:flex;gap:8px;padding:6px 10px 8px;background:rgba(0,0,0,.7);flex-shrink:0;border-top:1px solid rgba(255,255,255,.05);}
 .actbar .btn{flex:1;padding:14px;font-size:1.05em;max-width:none;}
+
+/* ═══ CHAT & EMOJI SYSTEM ═══ */
+#chat-container{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  z-index:150;
+  display:flex;
+  flex-direction:column;
+  pointer-events:none;
+  touch-action:none;
+}
+/* Floating chat messages overlay - left side of table */
+#chat-overlay{
+  position:fixed;
+  left:8px;
+  top:35%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  pointer-events:none;
+  max-width:55vw;
+  z-index:160;
+}
+.chat-msg-bubble{
+  background:rgba(0,20,0,.82);
+  border:1px solid rgba(0,200,80,.3);
+  border-radius:10px;
+  padding:5px 9px;
+  font-size:.72em;
+  color:#d4f5d4;
+  pointer-events:none;
+  animation:chatFadeIn .25s ease;
+  max-width:100%;
+  word-break:break-word;
+  line-height:1.4;
+}
+.chat-msg-bubble .chat-name{color:#5dde7a;font-weight:700;margin-right:4px;}
+.chat-msg-bubble.global-msg{border-color:rgba(0,150,255,.3);background:rgba(0,10,30,.82);}
+.chat-msg-bubble.global-msg .chat-name{color:#5db8de;}
+@keyframes chatFadeIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+@keyframes chatFadeOut{from{opacity:1;}to{opacity:0;transform:translateX(-8px);}}
+.chat-msg-bubble.fading{animation:chatFadeOut .5s ease forwards;}
+
+/* Chat bar (collapsed/expanded) */
+#chatbar{
+  background:rgba(0,15,5,.92);
+  border-top:1px solid rgba(0,200,80,.25);
+  flex-shrink:0;
+  pointer-events:all;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
+  touch-action:none;
+}
+#chatbar.dragging{cursor:grabbing;}
+#chatbar-header{
+  display:flex;
+  align-items:center;
+  padding:5px 10px;
+  gap:8px;
+  min-height:34px;
+}
+#chatbar-toggle{
+  flex:1;
+  font-size:.72em;
+  color:rgba(0,210,80,.75);
+  letter-spacing:.5px;
+  font-weight:700;
+}
+#chatbar-emoji-btns{
+  display:flex;
+  gap:4px;
+}
+.emoji-react-btn{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;
+  padding:3px 5px;
+  font-size:1.1em;
+  cursor:pointer;
+  transition:transform .12s,background .12s;
+  line-height:1;
+}
+.emoji-react-btn:active{transform:scale(.82);background:rgba(255,255,255,.14);}
+#chatbar-expand{
+  display:none;
+  flex-direction:column;
+  gap:5px;
+  padding:5px 10px 8px;
+  max-height:170px;
+}
+#chatbar-expand.open{display:flex;}
+#chat-log{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:none;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  max-height:110px;
+}
+#chat-log::-webkit-scrollbar{display:none;}
+.chat-log-item{
+  font-size:.72em;
+  color:#c4e8c4;
+  line-height:1.4;
+  word-break:break-word;
+}
+.chat-log-item .clname{color:#5dde7a;font-weight:700;}
+.chat-log-item.global .clname{color:#5db8de;}
+.chat-log-item.sys{color:rgba(255,255,255,.4);font-style:italic;}
+.chat-tab-row{
+  display:flex;
+  gap:4px;
+}
+.chat-tab{
+  padding:3px 10px;
+  border-radius:6px;
+  font-size:.68em;
+  font-weight:700;
+  cursor:pointer;
+  border:1px solid rgba(0,200,80,.25);
+  color:rgba(0,200,80,.65);
+  background:transparent;
+  transition:all .15s;
+}
+.chat-tab.active{background:rgba(0,200,80,.18);color:#5dde7a;border-color:rgba(0,200,80,.45);}
+.chat-input-row{
+  display:flex;
+  gap:5px;
+  align-items:center;
+}
+#chat-input{
+  flex:1;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(0,200,80,.3);
+  border-radius:8px;
+  color:#d4f5d4;
+  font-family:'Rajdhani',sans-serif;
+  font-size:.85em;
+  padding:6px 10px;
+  outline:none;
+  max-width:100%;
+}
+#chat-input::placeholder{color:rgba(0,200,80,.35);}
+#chat-send-btn{
+  background:linear-gradient(135deg,#0a5c1a,#1a8c3a);
+  border:none;
+  border-radius:8px;
+  color:#fff;
+  padding:6px 12px;
+  font-size:.85em;
+  font-weight:700;
+  cursor:pointer;
+  flex-shrink:0;
+}
+#chat-send-btn:active{transform:scale(.93);}
+
+/* Lobby global chat popup */
+#lobby-chat-btn{
+  position:fixed;
+  right:14px;
+  bottom:14px;
+  z-index:200;
+  background:linear-gradient(135deg,#0a5c1a,#27ae60);
+  border:none;
+  border-radius:50%;
+  width:46px;height:46px;
+  font-size:1.3em;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  display:none;
+  align-items:center;justify-content:center;
+}
+#lobby-chat-panel{
+  position:fixed;
+  right:14px;bottom:68px;
+  z-index:200;
+  background:rgba(0,15,5,.97);
+  border:1.5px solid rgba(0,200,80,.3);
+  border-radius:16px;
+  width:min(90vw,320px);
+  padding:12px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
+}
+#lobby-chat-panel.open{display:flex;}
+#lobby-chat-log{
+  height:160px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  scrollbar-width:none;
+}
+#lobby-chat-log::-webkit-scrollbar{display:none;}
+.lchat-item{font-size:.78em;color:#c4e8c4;line-height:1.4;}
+.lchat-item .lcname{font-weight:700;color:#5dde7a;}
+
+/* Emoji floating animation */
+.emoji-float{
+  position:fixed;
+  font-size:2em;
+  pointer-events:none;
+  z-index:999;
+  animation:emojiRise 1.5s ease-out forwards;
+}
+@keyframes emojiRise{
+  0%{transform:translateY(0) scale(1);opacity:1;}
+  60%{opacity:1;}
+  100%{transform:translateY(-90px) scale(1.4);opacity:0;}
+}
 
 /* ═══ CARD ═══ */
 .card{
@@ -470,6 +775,15 @@ if(typeof io === 'undefined'){
       </button>
     </div>
 
+
+    <button class="mode-btn mb-tutorial" onclick="goTutorial()" style="margin-top:4px;">
+      <span class="mode-icon">🎓</span>
+      <span class="mode-text">
+        <span class="mode-title">TUTORIAL</span>
+        <span class="mode-desc">Belajar cara main step-by-step</span>
+      </span>
+      <span class="mode-badge" id="tut-badge">BARU</span>
+    </button>
     <button class="mode-btn mb-rules" onclick="go('s-rules-pick')" style="margin-top:4px;">
       <span class="mode-icon">📖</span>
       <span class="mode-text">
@@ -801,9 +1115,52 @@ if(typeof io === 'undefined'){
     </div>
   </div>
 
+  <!-- Chat overlay messages floating left -->
+  <div id="chat-overlay"></div>
+
+  <!-- Chat + emoji bar (only online/RTDB mode) -->
+  <div id="chatbar" style="display:none;">
+    <div id="chatbar-header">
+      <span id="chatbar-toggle" onclick="toggleChatExpand()">💬 Chat ▼</span>
+      <div id="chatbar-emoji-btns">
+        <button class="emoji-react-btn" onclick="sendEmojiReact('👍')">👍</button>
+        <button class="emoji-react-btn" onclick="sendEmojiReact('😂')">😂</button>
+        <button class="emoji-react-btn" onclick="sendEmojiReact('😮')">😮</button>
+        <button class="emoji-react-btn" onclick="sendEmojiReact('🔥')">🔥</button>
+        <button class="emoji-react-btn" onclick="sendEmojiReact('💀')">💀</button>
+        <button class="emoji-react-btn" onclick="sendEmojiReact('🖕')">🖕</button>
+      </div>
+    </div>
+    <div id="chatbar-expand">
+      <div class="chat-tab-row">
+        <button class="chat-tab active" id="tab-local" onclick="switchChatTab('local')">🎮 Game</button>
+        <button class="chat-tab" id="tab-global" onclick="switchChatTab('global')">🌐 Global</button>
+      </div>
+      <div id="chat-log"></div>
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
+          onkeydown="if(event.key==='Enter')sendChat()">
+        <button id="chat-send-btn" onclick="sendChat()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
   <div class="actbar">
     <button class="btn b-green" id="btn-play" onclick="doPlay()">▶ MAIN</button>
     <button class="btn b-orange" id="btn-skip" onclick="doSkip()">⏭ SKIP</button>
+  </div>
+</div>
+
+<!-- Lobby chat button and panel -->
+<button id="lobby-chat-btn" onclick="toggleLobbyChat()">💬</button>
+<div id="lobby-chat-panel">
+  <div style="font-size:.82em;font-weight:700;color:#5dde7a;letter-spacing:.5px;">🌐 Global Chat</div>
+  <div id="lobby-chat-log"></div>
+  <div class="chat-input-row">
+    <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Pesan..."
+      style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,200,80,.3);border-radius:8px;color:#d4f5d4;font-family:'Rajdhani',sans-serif;font-size:.85em;padding:6px 10px;outline:none;"
+      onkeydown="if(event.key==='Enter')sendLobbyChat()">
+    <button onclick="sendLobbyChat()" style="background:linear-gradient(135deg,#0a5c1a,#1a8c3a);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:.85em;font-weight:700;cursor:pointer;">Kirim</button>
   </div>
 </div>
 
@@ -835,6 +1192,35 @@ if(typeof io === 'undefined'){
   </div>
 </div>
 
+
+<!-- KONFIRMASI TUTORIAL -->
+<div id="tut-confirm-modal">
+  <div class="tut-confirm-box">
+    <div class="tut-confirm-icon">🎓</div>
+    <div class="tut-confirm-title">Mode Tutorial</div>
+    <div class="tut-confirm-desc">Tutorial akan mengajari cara bermain Suruan step-by-step dengan bot yang bermain pelan.<br><br>Lanjutkan tutorial?</div>
+    <div class="tut-confirm-btns">
+      <button class="tut-confirm-cancel" onclick="document.getElementById('tut-confirm-modal').classList.remove('on');go('s-menu');">✕ Tidak</button>
+      <button class="tut-confirm-start" onclick="document.getElementById('tut-confirm-modal').classList.remove('on');_doStartTutorial();">✓ Mulai</button>
+    </div>
+  </div>
+</div>
+<!-- ═══════════════════ TUTORIAL OVERLAY ═══════════════════ -->
+<div id="tut-overlay"></div>
+<div id="tut-spotlight" style="display:none;"></div>
+<button class="tut-skip" id="tut-skip-btn" style="display:none;" onclick="endTutorial()">✕ Skip Tutorial</button>
+<div id="tut-popup" class="hidden" style="display:none;">
+  <div id="tut-drag-handle">⠿⠿⠿ geser</div>
+  <div class="tut-progress" id="tut-progress"></div>
+  <div class="tut-step-lbl" id="tut-step-lbl"></div>
+  <div class="tut-title" id="tut-title"></div>
+  <div class="tut-body" id="tut-body"></div>
+  <div class="tut-highlight" id="tut-highlight" style="display:none;"></div>
+  <div class="tut-actions">
+    <button class="tut-btn-prev" id="tut-btn-prev" onclick="tutPrev()">◀ Sebelumnya</button>
+    <button class="tut-btn-next" id="tut-btn-next" onclick="tutNext()">Lanjut ▶</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -969,7 +1355,22 @@ function initSock(){
   sock.on('disconnect',()=>toast('Koneksi terputus!'));
 }
 
-function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  // Chat: lobby btn visibility
+  const isLobby = (id === 's-lobby');
+  const hasRtdb = !!(_rtdbRoom);
+  const canChat = hasRtdb && !!currentUser && !currentUser?.isGuest;
+  _showLobbyChatBtn(isLobby && canChat);
+  // Init / destroy chat
+  if(id === 's-game'){
+    setTimeout(_initChat, 250);
+    _stopLobbyChatListener();
+  } else {
+    if(id !== 's-game') _destroyChat();
+  }
+}
 function gname(){const n=document.getElementById('inp-name').value.trim();if(!n){toast('Masukkan nama!');return null;}return n;}
 
 // ── NAVIGASI MODE ──
@@ -1805,22 +2206,406 @@ function goOnline(){
   go('s-online');
 }
 
+// doPlay — lihat tutorial section di atas
+
+// doSkip — lihat tutorial section di atas
+
+
+
+// ═══════════════════════════════════════════════════════════════
+//  TUTORIAL SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+const TUT_STEPS = [
+  {
+    id: 'intro',
+    title: '🃏 Selamat Datang di Tutorial!',
+    body: 'Tutorial ini akan mengajari kamu cara bermain Capsa/Suruan step-by-step. Bot akan bermain pelan agar kamu bisa mengikuti setiap aksi.',
+    highlight: '💡 Kamu bisa melewati tutorial kapan saja dengan tombol ✕ Skip di pojok kanan atas.',
+    target: null,
+    pos: 'center'
+  },
+  {
+    id: 'hand',
+    title: '📋 Kartu Kamu',
+    body: 'Ini adalah kartu yang kamu pegang. Tap kartu untuk memilihnya (kartu akan naik). Tap lagi untuk batal pilih. Kamu bisa pilih lebih dari satu kartu sekaligus.',
+    highlight: '✨ Urutan nilai: 3 (terendah) → 4 → 5 ... → K → A → 2 (tertinggi)',
+    target: 'hand-zone',
+    pos: 'top'
+  },
+  {
+    id: 'opening',
+    title: '🚀 Fase Pembukaan',
+    body: 'Game dimulai dengan fase pembukaan. Pemain yang punya 3♠ harus main duluan dan wajib buang 3♠. Semua pemain lain juga bisa buang kartu 3 mereka.',
+    highlight: '📤 Tap kartu 3 kamu lalu tekan MAIN. Atau tekan SKIP jika tidak mau buang kartu 3.',
+    target: 'actbar',
+    pos: 'top'
+  },
+  {
+    id: 'play',
+    title: '▶ Cara Main Kartu',
+    body: 'Setelah fase pembukaan, giliran berputar. Kamu harus kalahkan kombinasi di meja dengan jenis yang sama tapi nilai lebih tinggi.',
+    highlight: '👆 Tap kartu yang ingin dimainkan → tekan MAIN. Atau tekan SKIP jika tidak bisa / tidak mau.',
+    target: 'actbar',
+    pos: 'top'
+  },
+  {
+    id: 'table',
+    title: '🎯 Area Meja',
+    body: 'Kartu yang dimainkan ditampilkan di area meja ini. Kamu harus mengalahkan kartu di meja dengan kartu yang lebih tinggi dari jenis yang sama.',
+    highlight: '🔄 Jika semua pemain lain SKIP, meja direset dan kamu bebas main kombinasi apa saja!',
+    target: 'oval',
+    pos: 'bottom'
+  },
+  {
+    id: 'skip',
+    title: '⏭ Tombol SKIP',
+    body: 'Tekan SKIP jika kamu tidak bisa atau tidak mau mengalahkan kartu di meja. Giliran akan berpindah ke pemain berikutnya.',
+    highlight: '⚠️ Di fase pembukaan, SKIP berarti kamu menyimpan semua kartu 3 (tidak membuangnya).',
+    target: 'btn-skip',
+    pos: 'top'
+  },
+  {
+    id: 'bomb',
+    title: '💣 Sistem Bom',
+    body: 'Ada 3 jenis BOM yang sangat kuat:\n• Straight 4 kartu = BOM STOP (menghentikan lawan)\n• 4 kartu nilai sama = bisa kalahkan kartu 2\n• Straight 5+ kartu = bisa kalahkan kartu 2\n• J-Q-K-A satu suit = Bom terkuat!',
+    highlight: '⚡ Bom bisa dimainkan kapan saja untuk mengalahkan kartu 2 lawan!',
+    target: 'oval',
+    pos: 'bottom'
+  },
+  {
+    id: 'lose',
+    title: '💀 Kondisi Kalah Otomatis',
+    body: 'Kamu langsung KALAH jika:\n• Semua sisa kartu kamu adalah kartu 2\n• Kamu memainkan kartu 2 sebagai kartu terakhir',
+    highlight: '🧠 Strategi: jangan simpan kartu 2 di tangan terlalu lama dan pastikan kartu terakhirmu bukan 2!',
+    target: 'hand-zone',
+    pos: 'top'
+  },
+  {
+    id: 'win',
+    title: '🏆 Cara Menang',
+    body: 'Jadilah pemain pertama yang MENGHABISKAN semua kartu di tangan! Buang kartu kecil duluan, simpan bom untuk menghadang lawan yang hampir menang.',
+    highlight: '🎯 Tips: Perhatikan jumlah kartu lawan di pojok meja. Kalau kartu mereka sedikit, keluarkan bom!',
+    target: null,
+    pos: 'center'
+  }
+];
+
+let _tutActive = false;
+let _tutStep = 0;
+let _tutGame = null;
+let _tutTimer = null;
+let _tutWaitingForUser = false;
+
+function goTutorial() {
+  const name = gname();
+  if (!name) return;
+  // Tampilkan konfirmasi dulu
+  document.getElementById('tut-confirm-modal').classList.add('on');
+}
+
+function _doStartTutorial() {
+  const name = gname();
+  if (!name) { go('s-menu'); return; }
+  _startTutorialWithName(name);
+}
+
+function _startTutorialWithName(name) {
+  // Setup game tutorial: 2 pemain, bot pelan
+  _botGame = new _GameState(2);
+  _botGame.startGame();
+  myIdx = 0; myRoom = 'tutorial'; isHost = true;
+  _botGame._playerNames = {0: name, 1: '🎓 Bot Tutorial'};
+  const st = _botState();
+  st.player_names = _botGame._playerNames;
+  curSt = st; handOrder = [];
+
+  _tutActive = true;
+  _tutStep = 0;
+  _tutGame = _botGame;
+
+  // Tampilkan game, lalu mulai tutorial
+  countdown(() => {
+    go('s-game');
+    renderGame(st, true);
+    // Mulai bot loop dengan delay lebih lama (mode tutorial)
+    setTimeout(() => {
+      _showTutStep(0);
+      _tutBotLoop();
+    }, 800);
+  });
+}
+
+function _tutBotLoop() {
+  clearTimeout(_tutTimer);
+  if (!_botGame || _botGame.gameOver || !_tutActive) return;
+  const gs = _botGame;
+  if (gs.currentPlayer === 0) return; // tunggu pemain
+
+  // Bot tutorial: delay 2.5 detik agar pemain bisa lihat
+  const delay = 2500;
+  _tutTimer = setTimeout(() => {
+    if (!_botGame || _botGame.gameOver || !_tutActive) return;
+    const pidx = gs.currentPlayer;
+    if (pidx === 0) return;
+
+    if (gs.phase === 'opening') {
+      const threes = gs.hands[pidx].filter(c => c.value === '3');
+      if (pidx === gs.openerIdx) {
+        const t3s = threes.find(c => c.suit === 'S');
+        gs.playOpening(pidx, t3s ? [t3s] : []);
+      } else {
+        gs.playOpening(pidx, threes.length ? [threes[0]] : []);
+      }
+    } else {
+      const hand = gs.hands[pidx];
+      const non3 = hand.filter(c => c.value !== '3');
+      let played = false;
+      if (gs.tableCards.length) {
+        if (gs.tableType === 'single') {
+          const cands = non3.filter(c => _canBeat([c], gs.tableCards, gs.tableType))
+            .sort((a,b) => VAL_IDX[a.value] - VAL_IDX[b.value]);
+          if (cands.length) { const [ok] = gs.playCards(pidx, [cands[0]]); if (ok) played = true; }
+        }
+        if (!played) gs.skipTurn(pidx);
+      } else {
+        if (non3.length) {
+          const c = [...non3].sort((a,b) => VAL_IDX[a.value] - VAL_IDX[b.value])[0];
+          const [ok] = gs.playCards(pidx, [c]);
+          if (ok) played = true;
+        }
+        if (!played && hand.length) gs.skipTurn(pidx);
+      }
+    }
+    _botBroadcast();
+    _tutBotLoop();
+  }, delay);
+}
+
+// Override doPlay & doSkip agar saat tutorial bot loop pakai _tutBotLoop
+const _origDoPlay = doPlay;
+const _origDoSkip = doSkip;
+
+function _showTutStep(idx) {
+  if (idx < 0 || idx >= TUT_STEPS.length) return;
+  _tutStep = idx;
+  const step = TUT_STEPS[idx];
+  const popup = document.getElementById('tut-popup');
+  const overlay = document.getElementById('tut-overlay');
+  const spotlight = document.getElementById('tut-spotlight');
+  const skipBtn = document.getElementById('tut-skip-btn');
+
+  // Show elements
+  popup.style.display = 'block';
+  skipBtn.style.display = 'block';
+  overlay.classList.add('active');
+
+  // Progress dots
+  const prog = document.getElementById('tut-progress');
+  prog.innerHTML = TUT_STEPS.map((_, i) => {
+    let cls = 'tut-dot';
+    if (i < idx) cls += ' done';
+    else if (i === idx) cls += ' active';
+    return '<div class="' + cls + '"></div>';
+  }).join('');
+
+  // Content
+  document.getElementById('tut-step-lbl').textContent = 'LANGKAH ' + (idx+1) + ' / ' + TUT_STEPS.length;
+  document.getElementById('tut-title').textContent = step.title;
+  document.getElementById('tut-body').textContent = step.body;
+  const hl = document.getElementById('tut-highlight');
+  if (step.highlight) {
+    hl.textContent = step.highlight;
+    hl.style.display = 'block';
+  } else {
+    hl.style.display = 'none';
+  }
+
+  // Prev button
+  const prevBtn = document.getElementById('tut-btn-prev');
+  prevBtn.style.display = idx === 0 ? 'none' : 'block';
+
+  // Next button label
+  const nextBtn = document.getElementById('tut-btn-next');
+  nextBtn.textContent = idx === TUT_STEPS.length - 1 ? '✓ Selesai' : 'Lanjut ▶';
+
+  // Spotlight
+  _updateSpotlight(step.target, step.pos);
+
+  // Init drag
+  _initTutDrag();
+  // Animate in
+  popup.classList.add('hidden');
+  setTimeout(() => popup.classList.remove('hidden'), 30);
+}
+
+function _updateSpotlight(targetId, pos) {
+  const spotlight = document.getElementById('tut-spotlight');
+  const popup = document.getElementById('tut-popup');
+
+  // Popup selalu center (kecuali user sudah drag)
+  if (!popup._dragged) {
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%,-50%)';
+    popup.style.bottom = 'auto';
+  }
+
+  if (!targetId) {
+    spotlight.style.display = 'none';
+    return;
+  }
+
+  const el = document.getElementById(targetId) || document.querySelector('.' + targetId);
+  if (!el) { spotlight.style.display = 'none'; return; }
+
+  const r = el.getBoundingClientRect();
+  const pad = 8;
+  spotlight.style.display = 'block';
+  spotlight.style.left = (r.left - pad) + 'px';
+  spotlight.style.top = (r.top - pad) + 'px';
+  spotlight.style.width = (r.width + pad*2) + 'px';
+  spotlight.style.height = (r.height + pad*2) + 'px';
+}
+
+function tutNext() {
+  if (_tutStep >= TUT_STEPS.length - 1) {
+    endTutorial();
+    return;
+  }
+  _showTutStep(_tutStep + 1);
+}
+
+function tutPrev() {
+  if (_tutStep > 0) _showTutStep(_tutStep - 1);
+}
+
+// ── DRAG POPUP TUTORIAL ──────────────────────
+function _initTutDrag() {
+  const popup = document.getElementById('tut-popup');
+  if (!popup || popup._dragInited) return;
+  popup._dragInited = true;
+  popup._dragged = false;
+
+  let startX, startY, origX, origY, isDragging = false;
+
+  function getPos() {
+    const r = popup.getBoundingClientRect();
+    return { x: r.left, y: r.top };
+  }
+
+  function onStart(ex, ey) {
+    // Hanya drag jika bukan dari tombol
+    isDragging = true;
+    popup._dragged = false; // reset per drag start
+    const pos = getPos();
+    origX = pos.x; origY = pos.y;
+    startX = ex; startY = ey;
+    popup.classList.add('dragging');
+    // Switch dari transform center ke absolute px
+    popup.style.transform = 'none';
+    popup.style.left = origX + 'px';
+    popup.style.top = origY + 'px';
+  }
+
+  function onMove(ex, ey) {
+    if (!isDragging) return;
+    const dx = ex - startX;
+    const dy = ey - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) popup._dragged = true;
+    const newX = Math.max(0, Math.min(window.innerWidth - popup.offsetWidth, origX + dx));
+    const newY = Math.max(0, Math.min(window.innerHeight - popup.offsetHeight, origY + dy));
+    popup.style.left = newX + 'px';
+    popup.style.top = newY + 'px';
+  }
+
+  function onEnd() {
+    isDragging = false;
+    popup.classList.remove('dragging');
+  }
+
+  // Touch
+  popup.addEventListener('touchstart', e => {
+    if (e.target.tagName === 'BUTTON') return;
+    onStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+  popup.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+  popup.addEventListener('touchend', onEnd);
+
+  // Mouse
+  popup.addEventListener('mousedown', e => {
+    if (e.target.tagName === 'BUTTON') return;
+    onStart(e.clientX, e.clientY);
+  });
+  document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  document.addEventListener('mouseup', onEnd);
+}
+
+
+function endTutorial() {
+  _tutActive = false;
+  clearTimeout(_tutTimer);
+  // Simpan ke localStorage
+  try { localStorage.setItem('hoki_tutorial_done', '1'); } catch(e) {}
+
+  // Sembunyikan semua elemen tutorial
+  const popup = document.getElementById('tut-popup');
+  if(popup) popup._dragged = false;
+  const overlay = document.getElementById('tut-overlay');
+  const spotlight = document.getElementById('tut-spotlight');
+  const skipBtn = document.getElementById('tut-skip-btn');
+  popup.classList.add('hidden');
+  overlay.classList.remove('active');
+  setTimeout(() => {
+    popup.style.display = 'none';
+    spotlight.style.display = 'none';
+    skipBtn.style.display = 'none';
+    overlay.style.background = 'transparent';
+  }, 300);
+
+  // Update badge di menu
+  try {
+    const badge = document.getElementById('tut-badge');
+    if (badge) { badge.textContent = 'ULANG'; badge.style.background = 'rgba(255,255,255,.2)'; }
+  } catch(e) {}
+
+  toast('Tutorial selesai! Selamat bermain 🎉', 'ok');
+  // Lanjutkan game normal (pakai _botLoop biasa)
+  if (_botGame && !_botGame.gameOver) _botLoop();
+}
+
+// Auto-show tutorial untuk pemain baru
+function _checkAutoTutorial() {
+  try {
+    if (!localStorage.getItem('hoki_tutorial_done')) {
+      // Update badge
+      const badge = document.getElementById('tut-badge');
+      if (badge) badge.textContent = '✨ BARU';
+    } else {
+      const badge = document.getElementById('tut-badge');
+      if (badge) { badge.textContent = 'ULANG'; badge.style.background = 'rgba(255,255,255,.2)'; }
+    }
+  } catch(e) {}
+}
+
+// Patch doPlay dan doSkip agar saat tutorial bot loop pakai _tutBotLoop
 function doPlay(){
   if(!selCards.length){toast('Pilih kartu dulu!');return;}
   if(_botGame){
-    // Bot mode — langsung proses di client
     const cards=selCards.map(c=>({suit:c.suit,value:c.value}));
     const[ok,msg]=_botGame.playCards(0,cards);
     if(!ok){toast(msg);renderGame(curSt,false);return;}
     selCards=[];exitReorder();
     _botBroadcast();
-    if(!_botGame.gameOver)_botLoop();
+    if(!_botGame.gameOver){ if(_tutActive) _tutBotLoop(); else _botLoop(); }
   } else if(_rtdbRoom&&!_rtdbIsHost){
-    // Online client — kirim aksi ke host via RTDB
     _sendAction({type:'play',cards:selCards});
     selCards=[];exitReorder();
   } else if(_rtdbRoom&&_rtdbIsHost){
-    // Online host — proses langsung
     const cards=selCards.map(c=>({suit:c.suit,value:c.value}));
     const[ok,msg]=_rtdbGame.playCards(0,cards);
     if(!ok){toast(msg);renderGame(curSt,false);return;}
@@ -1830,7 +2615,6 @@ function doPlay(){
       pnSnap.then(s=>{const st=_rtdbGame.toState(0);st.room_id=_rtdbRoom;st.player_names=s.val()||{};curSt=st;renderGame(st,false);if(st.game_over)showOver(st);});
     });
   } else {
-    // Mabar privat — socket.io
     sock.emit('play_cards',{cards:selCards});
     selCards=[];exitReorder();
   }
@@ -1841,7 +2625,7 @@ function doSkip(){
     const[ok,msg]=_botGame.skipTurn(0);
     if(!ok){toast(msg);return;}
     exitReorder();_botBroadcast();
-    if(!_botGame.gameOver)_botLoop();
+    if(!_botGame.gameOver){ if(_tutActive) _tutBotLoop(); else _botLoop(); }
   } else if(_rtdbRoom&&!_rtdbIsHost){
     _sendAction({type:'skip'});exitReorder();
   } else if(_rtdbRoom&&_rtdbIsHost){
@@ -1861,14 +2645,33 @@ function confirmExit(){
 }
 
 function backMenu(){
+  // Reset tutorial jika aktif
+  if(_tutActive) {
+    _tutActive = false;
+    clearTimeout(_tutTimer);
+    document.getElementById('tut-popup').style.display='none';
+    document.getElementById('tut-spotlight').style.display='none';
+    document.getElementById('tut-skip-btn').style.display='none';
+    document.getElementById('tut-overlay').classList.remove('active');
+  }
   document.getElementById('modal-over').classList.remove('on');
   document.getElementById('modal-exit').classList.remove('on');
   selCards=[];handOrder=[];myIdx=null;myRoom=null;isHost=false;curSt=null;reorderIdx=null;
   clearTimeout(_botTimer);_botGame=null;
+  _tutGame=null;
   _rtdbCleanup();
   if(sock)sock.disconnect();
+  _destroyChat();
+  _stopLobbyChatListener();
   go('s-menu');
 }
+// Cek auto tutorial saat halaman load
+window.addEventListener('load', function(){
+  _checkAutoTutorial();
+  // GC global chat setiap 5 menit
+  setInterval(_gcGlobalChat, 5*60*1000);
+});
+
 
 
 // ═══════════════════════════════════════════════════════
@@ -2026,6 +2829,401 @@ function loginGuest(){
 function toggleRulesSection(headEl){
   headEl.closest('.rules-section').classList.toggle('open');
 }
+
+// ═══════════════════════════════════════════════════════
+//  CHAT & EMOJI REACTION SYSTEM
+// ═══════════════════════════════════════════════════════
+
+let _chatExpanded = false;
+let _chatTab = 'local';          // 'local' | 'global'
+let _chatListeners = [];          // RTDB unsubscribe fns
+let _localMsgCache = [];          // [{id, name, text, ts}]
+let _globalMsgCache = [];         // [{id, name, text, ts}]
+let _chatOverlayTimers = {};      // pushId -> setTimeout handle
+let _lobbyChatOpen = false;
+let _lobbyChatListener = null;
+let _lobbyChatCache = [];
+
+// ── Helper: is RTDB online game? ──
+function _isChatEnabled(){
+  // Chat hanya aktif di mode RTDB (online). Bot, tutorial, mabar privat = off
+  return !!(_rtdbRoom && fbRtdb && currentUser && !currentUser.isGuest);
+}
+
+// ── Init chat saat game mulai ──
+function _initChat(){
+  // Reset state
+  _chatExpanded = false;
+  _chatTab = 'local';
+  _localMsgCache = [];
+  _globalMsgCache = [];
+  _chatOverlayTimers = {};
+
+  const bar = document.getElementById('chatbar');
+  const expand = document.getElementById('chatbar-expand');
+  const toggle = document.getElementById('chatbar-toggle');
+
+  if(!_isChatEnabled()){
+    bar.style.display = 'none';
+    return;
+  }
+
+  bar.style.display = 'block';
+  expand.classList.remove('open');
+  toggle.textContent = '💬 Chat ▼';
+  document.getElementById('chat-log').innerHTML = '';
+
+  _listenLocalChat();
+  _listenGlobalChat();
+  _listenReactions();
+}
+
+function _destroyChat(){
+  _chatListeners.forEach(fn => fn());
+  _chatListeners = [];
+  // bersihkan overlay
+  document.getElementById('chat-overlay').innerHTML = '';
+  document.getElementById('chatbar-expand').classList.remove('open');
+  document.getElementById('chatbar').style.display = 'none';
+  _localMsgCache = [];
+  _globalMsgCache = [];
+}
+
+// ── Toggle expand/collapse ──
+function toggleChatExpand(){
+  _chatExpanded = !_chatExpanded;
+  const expand = document.getElementById('chatbar-expand');
+  const toggle = document.getElementById('chatbar-toggle');
+  if(_chatExpanded){
+    expand.classList.add('open');
+    toggle.textContent = '💬 Chat ▲';
+    _renderChatLog();
+    setTimeout(()=>{ const log=document.getElementById('chat-log'); log.scrollTop=log.scrollHeight; },50);
+  } else {
+    expand.classList.remove('open');
+    toggle.textContent = '💬 Chat ▼';
+  }
+}
+
+// ── Tab switch ──
+function switchChatTab(tab){
+  _chatTab = tab;
+  document.getElementById('tab-local').classList.toggle('active', tab==='local');
+  document.getElementById('tab-global').classList.toggle('active', tab==='global');
+  _renderChatLog();
+  setTimeout(()=>{ const log=document.getElementById('chat-log'); log.scrollTop=log.scrollHeight; },50);
+}
+
+// ── Render chat log ──
+function _renderChatLog(){
+  const log = document.getElementById('chat-log');
+  if(!log) return;
+  const msgs = _chatTab === 'local' ? _localMsgCache : _globalMsgCache;
+  log.innerHTML = '';
+  msgs.slice(-40).forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'chat-log-item' + (_chatTab==='global'?' global':'');
+    div.innerHTML = `<span class="clname">${_esc(m.name)}:</span> ${_esc(m.text)}`;
+    log.appendChild(div);
+  });
+}
+
+// ── Kirim chat ──
+function sendChat(){
+  if(!_isChatEnabled()) return;
+  const inp = document.getElementById('chat-input');
+  const text = (inp.value||'').trim().slice(0,80);
+  if(!text) return;
+  inp.value = '';
+
+  const name = (currentUserData?.name || 'Pemain').slice(0,16);
+  const msg = { name, text, ts: Date.now(), uid: currentUser.uid };
+
+  if(_chatTab === 'local'){
+    // Chat lokal: rooms/{roomId}/chat/{pushId}
+    fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').push(msg).catch(()=>{});
+  } else {
+    // Chat global: global_chat/{pushId}
+    fbRtdb.ref('global_chat').push(msg).catch(()=>{});
+  }
+}
+
+// ── Listen chat lokal ──
+function _listenLocalChat(){
+  if(!_rtdbRoom || !fbRtdb) return;
+  const ref = fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').limitToLast(50);
+  const fn = ref.on('child_added', snap => {
+    const m = snap.val();
+    if(!m) return;
+    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+    _localMsgCache.push(entry);
+    if(_localMsgCache.length > 60) _localMsgCache = _localMsgCache.slice(-50);
+    if(_chatExpanded && _chatTab==='local') {
+      _appendChatLogItem(entry, false);
+      const log = document.getElementById('chat-log');
+      if(log) log.scrollTop = log.scrollHeight;
+    }
+    _showOverlayMsg(entry, false);
+  });
+  _chatListeners.push(()=>ref.off('child_added', fn));
+}
+
+// ── Listen chat global ──
+function _listenGlobalChat(){
+  if(!fbRtdb) return;
+  const tenMinAgo = Date.now() - 10*60*1000;
+  const ref = fbRtdb.ref('global_chat').orderByChild('ts').startAt(tenMinAgo).limitToLast(30);
+  const fn = ref.on('child_added', snap => {
+    const m = snap.val();
+    if(!m) return;
+    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+    if(_globalMsgCache.find(x=>x.id===entry.id)) return;
+    _globalMsgCache.push(entry);
+    if(_globalMsgCache.length > 60) _globalMsgCache = _globalMsgCache.slice(-50);
+    if(_chatExpanded && _chatTab==='global'){
+      _appendChatLogItem(entry, true);
+      const log = document.getElementById('chat-log');
+      if(log) log.scrollTop = log.scrollHeight;
+    }
+    _showOverlayMsg(entry, true);
+  });
+  _chatListeners.push(()=>ref.off('child_added', fn));
+}
+
+// ── Tambah satu item ke log ──
+function _appendChatLogItem(entry, isGlobal){
+  const log = document.getElementById('chat-log');
+  if(!log) return;
+  const div = document.createElement('div');
+  div.className = 'chat-log-item' + (isGlobal?' global':'');
+  div.innerHTML = `<span class="clname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
+  log.appendChild(div);
+  // Batasi 40 item
+  while(log.children.length > 40) log.removeChild(log.firstChild);
+}
+
+// ── Overlay bubble floating ──
+function _showOverlayMsg(entry, isGlobal){
+  const container = document.getElementById('chat-overlay');
+  if(!container) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-msg-bubble' + (isGlobal?' global-msg':'');
+  bubble.innerHTML = `<span class="chat-name">${_esc(entry.name)}</span>${_esc(entry.text)}`;
+  container.appendChild(bubble);
+
+  // Batasi 5 pesan
+  while(container.children.length > 5) container.removeChild(container.firstChild);
+
+  // Fade out setelah 5 detik
+  const t = setTimeout(()=>{
+    bubble.classList.add('fading');
+    setTimeout(()=>{ if(bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 500);
+  }, 5000);
+}
+
+// ── Emoji Reaction ──
+function sendEmojiReact(emoji){
+  if(!_isChatEnabled()) return;
+  const payload = { emoji, uid: currentUser.uid, name: currentUserData?.name||'?', ts: Date.now() };
+  // Simpan ke RTDB, auto-hapus setelah 3 detik
+  const ref = fbRtdb.ref('rooms/'+_rtdbRoom+'/reactions').push(payload);
+  ref.then(r=>{
+    setTimeout(()=>r.remove().catch(()=>{}), 3000);
+  }).catch(()=>{});
+  // Animasi lokal langsung
+  _animateEmoji(emoji, true);
+}
+
+function _listenReactions(){
+  if(!_rtdbRoom || !fbRtdb) return;
+  const ref = fbRtdb.ref('rooms/'+_rtdbRoom+'/reactions');
+  const fn = ref.on('child_added', snap => {
+    const d = snap.val();
+    if(!d) return;
+    // Jangan tampilkan reaksi sendiri lagi (sudah lokal)
+    if(d.uid === currentUser?.uid) return;
+    // Hanya tampilkan jika belum kedaluwarsa (< 3 detik)
+    if(Date.now() - d.ts > 3500) return;
+    _animateEmoji(d.emoji, false);
+  });
+  _chatListeners.push(()=>ref.off('child_added', fn));
+}
+
+// Cari posisi seat pemain saya untuk titik asal emoji
+function _getMyAvatarPos(){
+  const oval = document.getElementById('oval');
+  if(oval && myIdx !== null){
+    const seats = oval.querySelectorAll('.seat');
+    for(const seat of seats){
+      if(seat.classList.contains('is-me')){
+        const r = seat.getBoundingClientRect();
+        return { x: r.left + r.width/2, y: r.top + r.height/2 };
+      }
+    }
+    const r = oval.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.bottom - 20 };
+  }
+  return { x: window.innerWidth/2, y: window.innerHeight*0.7 };
+}
+
+function _getTableCenter(){
+  const oval = document.getElementById('oval');
+  if(oval){
+    const r = oval.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
+  return { x: window.innerWidth/2, y: window.innerHeight/2 };
+}
+
+function _animateEmoji(emoji, fromMe){
+  const el = document.createElement('div');
+  el.className = 'emoji-float';
+  el.textContent = emoji;
+
+  const origin = fromMe ? _getMyAvatarPos() : _getTableCenter();
+  el.style.left = (origin.x - 20) + 'px';
+  el.style.top  = (origin.y - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1600);
+}
+
+// ── Draggable chatbar ──
+(function _makeChatbarDraggable(){
+  let dragging=false, startY=0, startBottom=0;
+  const bar = ()=>document.getElementById('chatbar');
+
+  function onStart(e){
+    const b = bar(); if(!b || b.style.display==='none') return;
+    const t = e.touches ? e.touches[0] : e;
+    dragging = true;
+    startY = t.clientY;
+    const style = window.getComputedStyle(b);
+    startBottom = parseInt(style.bottom)||0;
+    b.classList.add('dragging');
+    document.addEventListener('mousemove', onMove, {passive:false});
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchend', onEnd);
+  }
+
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    const t = e.touches ? e.touches[0] : e;
+    const dy = startY - t.clientY;
+    const newBottom = Math.max(0, Math.min(window.innerHeight*0.6, startBottom + dy));
+    const b = bar(); if(b) b.style.bottom = newBottom + 'px';
+  }
+
+  function onEnd(){
+    dragging = false;
+    const b = bar(); if(b) b.classList.remove('dragging');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchend', onEnd);
+  }
+
+  document.addEventListener('mousedown', e=>{
+    if(e.target.closest('#chatbar-header')) onStart(e);
+  });
+  document.addEventListener('touchstart', e=>{
+    if(e.target.closest('#chatbar-header')) onStart(e);
+  }, {passive:true});
+})();
+
+// ── Cleanup chat saat keluar game ──
+// Dilakukan via go() patch di bawah
+
+
+// ═══════════════════════════════════════════════════════
+//  LOBBY GLOBAL CHAT
+// ═══════════════════════════════════════════════════════
+
+function _showLobbyChatBtn(show){
+  const btn = document.getElementById('lobby-chat-btn');
+  if(btn) btn.style.display = show ? 'flex' : 'none';
+  if(!show){
+    const panel = document.getElementById('lobby-chat-panel');
+    if(panel) panel.classList.remove('open');
+    _lobbyChatOpen = false;
+  }
+}
+
+function toggleLobbyChat(){
+  _lobbyChatOpen = !_lobbyChatOpen;
+  const panel = document.getElementById('lobby-chat-panel');
+  if(_lobbyChatOpen){
+    panel.classList.add('open');
+    if(!_lobbyChatListener) _startLobbyChatListener();
+    const log = document.getElementById('lobby-chat-log');
+    if(log) setTimeout(()=>{ log.scrollTop = log.scrollHeight; }, 60);
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function sendLobbyChat(){
+  if(!fbRtdb || !currentUser || currentUser.isGuest) return;
+  const inp = document.getElementById('lobby-chat-input');
+  const text = (inp.value||'').trim().slice(0,80);
+  if(!text) return;
+  inp.value = '';
+  const name = (currentUserData?.name || 'Pemain').slice(0,16);
+  fbRtdb.ref('global_chat').push({ name, text, ts: Date.now(), uid: currentUser.uid }).catch(()=>{});
+}
+
+function _startLobbyChatListener(){
+  if(!fbRtdb || _lobbyChatListener) return;
+  const tenMinAgo = Date.now() - 10*60*1000;
+  const ref = fbRtdb.ref('global_chat').orderByChild('ts').startAt(tenMinAgo).limitToLast(40);
+  const fn = ref.on('child_added', snap => {
+    const m = snap.val();
+    if(!m) return;
+    if(_lobbyChatCache.find(x=>x.id===snap.key)) return;
+    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+    _lobbyChatCache.push(entry);
+    if(_lobbyChatCache.length > 60) _lobbyChatCache = _lobbyChatCache.slice(-50);
+    const log = document.getElementById('lobby-chat-log');
+    if(log){
+      const div = document.createElement('div');
+      div.className = 'lchat-item';
+      div.innerHTML = `<span class="lcname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
+      log.appendChild(div);
+      while(log.children.length > 40) log.removeChild(log.firstChild);
+      log.scrollTop = log.scrollHeight;
+    }
+  });
+  _lobbyChatListener = ()=>ref.off('child_added', fn);
+}
+
+function _stopLobbyChatListener(){
+  if(_lobbyChatListener){ _lobbyChatListener(); _lobbyChatListener=null; }
+  _lobbyChatCache = [];
+  const log = document.getElementById('lobby-chat-log');
+  if(log) log.innerHTML = '';
+  _showLobbyChatBtn(false);
+}
+
+// ── HTML escape ──
+function _esc(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Cleanup global chat setelah 10 menit (via RTDB rule/manual) ──
+// Cleanup global_chat otomatis dilakukan oleh Firebase Rules TTL di server,
+// atau secara manual di client: hapus entri lebih dari 10 menit
+function _gcGlobalChat(){
+  if(!fbRtdb) return;
+  const cutoff = Date.now() - 10*60*1000;
+  fbRtdb.ref('global_chat').orderByChild('ts').endAt(cutoff).limitToFirst(20).once('value', snap=>{
+    snap.forEach(child=>{ child.ref.remove().catch(()=>{}); });
+  });
+}
+
+// go() sudah di-patch langsung di definisi aslinya
+
 
 // ── NOTIF KONEKSI INTERNET ──
 window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!','warn'));
