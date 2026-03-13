@@ -3553,9 +3553,16 @@ function _esc(str){
 // go() sudah di-patch langsung di definisi aslinya
 
 // ── Draggable 💬 Chat button ──
+// Klik 1x = buka/tutup chat | Tahan (long press) = drag
 (function _makeLobbyBtnDraggable(){
-  let dragging=false, moved=false;
-  let startX=0, startY=0, startRight=0, startBottom=0;
+  const LONG_PRESS_MS = 350; // durasi tahan sebelum drag aktif
+  const DRAG_THRESHOLD = 6;  // pixel minimal sebelum dianggap drag
+
+  let dragging = false;
+  let longPressTimer = null;
+  let dragReady = false; // true setelah long press terpenuhi
+  let moved = false;
+  let startX = 0, startY = 0, startRight = 0, startBottom = 0;
 
   function getBtn(){ return document.getElementById('lobby-chat-btn'); }
   function getPanel(){ return document.getElementById('lobby-chat-panel'); }
@@ -3566,41 +3573,61 @@ function _esc(str){
     const bRect = btn.getBoundingClientRect();
     const panelH = panel.offsetHeight || 220;
     const panelW = panel.offsetWidth  || 300;
-    // Panel selalu di atas tombol
     let pBottom = window.innerHeight - bRect.top + 8;
     let pRight  = window.innerWidth - bRect.right;
-    // Jangan keluar layar
     pBottom = Math.max(8, Math.min(pBottom, window.innerHeight - panelH - 8));
     pRight  = Math.max(8, Math.min(pRight,  window.innerWidth  - panelW - 8));
     panel.style.bottom = pBottom + 'px';
     panel.style.right  = pRight  + 'px';
   }
 
+  function cancelLongPress(){
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+    dragReady = false;
+  }
+
   function onStart(e){
     const btn = getBtn(); if(!btn) return;
-    dragging = true; moved = false;
+    moved = false; dragging = false; dragReady = false;
     const t = e.touches ? e.touches[0] : e;
     startX = t.clientX; startY = t.clientY;
     const style = window.getComputedStyle(btn);
     startRight  = parseInt(style.right)  || 14;
     startBottom = parseInt(style.bottom) || 14;
-    btn.classList.add('dragging');
+
+    // Mulai timer long press
+    longPressTimer = setTimeout(()=>{
+      dragReady = true;
+      btn.classList.add('dragging');
+      if(navigator.vibrate) navigator.vibrate(40);
+    }, LONG_PRESS_MS);
+
     document.addEventListener('mousemove', onMove, {passive:false});
     document.addEventListener('touchmove', onMove, {passive:false});
     document.addEventListener('mouseup',   onEnd);
     document.addEventListener('touchend',  onEnd);
+    document.addEventListener('touchcancel', onEnd);
   }
 
   function onMove(e){
-    if(!dragging) return;
     const t = e.touches ? e.touches[0] : e;
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
-    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+
+    // Jika belum long press tapi sudah gerak jauh → batalkan
+    if(!dragReady){
+      if(Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD){
+        cancelLongPress();
+      }
+      return;
+    }
+
+    // Drag aktif
+    if(Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) moved = true;
     if(!moved) return;
     e.preventDefault();
     const btn = getBtn(); if(!btn) return;
-    // right berkurang saat geser kanan, bertambah saat geser kiri
+    dragging = true;
     const newRight  = Math.max(4, Math.min(window.innerWidth  - btn.offsetWidth  - 4, startRight  - dx));
     const newBottom = Math.max(4, Math.min(window.innerHeight - btn.offsetHeight - 4, startBottom - dy));
     btn.style.right  = newRight  + 'px';
@@ -3611,11 +3638,16 @@ function _esc(str){
   function onEnd(){
     const btn = getBtn(); if(!btn) return;
     btn.classList.remove('dragging');
-    // Kalau tidak bergerak → toggle chat (tap biasa)
-    if(!moved) toggleLobbyChat();
-    // Snap ke tepi terdekat (kiri atau kanan)
-    if(moved){
-      const r = parseFloat(btn.style.right)||14;
+    cancelLongPress();
+
+    if(!dragging && !moved){
+      // Tap biasa → toggle chat
+      toggleLobbyChat();
+    }
+
+    // Snap ke tepi terdekat setelah drag
+    if(dragging && moved){
+      const r = parseFloat(btn.style.right) || 14;
       const w = btn.offsetWidth;
       const mid = (window.innerWidth - w) / 2;
       const snapRight = r < mid ? 14 : window.innerWidth - w - 14;
@@ -3623,16 +3655,18 @@ function _esc(str){
       btn.style.right = snapRight + 'px';
       setTimeout(()=>{ btn.style.transition='box-shadow .15s, transform .1s'; _syncPanel(btn); }, 220);
     }
-    dragging = false; moved = false;
+
+    dragging = false; moved = false; dragReady = false;
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('mouseup',   onEnd);
     document.removeEventListener('touchend',  onEnd);
+    document.removeEventListener('touchcancel', onEnd);
   }
 
-  // Pasang listener — gunakan capture agar tidak konflik dg onclick
+  // Pasang listener dengan capture agar tidak konflik dengan elemen lain
   document.addEventListener('mousedown', e=>{
-    if(e.target.closest('#lobby-chat-btn')) { e.preventDefault(); onStart(e); }
+    if(e.target.closest('#lobby-chat-btn')){ e.preventDefault(); onStart(e); }
   }, true);
   document.addEventListener('touchstart', e=>{
     if(e.target.closest('#lobby-chat-btn')) onStart(e);
