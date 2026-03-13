@@ -1,0 +1,5 @@
+package com.hoki.cards;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {}
