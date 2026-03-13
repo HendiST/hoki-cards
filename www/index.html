@@ -460,14 +460,44 @@ if(typeof io === 'undefined'){
   </div>
 </div>
 
-<!-- MABAR PRIVAT (pilih buat/gabung) -->
-<div id="s-mabar" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#2d1200,#050e05);">
-  <div class="panel">
-    <div class="panel-title">🏠 MABAR PRIVAT</div>
-    <div style="font-size:.8em;color:#aaa;text-align:center;">Main bersama teman via hotspot/WiFi</div>
-    <button class="btn b-gold" style="margin-top:8px;" onclick="go('s-create')">🏗️ BUAT ROOM BARU</button>
-    <div style="color:rgba(255,255,255,.3);font-size:.8em;letter-spacing:2px;">— ATAU —</div>
-    <button class="btn b-green" onclick="go('s-join-mabar')">🚪 GABUNG ROOM</button>
+<!-- MABAR PRIVAT (panduan & redirect) -->
+<div id="s-mabar" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#2d1200,#050e05);overflow-y:auto;">
+  <div class="panel" style="max-width:320px;margin:auto;gap:0;">
+    <div class="panel-title" style="margin-bottom:4px;">🏠 MABAR PRIVAT</div>
+    <div style="font-size:.75em;color:rgba(255,150,50,.7);letter-spacing:1px;margin-bottom:16px;text-align:center;">VIA HOTSPOT / WIFI LOKAL</div>
+
+    <!-- Info box: butuh server lokal -->
+    <div style="background:rgba(255,120,0,.1);border:1px solid rgba(255,120,0,.35);border-radius:12px;padding:12px 14px;margin-bottom:14px;width:100%;">
+      <div style="font-size:.82em;font-weight:700;color:#ffaa55;margin-bottom:8px;">⚠️ MODE INI BUTUH SERVER LOKAL</div>
+      <div style="font-size:.76em;color:rgba(255,255,255,.75);line-height:1.6;">
+        Mode Mabar Privat berjalan di server Node.js lokal di perangkat host.<br>
+        <strong style="color:#ffcc88;">Tidak bisa dipakai langsung di browser web biasa.</strong>
+      </div>
+    </div>
+
+    <!-- Cara main: step by step -->
+    <div style="background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.15);border-radius:12px;padding:12px 14px;margin-bottom:14px;width:100%;">
+      <div style="font-size:.8em;font-weight:700;color:var(--gold);margin-bottom:10px;">📋 CARA MAIN MABAR PRIVAT</div>
+      <div style="font-size:.75em;color:rgba(255,255,255,.8);line-height:1.7;">
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">1</span>Install & jalankan server di perangkat host:<br>
+          <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">node server.js</code>
+        </div>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">2</span>Aktifkan <strong>Hotspot</strong> di perangkat host, atau pastikan semua perangkat terhubung ke WiFi yang sama.</div>
+        <div style="margin-bottom:6px;"><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">3</span>Buka game via <strong>APK</strong> di perangkat host → klik <em>Mabar Privat</em> → otomatis masuk ke server lokal.</div>
+        <div><span style="background:rgba(255,215,0,.2);border-radius:4px;padding:1px 7px;font-weight:700;color:var(--gold);margin-right:6px;">4</span>Pemain lain buka browser → ketik IP host + port:<br>
+          <code style="background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px;font-size:.95em;display:inline-block;margin-top:3px;color:#aaffaa;">http://192.168.43.1:3000</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tombol buka localhost -->
+    <button class="btn b-orange" style="width:100%;margin-bottom:8px;background:linear-gradient(135deg,#7a3200,#e65100,#7a3200);" onclick="openLocalhost()">
+      🌐 BUKA http://localhost:3000
+    </button>
+    <div style="font-size:.7em;color:rgba(255,255,255,.35);text-align:center;margin-bottom:10px;">
+      ↑ Untuk host yang jalankan server lokal
+    </div>
+
     <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
   </div>
 </div>
@@ -765,7 +795,16 @@ function gname(){const n=document.getElementById('inp-name').value.trim();if(!n)
 
 // ── NAVIGASI MODE ──
 function goBot(){if(!gname())return;go('s-bot');}
-function goMabar(){if(!gname())return;initSock();go('s-mabar');}
+function goMabar(){
+  if(!gname())return;
+  const isApk=!!(window.Capacitor&&window.Capacitor.isNative)||window.location.protocol==='capacitor:';
+  if(isApk){
+    const name=document.getElementById('inp-name').value.trim();
+    window.open('http://localhost:3000?name='+encodeURIComponent(name),'_system');
+  } else {
+    go('s-mabar');
+  }
+}
 
 
 
@@ -783,6 +822,10 @@ function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementBy
 function doCreate(){
   const name=gname();if(!name)return;
   window.open('http://localhost:3000?name='+encodeURIComponent(name),'_system');
+}
+function openLocalhost(){
+  const name=document.getElementById('inp-name').value.trim()||'Pemain';
+  window.open('http://localhost:3000?name='+encodeURIComponent(name),'_blank');
 }
 function doJoinMabar(){
   const name=gname()||'Pemain';
