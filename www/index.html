@@ -559,6 +559,7 @@ if(typeof io === 'undefined'){
   <div class="topbar">
     <div class="turn-lbl" id="g-turn">-</div>
     <div style="font-size:.7em;color:rgba(255,215,0,.55);" id="g-room"></div>
+    <button onclick="confirmExit()" style="background:rgba(200,50,50,.25);border:1px solid rgba(255,80,80,.35);color:#ff8888;border-radius:8px;padding:5px 10px;font-size:.72em;font-weight:700;cursor:pointer;letter-spacing:.5px;">✕ Keluar</button>
   </div>
 
   <div class="table-zone">
@@ -610,6 +611,18 @@ if(typeof io === 'undefined'){
     <h2>🏆 GAME SELESAI</h2>
     <ul class="rlist" id="rank-list"></ul>
     <button class="btn b-gold" onclick="backMenu()">Main Lagi</button>
+  </div>
+</div>
+
+<!-- MODAL KONFIRMASI KELUAR -->
+<div class="modal-bg" id="modal-exit">
+  <div class="modal" style="background:linear-gradient(160deg,#2a0d0d,#5c1a1a);">
+    <h2 style="color:#ff8888;">⚠️ KELUAR PERTANDINGAN?</h2>
+    <p style="font-size:.88em;color:rgba(255,255,255,.65);margin-bottom:18px;line-height:1.5;">Game akan dianggap selesai dan kamu akan kembali ke menu utama.</p>
+    <div style="display:flex;gap:10px;width:100%;">
+      <button class="btn" style="flex:1;background:rgba(255,255,255,.1);color:#ccc;border:1px solid rgba(255,255,255,.2);" onclick="document.getElementById('modal-exit').classList.remove('on')">Batal</button>
+      <button class="btn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);color:#fff;" onclick="backMenu()">✓ Keluar</button>
+    </div>
   </div>
 </div>
 
@@ -1268,25 +1281,54 @@ function doStartBot(){
 function _botLoop(){
   clearTimeout(_botTimer);
   if(!_botGame||_botGame.gameOver)return;
-  const cp=_botGame.currentPlayer;
+  const gs=_botGame;
+
+  // === OPENING PHASE: semua bot yang belum aksi harus main ===
+  if(gs.phase==='opening'){
+    // Cari bot (idx > 0) yang belum openingDone
+    const pendingBots=gs.activePlayers.filter(p=>p!==0&&!gs.openingDone.has(p));
+    if(pendingBots.length===0){
+      // Semua bot sudah aksi, tunggu pemain manusia (idx 0)
+      if(!gs.openingDone.has(0))return; // tunggu player
+      // Seharusnya phase sudah normal, tapi kalau belum, return saja
+      return;
+    }
+    const delay=_botDiff==='hard'?600:1100;
+    _botTimer=setTimeout(()=>{
+      if(!_botGame||_botGame.gameOver)return;
+      // Proses satu bot per tick agar terasa natural
+      const botsLeft=gs.activePlayers.filter(p=>p!==0&&!gs.openingDone.has(p));
+      if(botsLeft.length===0){_botBroadcast();_botLoop();return;}
+      const pidx=botsLeft[0];
+      const hand=gs.hands[pidx];
+      const threes=hand.filter(c=>c.value==='3');
+      if(pidx===gs.openerIdx){
+        const t3s=threes.find(c=>c.suit==='S');
+        gs.playOpening(pidx,t3s?[t3s]:[]);
+      } else {
+        gs.playOpening(pidx,threes.length&&Math.random()>0.4?[threes[0]]:[]);
+      }
+      _botBroadcast();
+      _botLoop(); // lanjut proses bot berikutnya atau phase normal
+    },delay);
+    return;
+  }
+
+  // === NORMAL PHASE ===
+  const cp=gs.currentPlayer;
   if(cp===0)return; // pemain manusia — tunggu input
   const delay=_botDiff==='hard'?700:1300;
   _botTimer=setTimeout(()=>{
     if(!_botGame||_botGame.gameOver||_botGame.currentPlayer===0)return;
-    const gs=_botGame; const pidx=gs.currentPlayer;
+    const pidx=gs.currentPlayer;
     const hand=gs.hands[pidx]; const non3=hand.filter(c=>c.value!=='3');
     let played=false;
-    if(gs.phase==='opening'){
-      const threes=hand.filter(c=>c.value==='3');
-      if(pidx===gs.openerIdx){const t3s=threes.find(c=>c.suit==='S');gs.playOpening(pidx,t3s?[t3s]:[]);}
-      else gs.playOpening(pidx,threes.length&&Math.random()>0.4?[threes[0]]:[]);
-      played=true;
-    } else if(gs.tableCards.length){
+    if(gs.tableCards.length){
       if(gs.tableType==='single'){
         const cands=non3.filter(c=>_canBeat([c],gs.tableCards,gs.tableType)).sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);
         if(cands.length){const[ok]=gs.playCards(pidx,[cands[0]]);if(ok)played=true;}
       }
-      if(!played)gs.skipTurn(pidx);else played=true;
+      if(!played)gs.skipTurn(pidx);
     } else {
       if(non3.length){const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];const[ok]=gs.playCards(pidx,[c]);if(ok)played=true;}
       if(!played&&hand.length)gs.skipTurn(pidx);
@@ -1395,7 +1437,6 @@ function _sendAction(act){
 
 // Buat Room Online
 async function doCreateOnline(){
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
@@ -1416,7 +1457,6 @@ async function doCreateOnline(){
 
 // Join Room Online
 async function doJoinOnline(){
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=(document.getElementById('inp-room-online')?.value||'').trim().toUpperCase();
@@ -1507,7 +1547,6 @@ async function doStart(){
 // ═══════════════════════════════════════════════════════════════
 function goOnline(){
   if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
   go('s-online');
 }
 
@@ -1562,8 +1601,13 @@ function doSkip(){
   }
 }
 
+function confirmExit(){
+  document.getElementById('modal-exit').classList.add('on');
+}
+
 function backMenu(){
   document.getElementById('modal-over').classList.remove('on');
+  document.getElementById('modal-exit').classList.remove('on');
   selCards=[];handOrder=[];myIdx=null;myRoom=null;isHost=false;curSt=null;reorderIdx=null;
   clearTimeout(_botTimer);_botGame=null;
   _rtdbCleanup();
