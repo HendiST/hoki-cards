@@ -484,23 +484,29 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 /* Lobby global chat popup */
 #lobby-chat-btn{
-  position:fixed;
+  position:absolute;
   right:14px;
   bottom:14px;
   z-index:200;
   background:linear-gradient(135deg,#0a5c1a,#27ae60);
   border:none;
-  border-radius:50%;
-  width:46px;height:46px;
-  font-size:1.3em;
+  border-radius:24px;
+  height:40px;
+  padding:0 16px;
+  font-size:.9em;
+  font-weight:700;
+  font-family:'Rajdhani',sans-serif;
+  color:#fff;
   cursor:pointer;
   box-shadow:0 4px 16px rgba(0,0,0,.5);
   display:none;
   align-items:center;justify-content:center;
+  gap:6px;
+  letter-spacing:.5px;
 }
 #lobby-chat-panel{
-  position:fixed;
-  right:14px;bottom:68px;
+  position:absolute;
+  right:14px;bottom:62px;
   z-index:200;
   background:rgba(0,15,5,.97);
   border:1.5px solid rgba(0,200,80,.3);
@@ -524,6 +530,8 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 #lobby-chat-log::-webkit-scrollbar{display:none;}
 .lchat-item{font-size:.78em;color:#c4e8c4;line-height:1.4;}
 .lchat-item .lcname{font-weight:700;color:#5dde7a;}
+#lobby-chat-input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,200,80,.3);border-radius:8px;color:#d4f5d4;font-family:'Rajdhani',sans-serif;font-size:.85em;padding:6px 10px;outline:none;}
+#lobby-chat-panel button{background:linear-gradient(135deg,#0a5c1a,#1a8c3a);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:.85em;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
 
 /* Emoji floating animation */
 .emoji-float{
@@ -1151,16 +1159,18 @@ if(typeof io === 'undefined'){
   </div>
 </div>
 
-<!-- Lobby chat button and panel -->
-<button id="lobby-chat-btn" onclick="toggleLobbyChat()">💬</button>
-<div id="lobby-chat-panel">
-  <div style="font-size:.82em;font-weight:700;color:#5dde7a;letter-spacing:.5px;">🌐 Global Chat</div>
-  <div id="lobby-chat-log"></div>
-  <div class="chat-input-row">
-    <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Pesan..."
-      style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,200,80,.3);border-radius:8px;color:#d4f5d4;font-family:'Rajdhani',sans-serif;font-size:.85em;padding:6px 10px;outline:none;"
-      onkeydown="if(event.key==='Enter')sendLobbyChat()">
-    <button onclick="sendLobbyChat()" style="background:linear-gradient(135deg,#0a5c1a,#1a8c3a);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:.85em;font-weight:700;cursor:pointer;">Kirim</button>
+
+
+  <!-- Lobby global chat (hanya online RTDB) -->
+  <button id="lobby-chat-btn" onclick="toggleLobbyChat()" style="display:none;">💬 Chat</button>
+  <div id="lobby-chat-panel">
+    <div style="font-size:.82em;font-weight:700;color:#5dde7a;letter-spacing:.5px;">🌐 Global Chat</div>
+    <div id="lobby-chat-log"></div>
+    <div class="chat-input-row">
+      <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
+        onkeydown="if(event.key==='Enter')sendLobbyChat()">
+      <button onclick="sendLobbyChat()">Kirim</button>
+    </div>
   </div>
 </div>
 
@@ -1358,17 +1368,14 @@ function initSock(){
 function go(id){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  // Chat: lobby btn visibility
-  const isLobby = (id === 's-lobby');
-  const hasRtdb = !!(_rtdbRoom);
-  const canChat = hasRtdb && !!currentUser && !currentUser?.isGuest;
-  _showLobbyChatBtn(isLobby && canChat);
+  // Chat: sembunyikan lobby btn jika bukan s-lobby
+  if(id !== 's-lobby') _showLobbyChatBtn(false);
   // Init / destroy chat
   if(id === 's-game'){
     setTimeout(_initChat, 250);
     _stopLobbyChatListener();
   } else {
-    if(id !== 's-game') _destroyChat();
+    _destroyChat();
   }
 }
 function gname(){const n=document.getElementById('inp-name').value.trim();if(!n){toast('Masukkan nama!');return null;}return n;}
@@ -2102,6 +2109,8 @@ async function doCreateOnline(){
     document.getElementById('lob-status').textContent='Menunggu pemain lain...';
     document.getElementById('btn-start').style.display='none';
     go('s-lobby');
+    _showLobbyChatBtn(true);
+    _startLobbyChatListener();
     _listenLobbyOnline(rid);
   }catch(e){
     _rtdbRoom=null;_rtdbIsHost=false;
@@ -2132,6 +2141,8 @@ async function doJoinOnline(){
   document.getElementById('lob-status').textContent='Menunggu host mulai...';
   document.getElementById('btn-start').style.display='none';
   go('s-lobby');
+  _showLobbyChatBtn(true);
+  _startLobbyChatListener();
   _listenLobbyOnline(rid);
   _listenStartOnline(rid,myIdx);
 }
