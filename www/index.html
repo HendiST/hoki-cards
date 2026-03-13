@@ -1438,16 +1438,7 @@ function _sendAction(act){
 // Buat Room Online
 async function doCreateOnline(){
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
-  // Debug: tampilkan status auth
-  const _fbu = fbAuth.currentUser;
-  toast('Auth: '+(_fbu?_fbu.uid.slice(0,8)+'...':'NULL')+' | RTDB: '+(_rtdbRoom||'ok'));
-  await new Promise(r=>setTimeout(r,2000));
-  // Force refresh token
-  try{
-    if(!_fbu){toast('❌ Sesi login habis, login ulang!');go('loginScreen');return;}
-    await _fbu.getIdToken(true);
-  }catch(te){toast('❌ Auth error: '+te.message);return;}
-  const name=(document.getElementById('inp-name').value.trim())||currentUserData?.name||'Pemain';
+  const name=(document.getElementById('inp-name')?.value.trim())||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
   try{
     _rtdbRoom=rid; _rtdbIsHost=true; _rtdbMyIdx=0;
