@@ -1438,6 +1438,11 @@ function _sendAction(act){
 // Buat Room Online
 async function doCreateOnline(){
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
+  // Pastikan Firebase Auth token masih valid
+  try{
+    const tok=await fbAuth.currentUser?.getIdToken(true);
+    if(!tok){toast('❌ Sesi login habis, login ulang!');go('loginScreen');return;}
+  }catch(te){toast('❌ Auth error: '+te.message);return;}
   const name=(document.getElementById('inp-name').value.trim())||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
   try{
