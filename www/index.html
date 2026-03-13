@@ -1437,27 +1437,32 @@ function _sendAction(act){
 
 // Buat Room Online
 async function doCreateOnline(){
-  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
-  const name=gname()||currentUserData?.name||'Pemain';
+  if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
+  const name=(document.getElementById('inp-name').value.trim())||currentUserData?.name||'Pemain';
   const rid=Math.random().toString(36).slice(2,6).toUpperCase();
-  _rtdbRoom=rid; _rtdbIsHost=true; _rtdbMyIdx=0;
-  _rtdbPlayerUids={0:currentUser.uid};
-  await fbRtdb.ref('rooms/'+rid).set({
-    info:{numPlayers:selNumOnline,started:false,host:currentUser.uid,
-      players:{[currentUser.uid]:{idx:0,name}},
-      playerNames:{0:name},createdAt:Date.now()}
-  });
-  fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
-  document.getElementById('lob-code').textContent=rid;
-  document.getElementById('lob-status').textContent='Menunggu pemain lain...';
-  document.getElementById('btn-start').style.display='none';
-  go('s-lobby');
-  _listenLobbyOnline(rid);
+  try{
+    _rtdbRoom=rid; _rtdbIsHost=true; _rtdbMyIdx=0;
+    _rtdbPlayerUids={0:currentUser.uid};
+    await fbRtdb.ref('rooms/'+rid).set({
+      info:{numPlayers:selNumOnline,started:false,host:currentUser.uid,
+        players:{[currentUser.uid]:{idx:0,name}},
+        playerNames:{0:name},createdAt:Date.now()}
+    });
+    fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
+    document.getElementById('lob-code').textContent=rid;
+    document.getElementById('lob-status').textContent='Menunggu pemain lain...';
+    document.getElementById('btn-start').style.display='none';
+    go('s-lobby');
+    _listenLobbyOnline(rid);
+  }catch(e){
+    _rtdbRoom=null;_rtdbIsHost=false;
+    toast('❌ Gagal buat room: '+(e.message||e.code||'cek koneksi'));
+  }
 }
 
 // Join Room Online
 async function doJoinOnline(){
-  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
+  if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   const name=gname()||currentUserData?.name||'Pemain';
   const rid=(document.getElementById('inp-room-online')?.value||'').trim().toUpperCase();
   if(!rid){toast('Masukkan kode room!');return;}
@@ -1546,7 +1551,7 @@ async function doStart(){
 //  OVERRIDE NAVIGASI & ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function goOnline(){
-  if(!currentUser){toast('❌ Login dulu untuk Mabar Online!');return;}
+  if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   go('s-online');
 }
 
