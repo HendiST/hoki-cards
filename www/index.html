@@ -773,6 +773,344 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 @keyframes dealIn{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
 @keyframes floatCard{0%{transform:rotate(var(--r,5deg)) translateY(0) scale(var(--s,1));}100%{transform:rotate(calc(var(--r,5deg) + 8deg)) translateY(-20px) scale(var(--s,1));}}
 
+/* ══════════════════════════════════════════════
+   PROFIL & FRIEND LIST CSS
+══════════════════════════════════════════════ */
+#profile-fab{
+  position:absolute;top:14px;right:14px;z-index:10;
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(255,215,0,.12);
+  border:2px solid rgba(255,215,0,.35);
+  display:none;align-items:center;justify-content:center;
+  font-size:1.55em;cursor:pointer;
+  box-shadow:0 2px 14px rgba(0,0,0,.55);
+  transition:transform .15s,box-shadow .15s;
+}
+#profile-fab.vis{display:flex;}
+#profile-fab:active{transform:scale(.88);}
+#profile-fab .pf-unread-dot{
+  position:absolute;top:-2px;right:-2px;
+  width:13px;height:13px;border-radius:50%;
+  background:#e74c3c;border:2px solid #050e05;
+  display:none;
+}
+#profile-fab .pf-unread-dot.on{display:block;}
+#s-profile{
+  background:radial-gradient(ellipse at 50% 20%,#091a09,#050e05);
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  justify-content:flex-start!important;align-items:center;
+}
+.pf-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;max-width:400px;padding:16px 16px 60px;gap:12px;
+  animation:fadeUp .45s ease both;
+}
+.pf-topbar{
+  display:flex;align-items:center;gap:8px;width:100%;margin-bottom:2px;
+}
+.pf-back{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  color:#ccc;border-radius:8px;padding:7px 13px;
+  font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;cursor:pointer;
+}
+.pf-back:active{transform:scale(.93);}
+.pf-topbar-title{
+  font-family:'Cinzel',serif;font-size:1.05em;color:var(--gold);
+  letter-spacing:2px;flex:1;
+}
+.pf-tabs{display:flex;gap:6px;width:100%;}
+.pf-tab{
+  flex:1;padding:9px 0;border-radius:10px;border:1px solid rgba(255,215,0,.2);
+  background:rgba(255,255,255,.04);color:rgba(255,215,0,.5);
+  font-family:'Rajdhani',sans-serif;font-size:.82em;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;text-align:center;transition:.15s;
+}
+.pf-tab.active{background:rgba(255,215,0,.12);color:var(--gold);border-color:rgba(255,215,0,.4);}
+.pf-tab:active{transform:scale(.95);}
+.pf-card{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.18);
+  border-radius:18px;padding:18px;width:100%;display:flex;flex-direction:column;gap:12px;
+}
+.pf-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.pf-avatar-ring{
+  position:relative;width:84px;height:84px;border-radius:50%;
+  background:linear-gradient(135deg,#1a3a1a,#0a1a0a);
+  border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:2.8em;
+  cursor:pointer;overflow:hidden;
+  box-shadow:0 0 22px rgba(255,215,0,.22);
+}
+.pf-avatar-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.pf-avatar-edit-hint{
+  position:absolute;bottom:0;left:0;right:0;height:28px;
+  background:rgba(0,0,0,.65);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.36em;color:#fff;letter-spacing:.5px;font-weight:700;font-family:'Rajdhani',sans-serif;
+}
+#pf-photo-inp{display:none;}
+.pf-rank{padding:3px 14px;border-radius:20px;font-size:.7em;font-weight:800;letter-spacing:1.5px;}
+.pf-rank-bronze{background:linear-gradient(135deg,#5D4037,#8D6E63);color:#fff;}
+.pf-rank-silver{background:linear-gradient(135deg,#455A64,#90A4AE);color:#fff;}
+.pf-rank-gold{background:linear-gradient(135deg,#e65100,#FFD700);color:#1a0800;}
+.pf-rank-platinum{background:linear-gradient(135deg,#00695C,#4DB6AC);color:#fff;}
+.pf-rank-diamond{background:linear-gradient(135deg,#1565C0,#42A5F5);color:#fff;}
+.pf-rank-legend{background:linear-gradient(135deg,#6A1B9A,#AB47BC,#FF8F00);color:#fff;}
+.pf-name-row{display:flex;align-items:center;gap:6px;justify-content:center;}
+.pf-name-display{
+  font-family:'Cinzel',serif;font-size:1.15em;color:#fff;
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pf-name-inp{
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,215,0,.4);
+  border-radius:8px;color:#fff;font-family:'Cinzel',serif;font-size:.95em;
+  padding:5px 10px;width:160px;text-align:center;outline:none;
+}
+.pf-edit-ico{background:none;border:none;color:rgba(255,215,0,.4);cursor:pointer;font-size:.9em;}
+.pf-save-name-btn{
+  background:linear-gradient(135deg,#1a5c1a,#27ae60);border:none;
+  color:#fff;border-radius:7px;padding:5px 11px;font-size:.78em;font-weight:700;cursor:pointer;
+  font-family:'Rajdhani',sans-serif;
+}
+.pf-uid-row{display:flex;align-items:center;gap:5px;justify-content:center;}
+.pf-uid-lbl{font-size:.64em;color:rgba(255,255,255,.3);}
+.pf-uid-val{
+  font-size:.66em;color:rgba(255,215,0,.55);font-family:'Rajdhani',sans-serif;
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pf-copy-btn{background:none;border:none;color:rgba(255,215,0,.35);cursor:pointer;font-size:.85em;}
+.pf-copy-btn:active{transform:scale(.85);}
+#pf-emoji-modal{
+  display:none;position:fixed;inset:0;z-index:950;
+  background:rgba(0,0,0,.82);align-items:center;justify-content:center;
+}
+#pf-emoji-modal.on{display:flex;}
+.pf-emoji-box{
+  background:linear-gradient(145deg,#0d1a0d,#091209);
+  border:1.5px solid rgba(255,215,0,.3);border-radius:20px;
+  padding:20px 18px;max-width:300px;width:92vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.8);
+}
+.pf-emoji-title{font-family:'Cinzel',serif;font-size:.95em;color:var(--gold);text-align:center;margin-bottom:14px;letter-spacing:1px;}
+.pf-emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.pf-emoji-opt{
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:10px 0;font-size:1.6em;text-align:center;
+  cursor:pointer;transition:.12s;
+}
+.pf-emoji-opt:active{transform:scale(.82);background:rgba(255,215,0,.1);}
+.pf-emoji-opt.sel{border-color:var(--gold);background:rgba(255,215,0,.12);}
+.pf-emoji-close{
+  width:100%;padding:10px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);color:#bbb;border-radius:10px;
+  font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;
+}
+.pf-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pf-stat{
+  background:rgba(255,255,255,.04);border-radius:10px;
+  padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.pf-stat-val{font-family:'Cinzel',serif;font-size:1.22em;color:#fff;font-weight:900;}
+.pf-stat-lbl{font-size:.58em;color:rgba(255,255,255,.38);letter-spacing:.5px;text-align:center;}
+.pf-stat.wr .pf-stat-val{color:#2ecc71;}
+.pf-match-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);border-radius:10px;padding:9px 10px;
+}
+.pf-match-result{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.2em;
+  background:rgba(255,255,255,.07);
+}
+.pf-match-result.win{background:rgba(39,174,96,.2);border:1.5px solid rgba(39,174,96,.4);}
+.pf-match-result.lose{background:rgba(231,76,60,.15);border:1.5px solid rgba(231,76,60,.35);}
+.pf-match-info{flex:1;}
+.pf-match-opp{font-size:.82em;font-weight:700;color:#ccc;}
+.pf-match-date{font-size:.62em;color:rgba(255,255,255,.3);}
+.pf-match-badge{font-size:.62em;font-weight:800;padding:2px 8px;border-radius:12px;letter-spacing:.5px;}
+.pf-match-badge.win{background:rgba(39,174,96,.2);color:#2ecc71;}
+.pf-match-badge.lose{background:rgba(231,76,60,.15);color:#e74c3c;}
+.pf-add-friend-row{display:flex;gap:8px;width:100%;}
+.pf-add-inp{
+  flex:1;background:rgba(255,255,255,.07);
+  border:1.5px solid rgba(255,215,0,.25);border-radius:10px;
+  color:#fff;font-family:'Rajdhani',sans-serif;font-size:.95em;
+  padding:9px 12px;outline:none;
+}
+.pf-add-inp:focus{border-color:var(--gold);}
+.pf-add-inp::placeholder{color:rgba(255,255,255,.25);}
+.pf-add-go{
+  background:linear-gradient(135deg,#1a5c1a,#27ae60);border:none;
+  color:#fff;border-radius:10px;padding:9px 16px;
+  font-family:'Rajdhani',sans-serif;font-size:.9em;font-weight:700;cursor:pointer;
+  white-space:nowrap;
+}
+.pf-add-go:active{transform:scale(.93);}
+.pf-friend-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;
+  cursor:pointer;transition:.12s;
+}
+.pf-friend-item:active{background:rgba(255,255,255,.08);}
+.pf-friend-av{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,#1a3a1a,#0a1a0a);
+  border:2px solid rgba(255,215,0,.25);
+  display:flex;align-items:center;justify-content:center;font-size:1.3em;
+  overflow:hidden;flex-shrink:0;position:relative;
+}
+.pf-friend-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pf-friend-online-dot{
+  position:absolute;bottom:0;right:0;
+  width:11px;height:11px;border-radius:50%;
+  border:2px solid #050e05;background:#555;
+}
+.pf-friend-online-dot.on{background:#2ecc71;}
+.pf-friend-info{flex:1;}
+.pf-friend-name{font-size:.88em;font-weight:700;color:#fff;}
+.pf-friend-status{font-size:.65em;color:rgba(255,255,255,.35);}
+.pf-friend-status.on{color:#2ecc71;}
+.pf-friend-actions{display:flex;gap:6px;}
+.pf-friend-msg-btn{
+  background:rgba(0,150,255,.15);border:1px solid rgba(0,150,255,.3);
+  color:#5db8de;border-radius:8px;padding:5px 9px;font-size:.75em;cursor:pointer;
+}
+.pf-friend-msg-btn:active{transform:scale(.88);}
+.pf-friend-del{
+  background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.25);
+  color:#e74c3c;border-radius:8px;padding:5px 9px;font-size:.8em;cursor:pointer;
+}
+.pf-friend-del:active{transform:scale(.88);}
+#pf-friend-modal{
+  display:none;position:fixed;inset:0;z-index:950;
+  background:rgba(0,0,0,.88);align-items:center;justify-content:center;
+}
+#pf-friend-modal.on{display:flex;}
+.pf-friend-modal-box{
+  background:linear-gradient(145deg,#091a09,#050e05);
+  border:1.5px solid rgba(255,215,0,.25);border-radius:22px;
+  padding:22px 20px;max-width:310px;width:92vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.8);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.pfm-av{
+  width:72px;height:72px;border-radius:50%;
+  border:2.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:2.4em;
+  background:linear-gradient(135deg,#1a3a1a,#091209);overflow:hidden;
+}
+.pfm-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pfm-name{font-family:'Cinzel',serif;font-size:1.1em;color:#fff;}
+.pfm-uid-row{display:flex;align-items:center;gap:5px;}
+.pfm-uid{font-size:.65em;color:rgba(255,215,0,.5);}
+.pfm-copy{background:none;border:none;color:rgba(255,215,0,.35);cursor:pointer;font-size:.85em;}
+.pfm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;}
+.pfm-stat{
+  background:rgba(255,255,255,.04);border-radius:8px;
+  padding:8px 3px;display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.pfm-stat-val{font-family:'Cinzel',serif;font-size:1.05em;color:#fff;font-weight:900;}
+.pfm-stat-lbl{font-size:.58em;color:rgba(255,255,255,.35);}
+.pfm-stat.wr .pfm-stat-val{color:#2ecc71;}
+.pfm-actions{display:flex;gap:8px;width:100%;}
+.pfm-pm-btn{
+  flex:1;background:linear-gradient(135deg,#0a3d6e,#1565c0);
+  border:none;color:#fff;border-radius:10px;padding:10px;
+  font-family:'Rajdhani',sans-serif;font-size:.9em;font-weight:700;cursor:pointer;
+}
+.pfm-close-btn{
+  flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  color:#ccc;border-radius:10px;padding:10px;
+  font-family:'Rajdhani',sans-serif;font-size:.9em;font-weight:700;cursor:pointer;
+}
+#pf-pm-screen{
+  display:none;position:fixed;inset:0;z-index:960;
+  background:radial-gradient(ellipse at 50% 20%,#070f1a,#050e05);
+  flex-direction:column;
+}
+#pf-pm-screen.on{display:flex;}
+.pm-topbar{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:rgba(0,0,0,.6);border-bottom:1px solid rgba(0,150,255,.2);flex-shrink:0;
+}
+.pm-back{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  color:#ccc;border-radius:8px;padding:6px 12px;font-family:'Rajdhani',sans-serif;
+  font-size:.85em;font-weight:700;cursor:pointer;
+}
+.pm-back:active{transform:scale(.93);}
+.pm-title-wrap{flex:1;}
+.pm-peer-name{font-size:.95em;font-weight:700;color:#fff;}
+.pm-peer-status{font-size:.62em;color:rgba(255,255,255,.35);}
+.pm-peer-status.on{color:#2ecc71;}
+.pm-log{
+  flex:1;overflow-y:auto;padding:12px;
+  display:flex;flex-direction:column;gap:6px;
+  -webkit-overflow-scrolling:touch;
+}
+.pm-log::-webkit-scrollbar{width:2px;}
+.pm-log::-webkit-scrollbar-thumb{background:rgba(0,150,255,.3);}
+.pm-row{display:flex;flex-direction:column;max-width:80%;gap:1px;}
+.pm-row.mine{align-self:flex-end;align-items:flex-end;}
+.pm-row.theirs{align-self:flex-start;align-items:flex-start;}
+.pm-bubble-name{font-size:.62em;font-weight:700;color:#5db8de;padding:0 2px;margin-bottom:1px;}
+.pm-row.mine .pm-bubble-name{color:#5dde7a;text-align:right;}
+.pm-bubble{
+  font-size:.82em;line-height:1.4;word-break:break-word;
+  padding:7px 11px;border-radius:14px;max-width:100%;
+}
+.pm-row.mine .pm-bubble{
+  background:linear-gradient(135deg,#0a3a5a,#1565c0);color:#d4e8f5;
+  border-radius:14px 14px 3px 14px;
+}
+.pm-row.theirs .pm-bubble{
+  background:rgba(255,255,255,.09);color:#c4d8f5;
+  border-radius:14px 14px 14px 3px;
+}
+.pm-reply-preview{
+  background:rgba(0,0,0,.3);border-left:2px solid rgba(0,150,255,.5);
+  border-radius:4px;padding:2px 6px;margin-bottom:3px;
+  font-size:.82em;color:rgba(255,255,255,.55);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pm-reply-preview .rp-name{color:#5db8de;font-weight:700;}
+.pm-expire-lbl{font-size:.6em;color:rgba(255,255,255,.25);text-align:right;padding-right:2px;margin-top:1px;}
+.pm-sys{font-size:.65em;color:rgba(255,255,255,.28);text-align:center;font-style:italic;padding:2px 0;align-self:center;}
+.pm-reply-bar{
+  display:none;background:rgba(0,0,0,.4);
+  border-left:3px solid rgba(0,150,255,.6);
+  border-radius:4px;padding:3px 8px;
+  font-size:.7em;color:rgba(255,255,255,.65);
+  align-items:center;gap:6px;flex-shrink:0;
+  margin:0 10px;
+}
+.pm-reply-bar.show{display:flex;}
+.pm-reply-bar .rb-name{color:#5db8de;font-weight:700;}
+.pm-reply-bar .rb-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pm-reply-bar .rb-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1.1em;padding:0 2px;}
+.pm-input-row{
+  display:flex;gap:6px;padding:10px 12px;
+  background:rgba(0,0,0,.5);border-top:1px solid rgba(0,150,255,.15);flex-shrink:0;
+}
+.pm-input-row input{
+  flex:1;background:rgba(255,255,255,.07);
+  border:1px solid rgba(0,150,255,.25);border-radius:10px;
+  color:#c4d8f5;font-family:'Rajdhani',sans-serif;font-size:.88em;
+  padding:8px 11px;outline:none;
+}
+.pm-input-row input::placeholder{color:rgba(0,150,255,.3);}
+.pm-input-row button{
+  background:linear-gradient(135deg,#0a3d6e,#1565c0);border:none;
+  color:#fff;border-radius:10px;padding:8px 14px;
+  font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;cursor:pointer;flex-shrink:0;
+}
+.pm-input-row button:active{transform:scale(.92);}
+.pf-section-lbl{
+  font-size:.65em;color:rgba(255,215,0,.5);letter-spacing:2px;
+  font-weight:700;width:100%;padding:0 2px;
+}
+.pf-empty-msg{
+  text-align:center;padding:24px;font-size:.82em;color:rgba(255,255,255,.28);
+}
 /* RULES BUTTON */
 .mb-rules{
   background:linear-gradient(135deg,#2a2a00,#7a6800,#2a2a00);
@@ -881,10 +1219,12 @@ if(typeof io === 'undefined'){
 </div>
 
 <!-- MENU -->
-<div id="s-menu" class="scr">
+<div id="s-menu" class="scr" style="position:relative;">
   <!-- Animated background cards -->
   <div class="menu-bg-cards" id="menu-bg-cards"></div>
   <div class="menu-glow"></div>
+  <!-- Profile FAB -->
+  <button id="profile-fab" onclick="goProfile()"><span id="profile-fab-av">👤</span><span class="pf-unread-dot" id="pf-unread-dot"></span></button>
 
   <div class="menu-content">
     <div class="menu-logo-wrap">
@@ -953,6 +1293,164 @@ if(typeof io === 'undefined'){
       </span>
       <span class="mode-badge">RULES</span>
     </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PROFIL SCREEN
+══════════════════════════════════════════ -->
+<div id="s-profile" class="scr">
+  <div class="pf-wrap">
+    <!-- Top bar -->
+    <div class="pf-topbar">
+      <button class="pf-back" onclick="go('s-menu')">← Menu</button>
+      <div class="pf-topbar-title">👤 PROFIL</div>
+    </div>
+    <!-- Tabs -->
+    <div class="pf-tabs">
+      <button class="pf-tab active" id="pft-profil" onclick="pfTab('profil')">Profil</button>
+      <button class="pf-tab" id="pft-teman" onclick="pfTab('teman')">Teman <span id="pf-friend-count" style="font-size:.8em;opacity:.7;"></span></button>
+      <button class="pf-tab" id="pft-riwayat" onclick="pfTab('riwayat')">Riwayat</button>
+    </div>
+
+    <!-- ── TAB PROFIL ── -->
+    <div id="pf-panel-profil" style="display:flex;flex-direction:column;gap:10px;width:100%;">
+      <div class="pf-card">
+        <!-- Avatar -->
+        <div class="pf-avatar-wrap">
+          <div class="pf-avatar-ring" onclick="pfAvatarMenu()">
+            <span id="pf-emoji-display">😎</span>
+            <div class="pf-avatar-edit-hint">EDIT FOTO</div>
+          </div>
+          <input type="file" id="pf-photo-inp" accept="image/*" onchange="pfUploadPhoto(this)">
+          <span id="pf-rank-badge" class="pf-rank pf-rank-bronze">🥉 BRONZE</span>
+        </div>
+        <!-- Nama -->
+        <div class="pf-name-row" id="pf-name-view-row">
+          <span class="pf-name-display" id="pf-name-display">—</span>
+          <button class="pf-edit-ico" onclick="pfStartEditName()" title="Edit nama">✏️</button>
+        </div>
+        <div class="pf-name-row" id="pf-name-edit-row" style="display:none;">
+          <input class="pf-name-inp" id="pf-name-inp" maxlength="16" placeholder="Nama baru...">
+          <button class="pf-save-name-btn" onclick="pfSaveName()">✓</button>
+          <button class="pf-edit-ico" onclick="pfCancelEditName()">✕</button>
+        </div>
+        <!-- UID -->
+        <div class="pf-uid-row">
+          <span class="pf-uid-lbl">ID:</span>
+          <span class="pf-uid-val" id="pf-uid-val">—</span>
+          <button class="pf-copy-btn" onclick="pfCopyUid()" title="Salin ID">📋</button>
+        </div>
+      </div>
+
+      <!-- Statistik -->
+      <div class="pf-card">
+        <div class="pf-section-lbl">📊 STATISTIK</div>
+        <div class="pf-stats-grid">
+          <div class="pf-stat">
+            <span class="pf-stat-val" id="pf-s-total">0</span>
+            <span class="pf-stat-lbl">MAIN</span>
+          </div>
+          <div class="pf-stat">
+            <span class="pf-stat-val" id="pf-s-win" style="color:#2ecc71;">0</span>
+            <span class="pf-stat-lbl">MENANG</span>
+          </div>
+          <div class="pf-stat">
+            <span class="pf-stat-val" id="pf-s-lose" style="color:#e74c3c;">0</span>
+            <span class="pf-stat-lbl">KALAH</span>
+          </div>
+          <div class="pf-stat wr">
+            <span class="pf-stat-val" id="pf-s-wr">0%</span>
+            <span class="pf-stat-lbl">WIN RATE</span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /pf-panel-profil -->
+
+    <!-- ── TAB TEMAN ── -->
+    <div id="pf-panel-teman" style="display:none;width:100%;flex-direction:column;gap:10px;">
+      <div class="pf-card">
+        <div class="pf-section-lbl">➕ TAMBAH TEMAN</div>
+        <div class="pf-add-friend-row">
+          <input class="pf-add-inp" id="pf-add-inp" placeholder="Masukkan ID teman..." maxlength="40">
+          <button class="pf-add-go" onclick="pfAddFriend()">Tambah</button>
+        </div>
+      </div>
+      <div class="pf-card">
+        <div class="pf-section-lbl">👥 DAFTAR TEMAN</div>
+        <div id="pf-friend-list">
+          <div class="pf-empty-msg">Belum ada teman. Tambah via ID!</div>
+        </div>
+      </div>
+    </div><!-- /pf-panel-teman -->
+
+    <!-- ── TAB RIWAYAT ── -->
+    <div id="pf-panel-riwayat" style="display:none;width:100%;flex-direction:column;gap:10px;">
+      <div class="pf-card">
+        <div class="pf-section-lbl">📋 10 RIWAYAT TERAKHIR</div>
+        <div id="pf-match-list">
+          <div class="pf-empty-msg">Belum ada riwayat pertandingan.</div>
+        </div>
+      </div>
+    </div><!-- /pf-panel-riwayat -->
+
+  </div><!-- /pf-wrap -->
+</div><!-- /s-profile -->
+
+<!-- Emoji picker modal -->
+<div id="pf-emoji-modal">
+  <div class="pf-emoji-box">
+    <div class="pf-emoji-title">🎭 Pilih Avatar Emoji</div>
+    <div class="pf-emoji-grid" id="pf-emoji-grid"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button class="pf-emoji-close" onclick="pfPickPhoto()" style="flex:1;background:rgba(0,150,255,.15);border-color:rgba(0,150,255,.3);color:#5db8de;">📷 Pilih Foto</button>
+    </div>
+    <button class="pf-emoji-close" onclick="pfCloseEmojiModal()">Batal</button>
+  </div>
+</div>
+
+<!-- View profil teman modal -->
+<div id="pf-friend-modal">
+  <div class="pf-friend-modal-box">
+    <div class="pfm-av" id="pfm-av-el">😎</div>
+    <span id="pfm-rank-badge" class="pf-rank pf-rank-bronze">🥉 BRONZE</span>
+    <div class="pfm-name" id="pfm-name">—</div>
+    <div class="pfm-uid-row">
+      <span class="pfm-uid" id="pfm-uid">—</span>
+      <button class="pfm-copy" onclick="pfmCopyUid()">📋</button>
+    </div>
+    <div class="pfm-stats">
+      <div class="pfm-stat"><span class="pfm-stat-val" id="pfm-s-total">0</span><span class="pfm-stat-lbl">MAIN</span></div>
+      <div class="pfm-stat"><span class="pfm-stat-val" id="pfm-s-win" style="color:#2ecc71;">0</span><span class="pfm-stat-lbl">MENANG</span></div>
+      <div class="pfm-stat"><span class="pfm-stat-val" id="pfm-s-lose" style="color:#e74c3c;">0</span><span class="pfm-stat-lbl">KALAH</span></div>
+      <div class="pfm-stat wr"><span class="pfm-stat-val" id="pfm-s-wr">0%</span><span class="pfm-stat-lbl">WIN RATE</span></div>
+    </div>
+    <div class="pfm-actions">
+      <button class="pfm-pm-btn" onclick="pfmOpenPm()">💬 PM</button>
+      <button class="pfm-close-btn" onclick="document.getElementById('pf-friend-modal').classList.remove('on')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Private Message Screen -->
+<div id="pf-pm-screen">
+  <div class="pm-topbar">
+    <button class="pm-back" onclick="pfPmBack()">← Kembali</button>
+    <div class="pm-title-wrap">
+      <div class="pm-peer-name" id="pm-peer-name">—</div>
+      <div class="pm-peer-status" id="pm-peer-status">Offline</div>
+    </div>
+  </div>
+  <div class="pm-reply-bar" id="pm-reply-bar">
+    <span class="rb-name" id="pm-rb-name"></span>
+    <span class="rb-text" id="pm-rb-text"></span>
+    <button class="rb-close" onclick="pmClearReply()">✕</button>
+  </div>
+  <div class="pm-log" id="pm-log"></div>
+  <div class="pm-input-row">
+    <input id="pm-inp" type="text" maxlength="200" placeholder="Ketik pesan..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')pmSend()">
+    <button onclick="pmSend()">Kirim</button>
   </div>
 </div>
 
@@ -1515,6 +2013,12 @@ function initSock(){
 function go(id){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
+  // Profile FAB: hanya di menu utama
+  const fab = document.getElementById('profile-fab');
+  if(fab){
+    if(id === 's-menu' && currentUser && !currentUser.isGuest) fab.classList.add('vis');
+    else fab.classList.remove('vis');
+  }
   // Global chat btn: tampil di semua layar kecuali s-game
   if(id === 's-game'){
     _showLobbyChatBtn(false);
@@ -1837,6 +2341,8 @@ function showOver(st){
     ul.appendChild(li);
   });
   document.getElementById('modal-over').classList.add('on');
+  // ── Simpan statistik & riwayat match ──
+  if(typeof pfSaveMatchResult === 'function') pfSaveMatchResult(st);
 }
 
 function toast(msg, type){
@@ -2895,6 +3401,9 @@ async function onUserLoggedIn(user){
     // Isi input nama otomatis
     const inp = document.getElementById('inp-name');
     if(inp && !inp.value) inp.value = currentUserData.name || '';
+    // ── Profile features ──
+    if(typeof _pfSetOnline === 'function')  _pfSetOnline();
+    if(typeof _pfUpdateFab === 'function')  _pfUpdateFab();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -2980,6 +3489,8 @@ function loginGuest(){
   currentUser = { uid: 'guest_'+Date.now(), isGuest: true };
   currentUserData = { name: 'Tamu', username: 'guest' };
   go('s-menu');
+  const fab = document.getElementById('profile-fab');
+  if(fab) fab.classList.remove('vis');
   // Guest bisa baca global chat tapi tidak bisa kirim
   _showLobbyChatBtn(true);
   _startLobbyChatListener();
@@ -3673,6 +4184,638 @@ function _esc(str){
   }, {passive:true, capture:true});
 })();
 
+
+// ══════════════════════════════════════════════════════════════
+//  PROFIL, TEMAN & PM SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+const PF_EMOJIS = ['😎','🧑','👦','👩','🧔','👱','🧑‍🦱','👩‍🦰','🥷','🧙','🧝','🦸','🦹','🧟','👻','🐱','🐶','🦊','🐼','🦁'];
+
+// ── Rank calculator ──
+function _calcRank(wins){
+  if(wins < 10)  return {label:'🥉 BRONZE',   cls:'pf-rank-bronze'};
+  if(wins < 30)  return {label:'🥈 SILVER',   cls:'pf-rank-silver'};
+  if(wins < 70)  return {label:'🥇 GOLD',     cls:'pf-rank-gold'};
+  if(wins < 150) return {label:'💠 PLATINUM', cls:'pf-rank-platinum'};
+  if(wins < 300) return {label:'💎 DIAMOND',  cls:'pf-rank-diamond'};
+  return             {label:'👑 LEGEND',      cls:'pf-rank-legend'};
+}
+
+// ── Profile presence (RTDB online status) ──
+function _pfSetOnline(){
+  if(!currentUser||currentUser.isGuest||!fbRtdb) return;
+  const ref = fbRtdb.ref('users/'+currentUser.uid+'/online');
+  ref.set(true);
+  ref.onDisconnect().set(false);
+}
+
+// ── Go to profile screen ──
+function goProfile(){
+  if(!currentUser||currentUser.isGuest){ toast('Login dulu untuk melihat profil!','warn'); return; }
+  go('s-profile');
+  pfTab('profil');
+  pfLoadMyProfile();
+}
+
+// ── Tab switch ──
+function pfTab(tab){
+  ['profil','teman','riwayat'].forEach(t=>{
+    const btn = document.getElementById('pft-'+t);
+    const panel = document.getElementById('pf-panel-'+t);
+    const isActive = t === tab;
+    if(btn) btn.classList.toggle('active', isActive);
+    if(panel){
+      if(isActive){
+        panel.style.display = 'flex';
+        panel.style.flexDirection = 'column';
+        panel.style.gap = '10px';
+        panel.style.width = '100%';
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+  });
+  if(tab === 'teman')   pfLoadFriends();
+  if(tab === 'riwayat') pfLoadMatchHistory();
+}
+
+// ── Load own profile ──
+async function pfLoadMyProfile(){
+  if(!currentUser||!fbDb) return;
+  try {
+    const snap = await fbDb.collection('users').doc(currentUser.uid).get();
+    const d = snap.exists ? snap.data() : {};
+    currentUserData = {...(currentUserData||{}), ...d};
+
+    // Avatar
+    const av = document.getElementById('pf-emoji-display');
+    const ring = document.getElementById('pf-emoji-display').parentElement;
+    if(d.photoBase64){
+      av.style.display = 'none';
+      let img = ring.querySelector('img.pf-photo');
+      if(!img){ img = document.createElement('img'); img.className='pf-photo'; ring.insertBefore(img, ring.firstChild); }
+      img.src = d.photoBase64;
+    } else {
+      av.style.display = '';
+      av.textContent = d.avatar || '😎';
+      const img = ring.querySelector('img.pf-photo');
+      if(img) img.remove();
+    }
+    // Update FAB
+    const fab = document.getElementById('profile-fab');
+    const fabAv = document.getElementById('profile-fab-av');
+    if(d.photoBase64){
+      fabAv.style.fontSize = '0';
+      let fi = fab.querySelector('img.fab-photo');
+      if(!fi){ fi = document.createElement('img'); fi.className='fab-photo'; fi.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;'; fab.appendChild(fi); }
+      fi.src = d.photoBase64;
+    } else {
+      fabAv.style.fontSize = '';
+      fabAv.textContent = d.avatar || '👤';
+      const fi = fab.querySelector('img.fab-photo');
+      if(fi) fi.remove();
+    }
+
+    // Rank
+    const wins = d.wins || 0;
+    const rank = _calcRank(wins);
+    const rb = document.getElementById('pf-rank-badge');
+    rb.textContent = rank.label;
+    rb.className = 'pf-rank ' + rank.cls;
+
+    // Nama
+    document.getElementById('pf-name-display').textContent = d.name || '—';
+    // UID
+    document.getElementById('pf-uid-val').textContent = currentUser.uid;
+
+    // Stats
+    const total = (d.wins||0) + (d.losses||0);
+    const wr = total > 0 ? Math.round((d.wins||0)/total*100) : 0;
+    document.getElementById('pf-s-total').textContent = total;
+    document.getElementById('pf-s-win').textContent   = d.wins  || 0;
+    document.getElementById('pf-s-lose').textContent  = d.losses|| 0;
+    document.getElementById('pf-s-wr').textContent    = wr + '%';
+  } catch(e){ console.warn('[pfLoadMyProfile]', e); }
+}
+
+// ── Avatar menu (emoji or photo) ──
+function pfAvatarMenu(){
+  // Build emoji grid
+  const grid = document.getElementById('pf-emoji-grid');
+  grid.innerHTML = '';
+  const cur = currentUserData?.avatar || '😎';
+  PF_EMOJIS.forEach(em=>{
+    const btn = document.createElement('button');
+    btn.className = 'pf-emoji-opt' + (em === cur ? ' sel' : '');
+    btn.textContent = em;
+    btn.onclick = ()=> pfSetEmoji(em);
+    grid.appendChild(btn);
+  });
+  document.getElementById('pf-emoji-modal').classList.add('on');
+}
+function pfCloseEmojiModal(){ document.getElementById('pf-emoji-modal').classList.remove('on'); }
+function pfPickPhoto(){ pfCloseEmojiModal(); document.getElementById('pf-photo-inp').click(); }
+
+async function pfSetEmoji(em){
+  pfCloseEmojiModal();
+  if(!currentUser||!fbDb) return;
+  try {
+    await fbDb.collection('users').doc(currentUser.uid).update({ avatar: em, photoBase64: firebase.firestore.FieldValue.delete() });
+    if(currentUserData) { currentUserData.avatar = em; delete currentUserData.photoBase64; }
+    pfLoadMyProfile();
+    toast('Avatar diperbarui! ' + em, 'ok');
+  } catch(e){ toast('Gagal simpan avatar','warn'); }
+}
+
+async function pfUploadPhoto(inp){
+  const file = inp.files[0]; if(!file) return;
+  if(!currentUser||!fbDb){ toast('Login dulu!','warn'); return; }
+  // Compress ke max 200KB
+  try {
+    const base64 = await _compressImage(file, 200*1024);
+    if(!base64){ toast('Gagal compress foto!','warn'); return; }
+    toast('Menyimpan foto...','info');
+    await fbDb.collection('users').doc(currentUser.uid).update({ photoBase64: base64, avatar: firebase.firestore.FieldValue.delete() });
+    if(currentUserData) { currentUserData.photoBase64 = base64; delete currentUserData.avatar; }
+    pfLoadMyProfile();
+    toast('Foto profil diperbarui! 📷', 'ok');
+  } catch(e){ toast('Gagal upload foto: '+(e.message||''), 'warn'); }
+  inp.value = '';
+}
+
+function _compressImage(file, maxBytes){
+  return new Promise(resolve=>{
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        const MAX = 600;
+        if(w > MAX || h > MAX){
+          if(w > h){ h = Math.round(h * MAX / w); w = MAX; }
+          else      { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let quality = 0.85;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        // Iterasi turunkan quality sampai < maxBytes
+        while(result.length * 0.75 > maxBytes && quality > 0.2){
+          quality -= 0.1;
+          result = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(result.length * 0.75 <= maxBytes ? result : null);
+      };
+      img.onerror = ()=> resolve(null);
+      img.src = ev.target.result;
+    };
+    reader.onerror = ()=> resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Edit nama ──
+function pfStartEditName(){
+  const cur = currentUserData?.name || '';
+  document.getElementById('pf-name-inp').value = cur;
+  document.getElementById('pf-name-view-row').style.display = 'none';
+  document.getElementById('pf-name-edit-row').style.display = 'flex';
+  document.getElementById('pf-name-inp').focus();
+}
+function pfCancelEditName(){
+  document.getElementById('pf-name-view-row').style.display = 'flex';
+  document.getElementById('pf-name-edit-row').style.display = 'none';
+}
+async function pfSaveName(){
+  const name = document.getElementById('pf-name-inp').value.trim();
+  if(!name || name.length < 2){ toast('Nama minimal 2 karakter!','warn'); return; }
+  if(!currentUser||!fbDb) return;
+  try {
+    await fbDb.collection('users').doc(currentUser.uid).update({ name });
+    if(currentUserData) currentUserData.name = name;
+    const inp = document.getElementById('inp-name'); if(inp) inp.value = name;
+    pfCancelEditName();
+    pfLoadMyProfile();
+    toast('Nama diperbarui!', 'ok');
+  } catch(e){ toast('Gagal simpan nama','warn'); }
+}
+
+// ── Copy UID ──
+function pfCopyUid(){
+  const uid = currentUser?.uid || '';
+  if(!uid) return;
+  navigator.clipboard?.writeText(uid).then(()=> toast('ID disalin! 📋','ok')).catch(()=>{
+    // fallback
+    const t = document.createElement('textarea');
+    t.value = uid; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+    toast('ID disalin! 📋','ok');
+  });
+}
+
+// ── Match History ──
+async function pfLoadMatchHistory(){
+  const el = document.getElementById('pf-match-list');
+  el.innerHTML = '<div class="pf-empty-msg">Memuat...</div>';
+  if(!currentUser||!fbDb) return;
+  try {
+    const snap = await fbDb.collection('users').doc(currentUser.uid)
+      .collection('matches').orderBy('ts','desc').limit(10).get();
+    if(snap.empty){ el.innerHTML = '<div class="pf-empty-msg">Belum ada riwayat pertandingan.</div>'; return; }
+    el.innerHTML = '';
+    snap.docs.forEach(doc=>{
+      const m = doc.data();
+      const isWin = m.result === 'win';
+      const d = new Date(m.ts||0);
+      const dateStr = d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'});
+      const row = document.createElement('div');
+      row.className = 'pf-match-item';
+      row.innerHTML = `
+        <div class="pf-match-result ${isWin?'win':'lose'}">${isWin?'🏆':'💀'}</div>
+        <div class="pf-match-info">
+          <div class="pf-match-opp">vs ${_esc(m.opponents||'Bot')}</div>
+          <div class="pf-match-date">${dateStr} · ${m.mode||'Bot'}</div>
+        </div>
+        <span class="pf-match-badge ${isWin?'win':'lose'}">${isWin?'MENANG':'KALAH'}</span>`;
+      el.appendChild(row);
+    });
+  } catch(e){ el.innerHTML = '<div class="pf-empty-msg">Gagal memuat riwayat.</div>'; }
+}
+
+// ── Save match result (dipanggil dari showOver) ──
+async function pfSaveMatchResult(st){
+  if(!currentUser||currentUser.isGuest||!fbDb) return;
+  const names = st.player_names || {};
+  const isWin = !!(st.rankings && st.rankings[0] === myIdx);
+  const oppNames = Object.entries(names)
+    .filter(([k])=> parseInt(k) !== myIdx)
+    .map(([,v])=>v).join(', ') || 'Bot';
+  const mode = _rtdbRoom ? 'Online' : (_botGame ? 'Bot' : 'Bot');
+
+  // Simpan riwayat match
+  const matchData = { result: isWin?'win':'lose', opponents: oppNames, mode, ts: Date.now() };
+  try {
+    await fbDb.collection('users').doc(currentUser.uid).collection('matches').add(matchData);
+    // Update statistik
+    const inc = firebase.firestore.FieldValue.increment;
+    const upd = { [isWin?'wins':'losses']: inc(1) };
+    await fbDb.collection('users').doc(currentUser.uid).update(upd);
+    if(currentUserData){
+      if(isWin) currentUserData.wins = (currentUserData.wins||0)+1;
+      else      currentUserData.losses = (currentUserData.losses||0)+1;
+    }
+  } catch(e){ console.warn('[pfSaveMatchResult]', e); }
+}
+
+// ── Friends ──
+let _pfFriendPresenceListeners = {};
+
+async function pfLoadFriends(){
+  const el = document.getElementById('pf-friend-list');
+  el.innerHTML = '<div class="pf-empty-msg">Memuat...</div>';
+  if(!currentUser||!fbDb) return;
+  try {
+    const snap = await fbDb.collection('users').doc(currentUser.uid)
+      .collection('friends').orderBy('addedAt','desc').get();
+    // Cleanup old presence listeners
+    Object.values(_pfFriendPresenceListeners).forEach(fn=>fn());
+    _pfFriendPresenceListeners = {};
+
+    if(snap.empty){ el.innerHTML = '<div class="pf-empty-msg">Belum ada teman. Tambah via ID!</div>'; _pfUpdateFriendCount(0); return; }
+    el.innerHTML = '';
+    _pfUpdateFriendCount(snap.size);
+    snap.docs.forEach(doc=>{
+      const f = doc.data(); // { uid, name, avatar, addedAt }
+      const row = _pfBuildFriendRow(f);
+      el.appendChild(row);
+      // Listen to online status via RTDB
+      if(fbRtdb){
+        const ref = fbRtdb.ref('users/'+f.uid+'/online');
+        const fn = ref.on('value', snap=>{
+          const isOnline = !!snap.val();
+          const dot = row.querySelector('.pf-friend-online-dot');
+          const st  = row.querySelector('.pf-friend-status');
+          if(dot){ dot.classList.toggle('on', isOnline); }
+          if(st) { st.classList.toggle('on', isOnline); st.textContent = isOnline ? '🟢 Online' : '⚫ Offline'; }
+        });
+        _pfFriendPresenceListeners[f.uid] = ()=> ref.off('value', fn);
+      }
+    });
+  } catch(e){ el.innerHTML = '<div class="pf-empty-msg">Gagal memuat teman.</div>'; }
+}
+
+function _pfUpdateFriendCount(n){
+  const el = document.getElementById('pf-friend-count');
+  if(el) el.textContent = n > 0 ? '('+n+')' : '';
+}
+
+function _pfBuildFriendRow(f){
+  const row = document.createElement('div');
+  row.className = 'pf-friend-item';
+  const avHtml = f.photoBase64
+    ? `<img src="${f.photoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : (f.avatar||'😎');
+  row.innerHTML = `
+    <div class="pf-friend-av">${avHtml}<span class="pf-friend-online-dot"></span></div>
+    <div class="pf-friend-info">
+      <div class="pf-friend-name">${_esc(f.name||'?')}</div>
+      <div class="pf-friend-status">⚫ Offline</div>
+    </div>
+    <div class="pf-friend-actions">
+      <button class="pf-friend-msg-btn" onclick="pfOpenPmFromList('${f.uid}','${_esc(f.name||'?')}')">💬</button>
+      <button class="pf-friend-del" onclick="pfRemoveFriend('${f.uid}','${_esc(f.name||'?')}',this.closest('.pf-friend-item'))">✕</button>
+    </div>`;
+  row.onclick = (e)=>{
+    if(e.target.closest('.pf-friend-actions')) return;
+    pfViewFriendProfile(f.uid);
+  };
+  return row;
+}
+
+async function pfAddFriend(){
+  const inp = document.getElementById('pf-add-inp');
+  const uid = inp.value.trim();
+  if(!uid){ toast('Masukkan ID teman!','warn'); return; }
+  if(!currentUser||!fbDb){ toast('Login dulu!','warn'); return; }
+  if(uid === currentUser.uid){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+  try {
+    // Cek user exist
+    const snap = await fbDb.collection('users').doc(uid).get();
+    if(!snap.exists){ toast('❌ ID tidak ditemukan!'); return; }
+    const d = snap.data();
+    // Cek sudah teman?
+    const fSnap = await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).get();
+    if(fSnap.exists){ toast('Sudah jadi teman!','warn'); return; }
+    // Simpan ke friends subcollection (kedua arah)
+    const friendData = { uid, name: d.name||'?', avatar: d.avatar||'😎', photoBase64: d.photoBase64||null, addedAt: Date.now() };
+    await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).set(friendData);
+    await fbDb.collection('users').doc(uid).collection('friends').doc(currentUser.uid).set({
+      uid: currentUser.uid,
+      name: currentUserData?.name||'?',
+      avatar: currentUserData?.avatar||'😎',
+      photoBase64: currentUserData?.photoBase64||null,
+      addedAt: Date.now()
+    });
+    inp.value = '';
+    toast('✅ '+d.name+' ditambahkan sebagai teman!', 'ok');
+    pfLoadFriends();
+  } catch(e){ toast('Gagal menambah teman: '+(e.message||''),'warn'); }
+}
+
+async function pfRemoveFriend(uid, name, rowEl){
+  if(!confirm('Hapus '+name+' dari teman?')) return;
+  if(!currentUser||!fbDb) return;
+  try {
+    await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).delete();
+    // Remove dari sisi teman juga
+    await fbDb.collection('users').doc(uid).collection('friends').doc(currentUser.uid).delete().catch(()=>{});
+    rowEl.remove();
+    toast('Teman dihapus','ok');
+    // Update count
+    const el = document.getElementById('pf-friend-list');
+    const remaining = el.querySelectorAll('.pf-friend-item').length;
+    _pfUpdateFriendCount(remaining);
+    if(remaining === 0) el.innerHTML = '<div class="pf-empty-msg">Belum ada teman. Tambah via ID!</div>';
+  } catch(e){ toast('Gagal hapus teman','warn'); }
+}
+
+// ── View friend profile modal ──
+let _pfViewingUid = null;
+async function pfViewFriendProfile(uid){
+  _pfViewingUid = uid;
+  const modal = document.getElementById('pf-friend-modal');
+  modal.classList.add('on');
+  document.getElementById('pfm-name').textContent = '...';
+  document.getElementById('pfm-uid').textContent = uid;
+  document.getElementById('pfm-s-total').textContent = '—';
+  document.getElementById('pfm-s-win').textContent   = '—';
+  document.getElementById('pfm-s-lose').textContent  = '—';
+  document.getElementById('pfm-s-wr').textContent    = '—';
+  try {
+    const snap = await fbDb.collection('users').doc(uid).get();
+    if(!snap.exists){ toast('User tidak ditemukan!'); return; }
+    const d = snap.data();
+    // Avatar
+    const avEl = document.getElementById('pfm-av-el');
+    if(d.photoBase64){
+      avEl.innerHTML = `<img src="${d.photoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      avEl.textContent = d.avatar || '😎';
+    }
+    // Rank
+    const rb = document.getElementById('pfm-rank-badge');
+    const rank = _calcRank(d.wins||0);
+    rb.textContent = rank.label; rb.className = 'pf-rank '+rank.cls;
+    // Stats
+    document.getElementById('pfm-name').textContent = d.name || '?';
+    document.getElementById('pfm-uid').textContent  = uid;
+    const total = (d.wins||0)+(d.losses||0);
+    const wr = total>0 ? Math.round((d.wins||0)/total*100) : 0;
+    document.getElementById('pfm-s-total').textContent = total;
+    document.getElementById('pfm-s-win').textContent   = d.wins||0;
+    document.getElementById('pfm-s-lose').textContent  = d.losses||0;
+    document.getElementById('pfm-s-wr').textContent    = wr+'%';
+  } catch(e){ console.warn('[pfViewFriendProfile]',e); }
+}
+
+function pfmCopyUid(){
+  const uid = _pfViewingUid||'';
+  if(!uid) return;
+  navigator.clipboard?.writeText(uid).then(()=>toast('ID disalin! 📋','ok')).catch(()=>{
+    const t=document.createElement('textarea');t.value=uid;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('ID disalin! 📋','ok');
+  });
+}
+
+function pfmOpenPm(){
+  const name = document.getElementById('pfm-name').textContent;
+  document.getElementById('pf-friend-modal').classList.remove('on');
+  pfOpenPmFromList(_pfViewingUid, name);
+}
+
+// ══════════════════════════════════════
+//  PRIVATE MESSAGE (PM)
+// ══════════════════════════════════════
+let _pmPeerId = null;
+let _pmPeerName = '';
+let _pmListener = null;
+let _pmReplyTo  = null;
+
+function pfOpenPmFromList(uid, name){
+  _pmPeerId   = uid;
+  _pmPeerName = name;
+  _pmReplyTo  = null;
+  document.getElementById('pm-peer-name').textContent = name;
+  document.getElementById('pm-peer-status').textContent = 'Offline';
+  document.getElementById('pm-peer-status').classList.remove('on');
+  document.getElementById('pm-log').innerHTML = '';
+  document.getElementById('pm-reply-bar').classList.remove('show');
+  document.getElementById('pf-pm-screen').classList.add('on');
+  _pmLoadMessages();
+  _pmListenPresence();
+}
+
+function pfPmBack(){
+  document.getElementById('pf-pm-screen').classList.remove('on');
+  if(_pmListener){ _pmListener(); _pmListener=null; }
+  _pmPeerId = null; _pmPeerName = '';
+}
+
+function _pmConvId(a, b){ return [a,b].sort().join('_'); }
+
+async function _pmLoadMessages(){
+  if(!fbDb||!currentUser||!_pmPeerId) return;
+  const convId = _pmConvId(currentUser.uid, _pmPeerId);
+  const now = Date.now();
+  const cutoff = now - 24*60*60*1000; // 24 jam
+
+  if(_pmListener){ _pmListener(); _pmListener=null; }
+  const ref = fbDb.collection('pm').doc(convId).collection('messages')
+    .orderBy('ts').limitToLast(60);
+
+  const unsub = ref.onSnapshot(snap=>{
+    const log = document.getElementById('pm-log');
+    log.innerHTML = '';
+    const sys = document.createElement('div');
+    sys.className = 'pm-sys'; sys.textContent = '🔒 Pesan hilang setelah 24 jam';
+    log.appendChild(sys);
+    snap.docs.forEach(doc=>{
+      const m = doc.data();
+      if(m.ts < cutoff) return; // skip expired
+      _pmAppendBubble(m, doc.id);
+    });
+    log.scrollTop = log.scrollHeight;
+  }, ()=>{});
+  _pmListener = unsub;
+}
+
+function _pmListenPresence(){
+  if(!fbRtdb||!_pmPeerId) return;
+  const ref = fbRtdb.ref('users/'+_pmPeerId+'/online');
+  const fn = ref.on('value', snap=>{
+    const online = !!snap.val();
+    const el = document.getElementById('pm-peer-status');
+    if(el){ el.textContent = online?'🟢 Online':'⚫ Offline'; el.classList.toggle('on', online); }
+  });
+  // store for cleanup
+  window._pmPresenceRef = ref; window._pmPresenceFn = fn;
+}
+
+function _pmAppendBubble(m, msgId){
+  const log = document.getElementById('pm-log');
+  const isMe = m.uid === currentUser.uid;
+  const row = document.createElement('div');
+  row.className = 'pm-row ' + (isMe?'mine':'theirs');
+  row.dataset.id = msgId; row.dataset.text = m.text||''; row.dataset.name = m.name||'?';
+
+  let replyHtml = '';
+  if(m.replyTo){ replyHtml = `<div class="pm-reply-preview"><span class="rp-name">${_esc(m.replyTo.name)}:</span> ${_esc(m.replyTo.text)}</div>`; }
+
+  const expireMs = (m.ts||0) + 24*60*60*1000;
+  const expireStr = new Date(expireMs).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+
+  row.innerHTML = `
+    <div class="pm-bubble-name">${_esc(m.name||'?')}</div>
+    <div class="pm-bubble">${replyHtml}${_esc(m.text||'')}</div>
+    <div class="pm-expire-lbl">Kadaluarsa ${expireStr}</div>`;
+
+  // Swipe to reply
+  let sx=0,sy=0,sw=false,st=false;
+  row.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;sw=true;st=false;row.style.transition='none';},{passive:true});
+  row.addEventListener('touchmove',e=>{
+    if(!sw)return;
+    const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx)+5){sw=false;return;}
+    const sd=isMe?-dx:dx;
+    if(sd>0){
+      const mv=Math.min(sd*.5,52);
+      row.style.transform=isMe?`translateX(-${mv}px)`:`translateX(${mv}px)`;
+      if(mv>=45&&!st){st=true;if(navigator.vibrate)navigator.vibrate(25);_pmSetReply({id:msgId,name:m.name||'?',text:m.text||''});}
+    }
+  },{passive:true});
+  row.addEventListener('touchend',()=>{sw=false;row.style.transition='transform .2s ease';row.style.transform='translateX(0)';});
+
+  log.appendChild(row);
+}
+
+function _pmSetReply(msg){
+  _pmReplyTo = msg;
+  document.getElementById('pm-rb-name').textContent = msg.name+':';
+  document.getElementById('pm-rb-text').textContent = msg.text;
+  document.getElementById('pm-reply-bar').classList.add('show');
+  document.getElementById('pm-inp').focus();
+}
+
+function pmClearReply(){
+  _pmReplyTo = null;
+  document.getElementById('pm-reply-bar').classList.remove('show');
+}
+
+async function pmSend(){
+  const inp = document.getElementById('pm-inp');
+  const text = (inp.value||'').trim().slice(0,200);
+  if(!text||!_pmPeerId||!currentUser||!fbDb) return;
+  inp.value = '';
+  const name = currentUserData?.name || 'Pemain';
+  const msg = { uid: currentUser.uid, name, text, ts: Date.now() };
+  if(_pmReplyTo) msg.replyTo = { id: _pmReplyTo.id, name: _pmReplyTo.name, text: _pmReplyTo.text.slice(0,80) };
+  pmClearReply();
+  const convId = _pmConvId(currentUser.uid, _pmPeerId);
+  try {
+    await fbDb.collection('pm').doc(convId).collection('messages').add(msg);
+    // Cleanup expired messages (client-side trigger)
+    _pmCleanupExpired(convId);
+  } catch(e){ toast('Gagal kirim pesan','warn'); }
+}
+
+async function _pmCleanupExpired(convId){
+  if(!fbDb) return;
+  const cutoff = Date.now() - 24*60*60*1000;
+  try {
+    const old = await fbDb.collection('pm').doc(convId).collection('messages')
+      .where('ts','<',cutoff).limit(20).get();
+    const batch = fbDb.batch();
+    old.docs.forEach(d=> batch.delete(d.ref));
+    if(!old.empty) await batch.commit();
+  } catch(e){}
+}
+
+// ── Update profile FAB visibility ──
+function _pfUpdateFab(){
+  const fab = document.getElementById('profile-fab');
+  if(!fab) return;
+  if(currentUser && !currentUser.isGuest){
+    fab.classList.add('vis');
+    const av = document.getElementById('profile-fab-av');
+    if(currentUserData?.photoBase64){
+      av.style.fontSize='0';
+      let fi = fab.querySelector('img.fab-photo');
+      if(!fi){ fi=document.createElement('img');fi.className='fab-photo';fi.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;';fab.appendChild(fi); }
+      fi.src = currentUserData.photoBase64;
+    } else {
+      av.style.fontSize='';
+      av.textContent = currentUserData?.avatar||'👤';
+    }
+  } else {
+    fab.classList.remove('vis');
+  }
+}
+
+// ── Hook into onUserLoggedIn is done by patching the function below ──
+
+// ── PM unread dot check (simplified: check if there are any new PMs) ──
+function _pfCheckUnread(){
+  if(!currentUser||currentUser.isGuest||!fbDb) return;
+  // Check any pm convs with messages newer than lastSeen
+  // For simplicity: just check if pm-screen is active
+  const dot = document.getElementById('pf-unread-dot');
+  if(dot) dot.classList.remove('on'); // reset; in full impl would track lastSeen
+}
+
+// ── HTML escape (used internally, might already exist) ──
+// _esc is already defined above; OK.
+
+// ══════════════════════════════════════
 
 // ── NOTIF KONEKSI INTERNET ──
 window.addEventListener('offline',()=>toast('⚠️ Koneksi internet terputus!','warn'));
