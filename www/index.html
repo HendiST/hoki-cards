@@ -368,14 +368,19 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 /* Chat bar (collapsed/expanded) */
 #chatbar{
-  background:rgba(0,15,5,.92);
+  position:fixed;
+  left:0; right:0;
+  bottom:0;
+  z-index:300;
+  background:rgba(0,15,5,.96);
   border-top:1px solid rgba(0,200,80,.25);
-  flex-shrink:0;
   pointer-events:all;
   user-select:none;
   -webkit-user-select:none;
   cursor:grab;
   touch-action:none;
+  border-radius:10px 10px 0 0;
+  box-shadow:0 -4px 20px rgba(0,0,0,.5);
 }
 #chatbar.dragging{cursor:grabbing;}
 #chatbar-header{
@@ -422,19 +427,113 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   scrollbar-width:none;
   display:flex;
   flex-direction:column;
-  gap:3px;
-  max-height:110px;
+  gap:4px;
+  max-height:120px;
+  padding:2px 4px;
 }
 #chat-log::-webkit-scrollbar{display:none;}
-.chat-log-item{
+
+/* ── Bubble row wrapper ── */
+.chat-row{
+  display:flex;
+  flex-direction:column;
+  max-width:82%;
+  gap:1px;
+  transition:transform .18s ease;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:pan-y;
+}
+.chat-row.mine{ align-self:flex-end; align-items:flex-end; }
+.chat-row.theirs{ align-self:flex-start; align-items:flex-start; }
+
+/* ── Bubble ── */
+.chat-bubble{
   font-size:.72em;
-  color:#c4e8c4;
   line-height:1.4;
   word-break:break-word;
+  padding:5px 9px;
+  border-radius:12px;
+  max-width:100%;
+  position:relative;
 }
-.chat-log-item .clname{color:#5dde7a;font-weight:700;}
-.chat-log-item.global .clname{color:#5db8de;}
-.chat-log-item.sys{color:rgba(255,255,255,.4);font-style:italic;}
+.chat-row.mine .chat-bubble{
+  background:linear-gradient(135deg,#0a4a1a,#1a7a30);
+  border-radius:12px 12px 3px 12px;
+  color:#d4f5d4;
+}
+.chat-row.theirs .chat-bubble{
+  background:rgba(255,255,255,.09);
+  border-radius:12px 12px 12px 3px;
+  color:#c4e8c4;
+}
+.chat-row.global.theirs .chat-bubble{
+  background:rgba(0,60,120,.5);
+  color:#c4dcf5;
+}
+.chat-row.global.mine .chat-bubble{
+  background:linear-gradient(135deg,#0a2a4a,#1a5a8a);
+  color:#c4dcf5;
+}
+
+/* name label atas bubble */
+.chat-bubble-name{
+  font-size:.65em;
+  font-weight:700;
+  margin-bottom:1px;
+  padding:0 2px;
+}
+.chat-row.mine .chat-bubble-name{ color:#5dde7a; text-align:right; }
+.chat-row.theirs .chat-bubble-name{ color:#5dde7a; }
+.chat-row.global .chat-bubble-name{ color:#5db8de; }
+
+/* ── Reply preview dalam bubble ── */
+.chat-reply-preview{
+  background:rgba(0,0,0,.3);
+  border-left:2px solid rgba(0,200,80,.6);
+  border-radius:4px;
+  padding:2px 6px;
+  margin-bottom:3px;
+  font-size:.85em;
+  color:rgba(255,255,255,.6);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+.chat-reply-preview .rp-name{ color:#5dde7a; font-weight:700; }
+.chat-row.global .chat-reply-preview{ border-left-color:rgba(0,150,255,.6); }
+.chat-row.global .chat-reply-preview .rp-name{ color:#5db8de; }
+
+/* ── Reply bar (di atas input) ── */
+#chat-reply-bar{
+  display:none;
+  background:rgba(0,0,0,.4);
+  border-left:3px solid rgba(0,200,80,.7);
+  border-radius:4px;
+  padding:3px 8px;
+  font-size:.68em;
+  color:rgba(255,255,255,.7);
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+#chat-reply-bar.show{ display:flex; }
+#chat-reply-bar .rb-name{ color:#5dde7a; font-weight:700; }
+#chat-reply-bar .rb-text{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#chat-reply-close{
+  background:none; border:none; color:rgba(255,255,255,.5);
+  font-size:1.1em; cursor:pointer; padding:0 2px; line-height:1; flex-shrink:0;
+}
+
+.chat-log-item.sys{
+  font-size:.68em;
+  color:rgba(255,255,255,.35);
+  font-style:italic;
+  text-align:center;
+  padding:2px 0;
+}
 .chat-tab-row{
   display:flex;
   gap:4px;
@@ -529,8 +628,56 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   scrollbar-width:none;
 }
 #lobby-chat-log::-webkit-scrollbar{display:none;}
-.lchat-item{font-size:.78em;color:#c4e8c4;line-height:1.4;}
-.lchat-item .lcname{font-weight:700;color:#5dde7a;}
+/* lobby chat bubbles mirip in-game */
+.lchat-row{
+  display:flex;
+  flex-direction:column;
+  max-width:85%;
+  gap:1px;
+  transition:transform .18s ease;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:pan-y;
+}
+.lchat-row.mine{ align-self:flex-end; align-items:flex-end; }
+.lchat-row.theirs{ align-self:flex-start; align-items:flex-start; }
+.lchat-row .lchat-name{
+  font-size:.68em; font-weight:700; color:#5dde7a; padding:0 2px; margin-bottom:1px;
+}
+.lchat-row.mine .lchat-name{ text-align:right; }
+.lchat-bubble{
+  font-size:.78em; line-height:1.4; word-break:break-word;
+  padding:5px 10px; border-radius:12px; max-width:100%;
+}
+.lchat-row.mine .lchat-bubble{
+  background:linear-gradient(135deg,#0a4a1a,#1a7a30);
+  color:#d4f5d4; border-radius:12px 12px 3px 12px;
+}
+.lchat-row.theirs .lchat-bubble{
+  background:rgba(255,255,255,.09);
+  color:#c4e8c4; border-radius:12px 12px 12px 3px;
+}
+.lchat-reply-preview{
+  background:rgba(0,0,0,.3);
+  border-left:2px solid rgba(0,200,80,.6);
+  border-radius:4px; padding:2px 6px; margin-bottom:3px;
+  font-size:.8em; color:rgba(255,255,255,.6);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.lchat-reply-preview .rp-name{ color:#5dde7a; font-weight:700; }
+#lobby-reply-bar{
+  display:none;
+  background:rgba(0,0,0,.4);
+  border-left:3px solid rgba(0,200,80,.7);
+  border-radius:4px; padding:3px 8px;
+  font-size:.7em; color:rgba(255,255,255,.7);
+  align-items:center; gap:6px; flex-shrink:0;
+}
+#lobby-reply-bar.show{ display:flex; }
+#lobby-reply-bar .rb-name{ color:#5dde7a; font-weight:700; }
+#lobby-reply-bar .rb-text{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#lobby-reply-close{ background:none; border:none; color:rgba(255,255,255,.5); font-size:1.1em; cursor:pointer; padding:0 2px; }
 #lobby-chat-input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,200,80,.3);border-radius:8px;color:#d4f5d4;font-family:'Rajdhani',sans-serif;font-size:.85em;padding:6px 10px;outline:none;}
 #lobby-chat-panel button{background:linear-gradient(135deg,#0a5c1a,#1a8c3a);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:.85em;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
 
@@ -1146,6 +1293,11 @@ if(typeof io === 'undefined'){
         <button class="chat-tab" id="tab-global" onclick="switchChatTab('global')">🌐 Global</button>
       </div>
       <div id="chat-log"></div>
+      <div id="chat-reply-bar">
+        <span class="rb-name" id="rb-name"></span>
+        <span class="rb-text" id="rb-text"></span>
+        <button id="chat-reply-close" onclick="clearChatReply()">✕</button>
+      </div>
       <div class="chat-input-row">
         <input id="chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
           onkeydown="if(event.key==='Enter')sendChat()">
@@ -2860,6 +3012,7 @@ function _initChat(){
   _localMsgCache = [];
   _globalMsgCache = [];
   _chatOverlayTimers = {};
+  clearChatReply();
 
   const bar = document.getElementById('chatbar');
   const expand = document.getElementById('chatbar-expand');
@@ -2916,18 +3069,14 @@ function switchChatTab(tab){
   setTimeout(()=>{ const log=document.getElementById('chat-log'); log.scrollTop=log.scrollHeight; },50);
 }
 
-// ── Render chat log ──
+// ── Render chat log (full re-render) ──
 function _renderChatLog(){
   const log = document.getElementById('chat-log');
   if(!log) return;
-  const msgs = _chatTab === 'local' ? _localMsgCache : _globalMsgCache;
   log.innerHTML = '';
-  msgs.slice(-40).forEach(m => {
-    const div = document.createElement('div');
-    div.className = 'chat-log-item' + (_chatTab==='global'?' global':'');
-    div.innerHTML = `<span class="clname">${_esc(m.name)}:</span> ${_esc(m.text)}`;
-    log.appendChild(div);
-  });
+  const msgs = _chatTab === 'local' ? _localMsgCache : _globalMsgCache;
+  const isGlobal = _chatTab === 'global';
+  msgs.slice(-40).forEach(m => _appendChatLogItem(m, isGlobal));
 }
 
 // ── Kirim chat ──
@@ -2941,11 +3090,13 @@ function sendChat(){
   const name = (currentUserData?.name || 'Pemain').slice(0,16);
   const msg = { name, text, ts: Date.now(), uid: currentUser.uid };
 
+  // Sertakan replyTo jika ada
+  if(_chatReplyTo) msg.replyTo = { id: _chatReplyTo.id, name: _chatReplyTo.name, text: _chatReplyTo.text.slice(0,40) };
+  clearChatReply();
+
   if(_chatTab === 'local'){
-    // Chat lokal: rooms/{roomId}/chat/{pushId}
     fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').push(msg).catch(()=>{});
   } else {
-    // Chat global: Firestore global_chat (dengan TTL 10 menit)
     const _expireAt = new firebase.firestore.Timestamp(
       Math.floor((Date.now() + 10*60*1000) / 1000), 0
     );
@@ -2960,7 +3111,7 @@ function _listenLocalChat(){
   const fn = ref.on('child_added', snap => {
     const m = snap.val();
     if(!m) return;
-    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+    const entry = { id: snap.key, name: m.name||'?', text: m.text||'', ts: m.ts||0, uid: m.uid||'', replyTo: m.replyTo||null };
     _localMsgCache.push(entry);
     if(_localMsgCache.length > 60) _localMsgCache = _localMsgCache.slice(-50);
     if(_chatExpanded && _chatTab==='local') {
@@ -2985,7 +3136,7 @@ function _listenGlobalChat(){
       snap.docChanges().forEach(change => {
         if(change.type !== 'added') return;
         const m = change.doc.data();
-        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0, uid: m.uid||'', replyTo: m.replyTo||null };
         if(_globalMsgCache.find(x=>x.id===entry.id)) return;
         _globalMsgCache.push(entry);
         _globalMsgCache.sort((a,b)=>a.ts-b.ts);
@@ -3001,16 +3152,101 @@ function _listenGlobalChat(){
   _chatListeners.push(unsub);
 }
 
-// ── Tambah satu item ke log ──
+// ── Tambah satu item ke log (bubble kiri/kanan + swipe reply) ──
 function _appendChatLogItem(entry, isGlobal){
   const log = document.getElementById('chat-log');
   if(!log) return;
-  const div = document.createElement('div');
-  div.className = 'chat-log-item' + (isGlobal?' global':'');
-  div.innerHTML = `<span class="clname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
-  log.appendChild(div);
-  // Batasi 40 item
-  while(log.children.length > 40) log.removeChild(log.firstChild);
+
+  const isMe = entry.uid && currentUser && entry.uid === currentUser.uid;
+  const row = document.createElement('div');
+  row.className = 'chat-row' + (isMe?' mine':' theirs') + (isGlobal?' global':'');
+  row.dataset.id   = entry.id  || '';
+  row.dataset.name = entry.name || '';
+  row.dataset.text = entry.text || '';
+
+  // Name label (sembunyikan untuk pesan sendiri)
+  if(!isMe){
+    const nameEl = document.createElement('div');
+    nameEl.className = 'chat-bubble-name';
+    nameEl.textContent = entry.name;
+    row.appendChild(nameEl);
+  }
+
+  // Reply preview jika ada
+  if(entry.replyTo){
+    const rp = document.createElement('div');
+    rp.className = 'chat-reply-preview';
+    rp.innerHTML = `<span class="rp-name">${_esc(entry.replyTo.name)}</span> ${_esc(entry.replyTo.text)}`;
+    row.appendChild(rp);
+  }
+
+  // Bubble teks
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.textContent = entry.text;
+  row.appendChild(bubble);
+
+  // Swipe kanan → reply (touch)
+  _attachSwipeReply(row);
+
+  log.appendChild(row);
+  while(log.children.length > 60) log.removeChild(log.firstChild);
+}
+
+// ── Swipe kanan untuk reply ──
+function _attachSwipeReply(row){
+  let startX=0, startY=0, swiping=false, triggered=false;
+
+  row.addEventListener('touchstart', e=>{
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    swiping = true; triggered = false;
+    row.style.transition = 'none';
+  }, {passive:true});
+
+  row.addEventListener('touchmove', e=>{
+    if(!swiping) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if(Math.abs(dy) > Math.abs(dx)){ swiping=false; return; }
+    if(dx > 0){
+      const move = Math.min(dx * 0.5, 55);
+      row.style.transform = `translateX(${move}px)`;
+      if(move >= 50 && !triggered){
+        triggered = true;
+        _triggerReply(row);
+      }
+    }
+  }, {passive:true});
+
+  row.addEventListener('touchend', ()=>{
+    swiping = false;
+    row.style.transition = 'transform .18s ease';
+    row.style.transform = 'translateX(0)';
+  });
+}
+
+// ── State reply ──
+let _chatReplyTo = null; // {id, name, text}
+
+function _triggerReply(row){
+  // Haptic feedback jika ada
+  if(navigator.vibrate) navigator.vibrate(30);
+  _chatReplyTo = {
+    id:   row.dataset.id,
+    name: row.dataset.name,
+    text: row.dataset.text
+  };
+  const bar = document.getElementById('chat-reply-bar');
+  document.getElementById('rb-name').textContent = _chatReplyTo.name + ':';
+  document.getElementById('rb-text').textContent = _chatReplyTo.text;
+  bar.classList.add('show');
+  document.getElementById('chat-input').focus();
+}
+
+function clearChatReply(){
+  _chatReplyTo = null;
+  document.getElementById('chat-reply-bar').classList.remove('show');
 }
 
 // ── Overlay bubble floating ──
@@ -3101,13 +3337,16 @@ function _animateEmoji(emoji, fromMe){
 
 // ── Draggable chatbar ──
 (function _makeChatbarDraggable(){
-  let dragging=false, startY=0, startBottom=0;
-  const bar = ()=>document.getElementById('chatbar');
+  let dragging=false, startY=0, startBottom=0, moved=false;
+  const getBar = ()=>document.getElementById('chatbar');
 
   function onStart(e){
-    const b = bar(); if(!b || b.style.display==='none') return;
+    const b = getBar();
+    if(!b || b.style.display==='none') return;
+    // Jangan drag kalau tap di toggle text atau emoji btn
+    if(e.target.closest('#chatbar-toggle') || e.target.closest('#chatbar-emoji-btns')) return;
     const t = e.touches ? e.touches[0] : e;
-    dragging = true;
+    dragging = true; moved = false;
     startY = t.clientY;
     const style = window.getComputedStyle(b);
     startBottom = parseInt(style.bottom)||0;
@@ -3120,27 +3359,30 @@ function _animateEmoji(emoji, fromMe){
 
   function onMove(e){
     if(!dragging) return;
-    e.preventDefault();
     const t = e.touches ? e.touches[0] : e;
     const dy = startY - t.clientY;
-    const newBottom = Math.max(0, Math.min(window.innerHeight*0.6, startBottom + dy));
-    const b = bar(); if(b) b.style.bottom = newBottom + 'px';
+    if(Math.abs(dy) > 4) moved = true;
+    if(!moved) return;
+    e.preventDefault();
+    const newBottom = Math.max(0, Math.min(window.innerHeight*0.65, startBottom + dy));
+    const b = getBar(); if(b) b.style.bottom = newBottom + 'px';
   }
 
   function onEnd(){
     dragging = false;
-    const b = bar(); if(b) b.classList.remove('dragging');
+    const b = getBar(); if(b) b.classList.remove('dragging');
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('mouseup', onEnd);
     document.removeEventListener('touchend', onEnd);
   }
 
+  // Drag hanya dari area header (tapi bukan di tombol)
   document.addEventListener('mousedown', e=>{
-    if(e.target.closest('#chatbar-header')) onStart(e);
+    if(e.target.closest('#chatbar-header') && !e.target.closest('button') && !e.target.closest('span')) onStart(e);
   });
   document.addEventListener('touchstart', e=>{
-    if(e.target.closest('#chatbar-header')) onStart(e);
+    if(e.target.closest('#chatbar-header') && !e.target.closest('button')) onStart(e);
   }, {passive:true});
 })();
 
@@ -3175,8 +3417,10 @@ function toggleLobbyChat(){
   }
 }
 
+let _lobbyReplyTo = null;
+
 function sendLobbyChat(){
-  if(!fbRtdb || !currentUser){ toast('❌ Login dulu untuk chat!'); return; }
+  if(!fbDb || !currentUser){ toast('❌ Login dulu untuk chat!'); return; }
   if(currentUser.isGuest){ toast('❌ Guest tidak bisa chat. Login akun dulu!'); return; }
   const inp = document.getElementById('lobby-chat-input');
   const text = (inp.value||'').trim().slice(0,80);
@@ -3186,9 +3430,61 @@ function sendLobbyChat(){
   const _expAt = new firebase.firestore.Timestamp(
     Math.floor((Date.now() + 10*60*1000) / 1000), 0
   );
-  fbDb.collection('global_chat').add({
-    name, text, ts: Date.now(), uid: currentUser.uid, expireAt: _expAt
-  }).catch(()=>{});
+  const msg = { name, text, ts: Date.now(), uid: currentUser.uid, expireAt: _expAt };
+  if(_lobbyReplyTo) msg.replyTo = { id: _lobbyReplyTo.id, name: _lobbyReplyTo.name, text: _lobbyReplyTo.text.slice(0,40) };
+  clearLobbyReply();
+  fbDb.collection('global_chat').add(msg).catch(()=>{});
+}
+
+function clearLobbyReply(){
+  _lobbyReplyTo = null;
+  document.getElementById('lobby-reply-bar').classList.remove('show');
+}
+
+function _appendLobbyChatBubble(entry){
+  const log = document.getElementById('lobby-chat-log');
+  if(!log) return;
+  const isMe = entry.uid && currentUser && entry.uid === currentUser.uid;
+
+  const row = document.createElement('div');
+  row.className = 'lchat-row' + (isMe?' mine':' theirs');
+  row.dataset.id   = entry.id   || '';
+  row.dataset.name = entry.name || '';
+  row.dataset.text = entry.text || '';
+
+  if(!isMe){
+    const nameEl = document.createElement('div');
+    nameEl.className = 'lchat-name';
+    nameEl.textContent = entry.name;
+    row.appendChild(nameEl);
+  }
+
+  if(entry.replyTo){
+    const rp = document.createElement('div');
+    rp.className = 'lchat-reply-preview';
+    rp.innerHTML = `<span class="rp-name">${_esc(entry.replyTo.name)}</span> ${_esc(entry.replyTo.text)}`;
+    row.appendChild(rp);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'lchat-bubble';
+  bubble.textContent = entry.text;
+  row.appendChild(bubble);
+
+  // Swipe reply
+  let sx=0, sy=0, sw=false, st=false;
+  row.addEventListener('touchstart', e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; sw=true; st=false; row.style.transition='none'; }, {passive:true});
+  row.addEventListener('touchmove', e=>{
+    if(!sw) return;
+    const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx)){sw=false;return;}
+    if(dx>0){ const mv=Math.min(dx*.5,55); row.style.transform=`translateX(${mv}px)`; if(mv>=50&&!st){st=true;if(navigator.vibrate)navigator.vibrate(30);_lobbyReplyTo={id:row.dataset.id,name:row.dataset.name,text:row.dataset.text};document.getElementById('lobby-rb-name').textContent=_lobbyReplyTo.name+':';document.getElementById('lobby-rb-text').textContent=_lobbyReplyTo.text;document.getElementById('lobby-reply-bar').classList.add('show');document.getElementById('lobby-chat-input').focus();} }
+  }, {passive:true});
+  row.addEventListener('touchend', ()=>{ sw=false; row.style.transition='transform .18s ease'; row.style.transform='translateX(0)'; });
+
+  log.appendChild(row);
+  while(log.children.length > 60) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
 }
 
 function _startLobbyChatListener(){
@@ -3204,19 +3500,11 @@ function _startLobbyChatListener(){
         if(change.type !== 'added') return;
         const m = change.doc.data();
         if(_lobbyChatCache.find(x=>x.id===change.doc.id)) return;
-        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0 };
+        const entry = { id: change.doc.id, name: m.name||'?', text: m.text||'', ts: m.ts||0, uid: m.uid||'', replyTo: m.replyTo||null };
         _lobbyChatCache.push(entry);
         _lobbyChatCache.sort((a,b)=>a.ts-b.ts);
         if(_lobbyChatCache.length > 60) _lobbyChatCache = _lobbyChatCache.slice(-50);
-        const log = document.getElementById('lobby-chat-log');
-        if(log){
-          const div = document.createElement('div');
-          div.className = 'lchat-item';
-          div.innerHTML = `<span class="lcname">${_esc(entry.name)}:</span> ${_esc(entry.text)}`;
-          log.appendChild(div);
-          while(log.children.length > 40) log.removeChild(log.firstChild);
-          log.scrollTop = log.scrollHeight;
-        }
+        _appendLobbyChatBubble(entry);
       });
     }, ()=>{});
   _lobbyChatListener = unsub;
@@ -3251,6 +3539,11 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
 <div id="lobby-chat-panel">
   <div class="lchat-title">🌐 Global Chat</div>
   <div id="lobby-chat-log"></div>
+  <div id="lobby-reply-bar">
+    <span class="rb-name" id="lobby-rb-name"></span>
+    <span class="rb-text" id="lobby-rb-text"></span>
+    <button id="lobby-reply-close" onclick="clearLobbyReply()">✕</button>
+  </div>
   <div class="chat-input-row">
     <input id="lobby-chat-input" type="text" maxlength="80" placeholder="Ketik pesan..." autocomplete="off"
       onkeydown="if(event.key==='Enter')sendLobbyChat()">
