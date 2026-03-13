@@ -1403,7 +1403,7 @@ if(typeof io === 'undefined'){
       <div class="pf-card">
         <div class="pf-section-lbl">➕ TAMBAH TEMAN</div>
         <div class="pf-add-friend-row">
-          <input class="pf-add-inp" id="pf-add-inp" placeholder="Masukkan ID teman..." maxlength="40">
+          <input class="pf-add-inp" id="pf-add-inp" placeholder="ID 6 digit angka teman..." maxlength="6" inputmode="numeric" pattern="[0-9]*">
           <button class="pf-add-go" onclick="pfAddFriend()">Tambah</button>
         </div>
       </div>
@@ -1771,13 +1771,24 @@ if(typeof io === 'undefined'){
     <div id="lob-slots" style="display:flex;flex-direction:column;gap:6px;width:100%;"></div>
   </div>
 
-  <!-- Invite Friends (hanya jika punya teman) -->
-  <div class="panel" id="lob-invite-panel" style="gap:8px;padding:10px 14px;display:none;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:.72em;color:rgba(255,215,0,.6);letter-spacing:1px;">📨 INVITE TEMAN</div>
-      <div id="lob-invite-sent-count" style="font-size:.68em;color:rgba(255,215,0,.45);"></div>
+  <!-- Invite Panel - selalu tampil -->
+  <div class="panel" style="gap:10px;padding:12px 16px;">
+    <div style="font-size:.72em;color:rgba(255,215,0,.6);letter-spacing:1px;margin-bottom:2px;">📨 INVITE TEMAN</div>
+
+    <!-- Share kode room -->
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div style="flex:1;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:9px 12px;font-family:'Cinzel',serif;font-size:1.1em;color:var(--gold);letter-spacing:4px;text-align:center;" id="lob-share-code">------</div>
+      <button onclick="lobCopyCode()" style="padding:9px 14px;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);color:var(--gold);border-radius:10px;font-size:.8em;font-weight:700;cursor:pointer;white-space:nowrap;">📋 Copy</button>
     </div>
-    <div id="lob-friend-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;"></div>
+
+    <!-- Friends section - hanya jika punya teman -->
+    <div id="lob-invite-panel" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 4px;">
+        <div style="font-size:.7em;color:#aaa;">Teman Online</div>
+        <div id="lob-invite-sent-count" style="font-size:.68em;color:rgba(255,215,0,.5);"></div>
+      </div>
+      <div id="lob-friend-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;"></div>
+    </div>
   </div>
 
   <button class="btn b-gold" id="btn-start" onclick="doStart()" style="display:none;margin:0 18px;">▶ MULAI GAME</button>
@@ -2832,6 +2843,7 @@ async function doCreateOnline(){
     document.getElementById('lob-status').textContent='Menunggu pemain lain...';
     document.getElementById('btn-start').style.display='none';
     go('s-lobby');
+    _lobSyncShareCode(rid);
     _listenLobbyOnline(rid);
   }catch(e){
     _rtdbRoom=null;_rtdbIsHost=false;
@@ -2866,6 +2878,7 @@ async function doJoinOnline(ridOverride){
   document.getElementById('btn-start').style.display='none';
   selNumOnline=info.numPlayers||2;
   go('s-lobby');
+  _lobSyncShareCode(rid);
   _listenLobbyOnline(rid);
   _listenStartOnline(rid,myIdx);
 }
@@ -3489,7 +3502,9 @@ async function onUserLoggedIn(user){
     } else {
       // Buat dokumen baru
       const uname = user.email?.split('@')[0] || 'player';
-      currentUserData = { uid: user.uid, name: user.displayName || uname, username: uname };
+      // Generate shortId 6 digit angka unik
+      const shortId = String(Math.floor(100000 + Math.random() * 900000));
+      currentUserData = { uid: user.uid, name: user.displayName || uname, username: uname, shortId };
       await ref.set(currentUserData).catch(()=>{});
     }
     // Isi input nama otomatis
@@ -4162,21 +4177,20 @@ function _esc(str){
 // ── Draggable 💬 Chat button ──
 // Klik 1x = buka/tutup chat | Tahan (long press) = drag
 (function _makeLobbyBtnDraggable(){
-  const LONG_PRESS_MS = 350; // durasi tahan sebelum drag aktif
-  const DRAG_THRESHOLD = 6;  // pixel minimal sebelum dianggap drag
+  const // Tap 1x = toggle chat, geser = drag (langsung tanpa long press)
+  const DRAG_THRESHOLD = 8;
 
-  let dragging = false;
-  let longPressTimer = null;
-  let dragReady = false; // true setelah long press terpenuhi
-  let moved = false;
-  let startX = 0, startY = 0, startRight = 0, startBottom = 0;
+  let _chatDragging = false;
+  let _chatMoved    = false;
+  let _chatStartX   = 0, _chatStartY   = 0;
+  let _chatStartR   = 0, _chatStartBot = 0;
 
   function getBtn(){ return document.getElementById('lobby-chat-btn'); }
   function getPanel(){ return document.getElementById('lobby-chat-panel'); }
 
   function _syncPanel(btn){
     const panel = getPanel();
-    if(!panel) return;
+    if(!panel || !panel.classList.contains('open')) return;
     const bRect = btn.getBoundingClientRect();
     const panelH = panel.offsetHeight || 220;
     const panelW = panel.offsetWidth  || 300;
@@ -4188,95 +4202,71 @@ function _esc(str){
     panel.style.right  = pRight  + 'px';
   }
 
-  function cancelLongPress(){
-    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
-    dragReady = false;
-  }
-
-  function onStart(e){
+  function _chatOnStart(e){
     const btn = getBtn(); if(!btn) return;
-    moved = false; dragging = false; dragReady = false;
+    _chatMoved = false; _chatDragging = false;
     const t = e.touches ? e.touches[0] : e;
-    startX = t.clientX; startY = t.clientY;
+    _chatStartX = t.clientX; _chatStartY = t.clientY;
     const style = window.getComputedStyle(btn);
-    startRight  = parseInt(style.right)  || 14;
-    startBottom = parseInt(style.bottom) || 14;
-
-    // Mulai timer long press
-    longPressTimer = setTimeout(()=>{
-      dragReady = true;
-      btn.classList.add('dragging');
-      if(navigator.vibrate) navigator.vibrate(40);
-    }, LONG_PRESS_MS);
-
-    document.addEventListener('mousemove', onMove, {passive:false});
-    document.addEventListener('touchmove', onMove, {passive:false});
-    document.addEventListener('mouseup',   onEnd);
-    document.addEventListener('touchend',  onEnd);
-    document.addEventListener('touchcancel', onEnd);
+    _chatStartR   = parseInt(style.right)  || 14;
+    _chatStartBot = parseInt(style.bottom) || 14;
+    document.addEventListener('mousemove', _chatOnMove, {passive:false});
+    document.addEventListener('touchmove', _chatOnMove, {passive:false});
+    document.addEventListener('mouseup',   _chatOnEnd);
+    document.addEventListener('touchend',  _chatOnEnd);
+    document.addEventListener('touchcancel', _chatOnEnd);
   }
 
-  function onMove(e){
+  function _chatOnMove(e){
     const t = e.touches ? e.touches[0] : e;
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-
-    // Jika belum long press tapi sudah gerak jauh → batalkan
-    if(!dragReady){
-      if(Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD){
-        cancelLongPress();
-      }
-      return;
+    const dx = t.clientX - _chatStartX;
+    const dy = t.clientY - _chatStartY;
+    if(!_chatMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)){
+      _chatMoved = true;
+      _chatDragging = true;
+      const btn = getBtn();
+      if(btn) btn.classList.add('dragging');
     }
-
-    // Drag aktif
-    if(Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) moved = true;
-    if(!moved) return;
+    if(!_chatDragging) return;
     e.preventDefault();
     const btn = getBtn(); if(!btn) return;
-    dragging = true;
-    const newRight  = Math.max(4, Math.min(window.innerWidth  - btn.offsetWidth  - 4, startRight  - dx));
-    const newBottom = Math.max(4, Math.min(window.innerHeight - btn.offsetHeight - 4, startBottom - dy));
+    const newRight  = Math.max(4, Math.min(window.innerWidth  - btn.offsetWidth  - 4, _chatStartR   - dx));
+    const newBottom = Math.max(4, Math.min(window.innerHeight - btn.offsetHeight - 4, _chatStartBot - dy));
     btn.style.right  = newRight  + 'px';
     btn.style.bottom = newBottom + 'px';
     _syncPanel(btn);
   }
 
-  function onEnd(){
+  function _chatOnEnd(){
     const btn = getBtn(); if(!btn) return;
     btn.classList.remove('dragging');
-    cancelLongPress();
+    document.removeEventListener('mousemove', _chatOnMove);
+    document.removeEventListener('touchmove', _chatOnMove);
+    document.removeEventListener('mouseup',   _chatOnEnd);
+    document.removeEventListener('touchend',  _chatOnEnd);
+    document.removeEventListener('touchcancel', _chatOnEnd);
 
-    if(!dragging && !moved){
+    if(!_chatDragging){
       // Tap biasa → toggle chat
       toggleLobbyChat();
-    }
-
-    // Snap ke tepi terdekat setelah drag
-    if(dragging && moved){
+    } else {
+      // Snap ke tepi terdekat
       const r = parseFloat(btn.style.right) || 14;
       const w = btn.offsetWidth;
       const mid = (window.innerWidth - w) / 2;
       const snapRight = r < mid ? 14 : window.innerWidth - w - 14;
-      btn.style.transition = 'right .2s ease, bottom .2s ease, box-shadow .15s, transform .1s';
+      btn.style.transition = 'right .2s ease, bottom .2s ease';
       btn.style.right = snapRight + 'px';
-      setTimeout(()=>{ btn.style.transition='box-shadow .15s, transform .1s'; _syncPanel(btn); }, 220);
+      setTimeout(()=>{ btn.style.transition=''; _syncPanel(btn); }, 220);
     }
-
-    dragging = false; moved = false; dragReady = false;
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('mouseup',   onEnd);
-    document.removeEventListener('touchend',  onEnd);
-    document.removeEventListener('touchcancel', onEnd);
+    _chatDragging = false; _chatMoved = false;
   }
 
-  // Pasang listener dengan capture agar tidak konflik dengan elemen lain
   document.addEventListener('mousedown', e=>{
-    if(e.target.closest('#lobby-chat-btn')){ e.preventDefault(); onStart(e); }
+    if(e.target.closest('#lobby-chat-btn')){ e.preventDefault(); _chatOnStart(e); }
   }, true);
   document.addEventListener('touchstart', e=>{
-    if(e.target.closest('#lobby-chat-btn')) onStart(e);
+    if(e.target.closest('#lobby-chat-btn')) _chatOnStart(e);
   }, {passive:true, capture:true});
 })();
 
@@ -4381,8 +4371,9 @@ async function pfLoadMyProfile(){
 
     // Nama
     document.getElementById('pf-name-display').textContent = d.name || '—';
-    // UID
-    document.getElementById('pf-uid-val').textContent = currentUser.uid;
+    // UID / shortId
+    const shortId = d.shortId || currentUser.uid.slice(0,8);
+    document.getElementById('pf-uid-val').textContent = shortId;
 
     // Stats
     const total = (d.wins||0) + (d.losses||0);
@@ -4499,14 +4490,13 @@ async function pfSaveName(){
 
 // ── Copy UID ──
 function pfCopyUid(){
-  const uid = currentUser?.uid || '';
-  if(!uid) return;
-  navigator.clipboard?.writeText(uid).then(()=> toast('ID disalin! 📋','ok')).catch(()=>{
-    // fallback
+  const shortId = currentUserData?.shortId || currentUser?.uid?.slice(0,8) || '';
+  if(!shortId) return;
+  navigator.clipboard?.writeText(shortId).then(()=> toast('ID '+shortId+' disalin! 📋','ok')).catch(()=>{
     const t = document.createElement('textarea');
-    t.value = uid; document.body.appendChild(t); t.select();
+    t.value = shortId; document.body.appendChild(t); t.select();
     document.execCommand('copy'); document.body.removeChild(t);
-    toast('ID disalin! 📋','ok');
+    toast('ID '+shortId+' disalin! 📋','ok');
   });
 }
 
@@ -4631,15 +4621,24 @@ function _pfBuildFriendRow(f){
 
 async function pfAddFriend(){
   const inp = document.getElementById('pf-add-inp');
-  const uid = inp.value.trim();
-  if(!uid){ toast('Masukkan ID teman!','warn'); return; }
+  const inputId = inp.value.trim();
+  if(!inputId){ toast('Masukkan ID teman!','warn'); return; }
   if(!currentUser||!fbDb){ toast('Login dulu!','warn'); return; }
-  if(uid === currentUser.uid){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+
+  // Cek apakah shortId sendiri
+  const myShortId = currentUserData?.shortId || '';
+  if(inputId === myShortId){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+
   try {
-    // Cek user exist
-    const snap = await fbDb.collection('users').doc(uid).get();
-    if(!snap.exists){ toast('❌ ID tidak ditemukan!'); return; }
+    // Cari user berdasarkan shortId
+    const q = await fbDb.collection('users').where('shortId','==',inputId).limit(1).get();
+    if(q.empty){ toast('❌ ID tidak ditemukan!'); return; }
+    const snap = q.docs[0];
+    const uid = snap.id;
     const d = snap.data();
+
+    if(uid === currentUser.uid){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+
     // Cek sudah teman?
     const fSnap = await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).get();
     if(fSnap.exists){ toast('Sudah jadi teman!','warn'); return; }
@@ -4705,7 +4704,7 @@ async function pfViewFriendProfile(uid){
     rb.textContent = rank.label; rb.className = 'pf-rank '+rank.cls;
     // Stats
     document.getElementById('pfm-name').textContent = d.name || '?';
-    document.getElementById('pfm-uid').textContent  = uid;
+    document.getElementById('pfm-uid').textContent  = d.shortId || uid.slice(0,8);
     const total = (d.wins||0)+(d.losses||0);
     const wr = total>0 ? Math.round((d.wins||0)/total*100) : 0;
     document.getElementById('pfm-s-total').textContent = total;
@@ -4716,11 +4715,14 @@ async function pfViewFriendProfile(uid){
 }
 
 function pfmCopyUid(){
-  const uid = _pfViewingUid||'';
-  if(!uid) return;
-  navigator.clipboard?.writeText(uid).then(()=>toast('ID disalin! 📋','ok')).catch(()=>{
-    const t=document.createElement('textarea');t.value=uid;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('ID disalin! 📋','ok');
-  });
+  if(!_pfViewingUid||!fbDb) return;
+  // Get shortId from Firestore for this friend
+  fbDb.collection('users').doc(_pfViewingUid).get().then(snap=>{
+    const sid = snap.exists ? (snap.data().shortId || _pfViewingUid.slice(0,8)) : _pfViewingUid.slice(0,8);
+    navigator.clipboard?.writeText(sid).then(()=>toast('ID '+sid+' disalin! 📋','ok')).catch(()=>{
+      const t=document.createElement('textarea');t.value=sid;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('ID '+sid+' disalin! 📋','ok');
+    });
+  }).catch(()=>{});
 }
 
 function pfmOpenPm(){
@@ -4946,7 +4948,12 @@ function lobCopyCode(){
   if(!code||code==='------') return;
   if(navigator.clipboard){ navigator.clipboard.writeText(code); }
   else { const t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
-  toast('Kode '+code+' disalin!','ok');
+  toast('Kode '+code+' disalin! 📋','ok');
+}
+
+function _lobSyncShareCode(code){
+  const el = document.getElementById('lob-share-code');
+  if(el && code) el.textContent = code;
 }
 
 // ── Leave lobby ─────────────────────────────────────────
@@ -5007,7 +5014,7 @@ function lobRenderSlots(players, numPlayers){
 
 // ── Load friend list for invite ──────────────────────────
 async function lobLoadFriendInvite(){
-  const panel = document.getElementById('lob-invite-panel');
+  const panel = document.getElementById('lob-invite-panel'); // inner friends section
   const list  = document.getElementById('lob-friend-list');
   if(!panel||!list||!currentUser||currentUser.isGuest||!fbDb) return;
 
@@ -5017,7 +5024,7 @@ async function lobLoadFriendInvite(){
   catch(e){ return; }
   if(snap.empty){ panel.style.display='none'; return; }
 
-  panel.style.display='';
+  panel.style.display='block';
   list.innerHTML='';
 
   // Cleanup old presence listeners
