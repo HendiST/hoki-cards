@@ -358,16 +358,19 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 @keyframes glow{from{text-shadow:0 0 4px #2ecc71;}to{text-shadow:0 0 16px #2ecc71;}}
 
 /* TABLE ZONE */
-.table-zone{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;}
+.table-zone{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:visible;min-height:0;}
 .oval{
   position:relative;
   width:min(90vw,440px);height:min(54vw,265px);
-  background:radial-gradient(ellipse at 50% 42%,var(--felt2) 0%,var(--felt) 65%,#064520 100%);
-  border-radius:50%;
-  border:10px solid var(--rail);
-  box-shadow:0 0 0 5px var(--rail2),0 10px 50px rgba(0,0,0,.85),inset 0 3px 20px rgba(0,0,0,.25);
+  background-image:url('/meja.png');
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  border-radius:0;
+  border:none;
+  box-shadow:none;
 }
-.oval::after{content:'';position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(255,255,255,.07);pointer-events:none;}
+.oval::after{display:none;}
+.dealer-img{position:absolute;top:-85px;left:50%;transform:translateX(-50%);width:min(22vw,110px);height:auto;filter:drop-shadow(0 4px 20px rgba(0,0,0,.95));z-index:25;pointer-events:none;}
 .tcards-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:78%;z-index:5;}
 .ttype-lbl{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:.68em;color:var(--gold);letter-spacing:2px;white-space:nowrap;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:5px;z-index:5;}
 .phase-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:2px 10px;border-radius:5px;font-weight:700;display:none;}
@@ -2711,6 +2714,7 @@ function _onFbScript(ok){
 
   <div class="table-zone">
     <div class="oval" id="oval">
+      <img src="/wanita.png" alt="Dealer" class="dealer-img" />
       <div class="phase-lbl" id="g-phase"></div>
       <div class="tcards-wrap" id="g-tcards">
         <span style="color:rgba(255,255,255,.2);font-size:.78em;">Meja kosong</span>
