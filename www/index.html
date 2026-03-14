@@ -2003,7 +2003,7 @@ function _onFbScript(ok){
 
   <div class="menu-content">
     <div class="menu-logo-wrap">
-      <div class="menu-logo">CAPSA</div>
+      <div class="menu-logo" id="menu-logo-tap">CAPSA</div>
       <div class="menu-tagline">BIG TWO · KARTU SERU</div>
     </div>
     <div class="menu-suits">♠ ♥ ♦ ♣</div>
@@ -8335,6 +8335,54 @@ if(typeof go==='function' && !go._ownerPatched){
       setTimeout(_forceButtons,2000);
     };
     onUserLoggedIn._fbPatched=true;
+  }
+})();
+
+// ══ EASTER EGG: Tap logo CAPSA 7× untuk aktifkan panel Owner ══
+(function(){
+  var _tapCount = 0, _tapTimer = null;
+  function _onLogoTap(){
+    _tapCount++;
+    clearTimeout(_tapTimer);
+    _tapTimer = setTimeout(function(){ _tapCount = 0; }, 1800);
+    if(_tapCount >= 7){
+      _tapCount = 0;
+      clearTimeout(_tapTimer);
+      // Belum login / guest
+      if(typeof currentUser === 'undefined' || !currentUser || currentUser.isGuest){
+        if(typeof toast === 'function') toast('Login dulu untuk aktifkan panel owner!', 'warn');
+        return;
+      }
+      // Sudah ada sebagai owner
+      if(typeof _isOwner === 'function' && _isOwner()){
+        if(typeof toast === 'function') toast('✅ Panel owner sudah aktif!', 'ok');
+        if(typeof _updateSecretButtons === 'function') _updateSecretButtons();
+        return;
+      }
+      // Konfirmasi aktifkan
+      if(confirm('🔑 Aktifkan panel owner untuk akun ini?\nUID: ' + (currentUser.uid||'?'))){
+        if(typeof _addMeAsOwner === 'function'){
+          _addMeAsOwner().then(function(){
+            if(typeof _updateSecretButtons === 'function') _updateSecretButtons();
+          }).catch(function(e){ if(typeof toast==='function') toast('Gagal: '+e.message,'warn'); });
+        }
+      }
+    }
+  }
+  // Pasang listener setelah DOM siap
+  var _logoEl = document.getElementById('menu-logo-tap');
+  if(_logoEl){
+    _logoEl.addEventListener('click', _onLogoTap);
+    _logoEl.addEventListener('touchend', function(e){ e.preventDefault(); _onLogoTap(); }, {passive:false});
+  } else {
+    // Fallback: cari saat DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function(){
+      var el = document.getElementById('menu-logo-tap');
+      if(el){
+        el.addEventListener('click', _onLogoTap);
+        el.addEventListener('touchend', function(e){ e.preventDefault(); _onLogoTap(); }, {passive:false});
+      }
+    });
   }
 })();
 </script>
