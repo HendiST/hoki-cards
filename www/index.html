@@ -379,7 +379,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   box-shadow:none;
 }
 .oval::after{display:none;}
-.dealer-img{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:min(26vw,130px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,1));z-index:22;pointer-events:none;}
+.dealer-img{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-50%);width:min(26vw,130px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,1));z-index:22;pointer-events:none;}
 .tcards-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:78%;z-index:5;}
 .ttype-lbl{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:.68em;color:var(--gold);letter-spacing:2px;white-space:nowrap;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:5px;z-index:5;}
 .phase-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:2px 10px;border-radius:5px;font-weight:700;display:none;z-index:30;}
@@ -3418,9 +3418,9 @@ const AV=['😎','🧑','👦','👩','🧔','👱','🧑‍🦱','👩‍🦰']
 const VO=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SO=['S','H','D','C'];
 const SPOS={
-  2:[[20,118],[96,50]],
-  3:[[20,118],[4,50],[96,50]],
-  4:[[20,118],[4,50],[96,50],[80,118]]
+  2:[[20,100],[96,50]],
+  3:[[20,100],[4,50],[96,50]],
+  4:[[20,100],[4,50],[96,50],[80,100]]
 };
 
 let sock=null,myIdx=null,myRoom=null,isHost=false;
