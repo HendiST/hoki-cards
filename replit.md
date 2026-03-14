@@ -46,7 +46,10 @@ The app runs with `node server.js`. No build step required.
 ## Sound Effects & Animations
 
 - Sound effects via Web Audio API (no external files): deal, place, pass, turn, win, lose, click
-- Card deal animation: kartu terbang 1-per-1 dari tengah meja ke posisi pemain saat game dimulai
+- **Suara baru**: sfxDeckAppear (deck muncul), sfxRiffleWave (riffle shuffle), sfxSquareUp (rapikan deck), sfxCardStack (kartu ditumpuk)
+- **Shuffle animation**: deck muncul → split jadi 2 → 2x riffle 3D → square up → fade out (±3.6 detik)
+- **Enhanced deal animation**: kartu terbang 3D dengan rotateX/Y + perspective 900px + box-shadow depth
+- **Urutan**: shuffle dulu sebelum deal, setiap game dimulai
 
 ## Deployment / GitHub
 
