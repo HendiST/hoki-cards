@@ -1006,6 +1006,13 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .toast.on{opacity:1;}
 
 @keyframes dealIn{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes tableCardIn{from{transform:translateY(-28px) scale(0.7);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+@keyframes winPop{0%{transform:scale(0) rotate(-10deg);opacity:0;}60%{transform:scale(1.12) rotate(3deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes bombShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px) rotate(-4deg);}40%{transform:translateX(8px) rotate(4deg);}60%{transform:translateX(-6px) rotate(-2deg);}80%{transform:translateX(6px) rotate(2deg);}}
+.tcard-anim{animation:tableCardIn .32s cubic-bezier(.22,1,.36,1) both;}
+.win-pop-anim{animation:winPop .45s cubic-bezier(.22,1,.36,1) both;}
+.bomb-shake{animation:bombShake .5s ease;}
+
 @keyframes floatCard{0%{transform:rotate(var(--r,5deg)) translateY(0) scale(var(--s,1));}100%{transform:rotate(calc(var(--r,5deg) + 8deg)) translateY(-20px) scale(var(--s,1));}}
 
 /* ══════════════════════════════════════════════
@@ -3475,19 +3482,33 @@ function renderGame(st,firstDeal=false){
 
   if(hasReal){
     // Kartu asli di meja (ronde normal)
-    st.table_cards.forEach(c => tc.appendChild(makeCardEl(c, true)));
+    st.table_cards.forEach((c,i) => {
+      const el = makeCardEl(c, true);
+      el.style.animationDelay = (i*0.06)+'s';
+      el.classList.add('tcard-anim');
+      tc.appendChild(el);
+    });
+    const isBombPlay = ['bomb4','jqka','straight5plus'].includes(st.table_type);
+    if(isBombPlay) { setTimeout(()=>tc.classList.add('bomb-shake'),80); setTimeout(()=>tc.classList.remove('bomb-shake'),600); }
     document.getElementById('g-ttype').textContent = st.table_type ? (TL[st.table_type]||st.table_type) : '';
   } else if(hasDecoy){
     // Kartu 3 pengecoh (ronde normal, giliran tetap pemain yg sama)
-    st.decoy_cards.forEach(c => {
+    st.decoy_cards.forEach((c,i) => {
       const el = makeCardEl(c, true);
       el.style.outline = '2px dashed #FFD700';
+      el.style.animationDelay = (i*0.06)+'s';
+      el.classList.add('tcard-anim');
       tc.appendChild(el);
     });
     document.getElementById('g-ttype').textContent = '🎭 Pengecoh — main lagi!';
   } else if(hasOpening){
     // Kartu 3 yang dibuang di ronde pembukaan
-    st.opening_table.forEach(c => tc.appendChild(makeCardEl(c, true)));
+    st.opening_table.forEach((c,i) => {
+      const el = makeCardEl(c, true);
+      el.style.animationDelay = (i*0.06)+'s';
+      el.classList.add('tcard-anim');
+      tc.appendChild(el);
+    });
     document.getElementById('g-ttype').textContent = '🃏 Ronde Pembukaan';
   } else {
     tc.innerHTML = '<span style="color:rgba(255,255,255,.18);font-size:.76em;">Meja kosong</span>';
@@ -3536,7 +3557,7 @@ function renderHand(cards,animate=false){
   cards.forEach((c,i)=>{
     const isSel=selCards.some(s=>s.suit===c.suit&&s.value===c.value);
     const isReord=reorderIdx===i;
-    const el=makeCardEl(c,false,isSel,animate?i*0.055:0);
+    const el=makeCardEl(c,false,isSel,animate?i*0.055+0.04:0);
     if(isReord) el.classList.add('reorder-active');
 
     // ── TAP VS SCROLL DETECTION ──
@@ -3645,17 +3666,23 @@ function reorderMove(dir){
 function showOver(st){
   const ul=document.getElementById('rank-list');ul.innerHTML='';
   const names=st.player_names||{};
+  const myRank=(st.rankings||[]).indexOf(typeof myIdx!=='undefined'?myIdx:-1);
   (st.rankings||[]).forEach((pi,i)=>{
     const li=document.createElement('li');li.className=i===0?'r1':'';
+    li.style.animation=`dealIn .4s ${i*0.1}s both`;
     li.textContent=`${['🥇','🥈','🥉'][i]||'🏅'} Juara ${i+1}: ${names[pi]||'P'+(pi+1)}`;
     ul.appendChild(li);
   });
-  (st.active_players||[]).forEach(pi=>{
+  (st.active_players||[]).forEach((pi,i)=>{
     const li=document.createElement('li');li.className='rlose';
+    li.style.animation=`dealIn .4s ${((st.rankings||[]).length+i)*0.1}s both`;
     li.textContent=`❌ Kalah: ${names[pi]||'P'+(pi+1)}`;
     ul.appendChild(li);
   });
-  document.getElementById('modal-over').classList.add('on');
+  const modal=document.getElementById('modal-over');
+  modal.classList.add('on');
+  const box=modal.querySelector('.over-box,.modal-box,div');
+  if(box){ box.style.animation=''; void box.offsetWidth; box.style.animation='winPop .45s cubic-bezier(.22,1,.36,1) both'; }
   // ── Simpan statistik & riwayat match ──
   if(typeof pfSaveMatchResult === 'function') pfSaveMatchResult(st);
 }
@@ -4784,10 +4811,10 @@ const firebaseConfig = {
   appId: "1:916488822071:web:873cb7995c71ecbf35ceb2",
 };
 
-let fbApp, fbAuth, fbDb, fbRtdb;
-let currentUser = null;
-let currentUserData = null;
-let _authMode = 'login';
+var fbApp, fbAuth, fbDb, fbRtdb;
+var currentUser = null;
+var currentUserData = null;
+var _authMode = 'login';
 
 // ── Deteksi offline / Firebase gagal load ──
 function _isOfflineMode(){
@@ -8867,9 +8894,9 @@ if(typeof renderGame==='function' && !renderGame._animPatched){
   var _animOrigRender = renderGame;
   renderGame = function(st, firstDeal){
     _animOrigRender(st, firstDeal);
-    if(firstDeal && st && st.hands){
-      var numP  = st.hands.length;
-      var cards = (st.hands[0]||[]).length || 13;
+    if(firstDeal && st && st.hand && st.hand.length > 0){
+      var numP  = st.num_players || (st.hand_counts ? st.hand_counts.length : 2);
+      var cards = st.hand.length || 13;
       setTimeout(function(){ playDealAnimation(numP, cards, null); }, 200);
     }
   };
