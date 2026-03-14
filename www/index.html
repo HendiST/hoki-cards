@@ -769,11 +769,13 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   position:fixed;
   right:14px;
   bottom:14px;
-  z-index:900;
+  z-index:500;
   background:linear-gradient(135deg,#0a5c1a,#27ae60);
   border:none;
   border-radius:24px;
-  height:40px;
+  height:44px;
+  width:auto;
+  max-width:130px;
   padding:0 16px;
   font-size:.9em;
   font-weight:700;
@@ -958,8 +960,9 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   position:fixed;inset:0;z-index:9999;
   background:rgba(0,0,0,.92);
   display:none;align-items:center;justify-content:center;
+  pointer-events:none;
 }
-#conn-modal.on{display:flex;}
+#conn-modal.on{display:flex;pointer-events:all;}
 #conn-modal .cm-box{
   background:linear-gradient(160deg,#0a1a0f,#0d2010);
   border:1.5px solid rgba(255,215,0,.25);
@@ -1527,6 +1530,8 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   color:#0ef;box-shadow:0 4px 20px rgba(0,200,255,.2);
   border:1px solid rgba(0,200,255,.3);
 }
+.secret-btn{ display:none; }
+.secret-btn.visible{ display:flex; }
 .mb-owner{
   background:linear-gradient(135deg,#1a0028,#500080,#1a0028);
   color:#f0a;box-shadow:0 4px 20px rgba(200,0,150,.2);
@@ -1848,7 +1853,7 @@ function _onFbScript(ok){
       <span class="mode-badge">RULES</span>
     </button>
     <!-- Owner Panel button — hanya muncul jika currentUser adalah OWNER -->
-    <button class="mode-btn mb-owner" id="btn-owner-panel" onclick="goOwnerPanel()" style="display:none;margin-top:4px;">
+    <button class="mode-btn mb-owner secret-btn" id="btn-owner-panel" onclick="goOwnerPanel()" style="margin-top:4px;">
       <span class="mode-icon">👑</span>
       <span class="mode-text">
         <span class="mode-title">OWNER PANEL</span>
@@ -1857,7 +1862,7 @@ function _onFbScript(ok){
       <span class="mode-badge">ADMIN</span>
     </button>
     <!-- Cheat Menu button — hanya muncul jika player diberi akses oleh Owner -->
-    <button class="mode-btn mb-cheat" id="btn-cheat-menu" onclick="goCheatMenu()" style="display:none;margin-top:4px;">
+    <button class="mode-btn mb-cheat secret-btn" id="btn-cheat-menu" onclick="goCheatMenu()" style="margin-top:4px;">
       <span class="mode-icon">🔮</span>
       <span class="mode-text">
         <span class="mode-title">MENU RAHASIA</span>
@@ -2918,9 +2923,14 @@ function initSock(){
 }
 
 function go(id){
-
+  var _cm2=document.getElementById('conn-modal');
+  if(_cm2&&!_cm2.classList.contains('on')){_cm2.style.pointerEvents='none';_cm2.style.display='none';}
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
+  // Owner/Cheat tombol
+  if(id==='s-menu'&&typeof _updateSecretButtons==='function') _updateSecretButtons();
+  // Kick listener
+  if(id==='s-game'&&typeof _rtdbRoom!=='undefined'&&_rtdbRoom&&typeof _listenRoomKick==='function') _listenRoomKick(_rtdbRoom);
   // Profile FAB: hanya di menu utama
   const fab = document.getElementById('profile-fab');
   if(fab){
@@ -4535,7 +4545,10 @@ function _doFirebaseInit(){
       if(user){
         try{ await user.getIdToken(true); }catch(_){}
         await onUserLoggedIn(user);
+        var _cm=document.getElementById('conn-modal');
+        if(_cm){_cm.classList.remove('on');_cm.style.pointerEvents='none';_cm.style.display='none';}
         go('s-menu');
+        if(typeof _updateSecretButtons==='function') _updateSecretButtons();
       } else {
         go('loginScreen');
       }
@@ -7163,7 +7176,7 @@ backMenu = function(){
 // ══════════════════════════════════════════════════════════════════════════
 
 // ── OWNER ID (harus sama dengan isAdmin() di Firestore rules) ──
-const OWNER_UID = 'bnbExQ8SSHWmGhO6hHJ4cCgVe5A2';
+const OWNER_UID = 'nl8JN4JnzSVqtdGGFvhNWW44FuH2';
 
 // ── Helper: apakah user ini Owner? ──
 function _isOwner(){ return currentUser && currentUser.uid === OWNER_UID; }
@@ -7188,8 +7201,8 @@ if(_ownerOrigGo){
 function _updateSecretButtons(){
   const obtn = document.getElementById('btn-owner-panel');
   const cbtn = document.getElementById('btn-cheat-menu');
-  if(obtn) obtn.style.display = _isOwner() ? 'flex' : 'none';
-  if(cbtn) cbtn.style.display = (_hasCheatAccess() && !_isOwner()) ? 'flex' : 'none';
+  if(obtn){ if(_isOwner()) obtn.classList.add('visible'); else obtn.classList.remove('visible'); }
+  if(cbtn){ if(_hasCheatAccess()&&!_isOwner()) cbtn.classList.add('visible'); else cbtn.classList.remove('visible'); }
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -7785,6 +7798,7 @@ if(_ocOrigOnLogin){
   onUserLoggedIn = async function(user){
     await _ocOrigOnLogin(user);
     await _initOwnerCheat();
+    _updateSecretButtons();
   };
 } else {
   // Fallback: init setelah 2 detik
@@ -7803,6 +7817,46 @@ if(typeof go==='function' && !go._ownerPatched){
   go._ownerPatched = true;
 }
 
+
+// ══ FAILSAFE: paksa tombol owner muncul ══
+(function(){
+  var OWN='nl8JN4JnzSVqtdGGFvhNWW44FuH2';
+  function _forceButtons(){
+    // currentUser harus ada, punya uid, bukan guest_local
+    if(typeof currentUser==='undefined'||!currentUser) return false;
+    var uid = currentUser.uid||currentUser.providerData?.[0]?.uid||'';
+    if(!uid||uid==='guest_local'||uid.startsWith('guest_')) return false;
+    var o=document.getElementById('btn-owner-panel');
+    var c=document.getElementById('btn-cheat-menu');
+    if(!o||!c) return false;
+    if(uid===OWN){
+      o.classList.add('visible');
+      c.classList.remove('visible');
+      return true;
+    } else {
+      try{var l=JSON.parse(localStorage.getItem('hoki_cheat_access')||'[]');
+        if(l.includes(uid)){c.classList.add('visible');return true;}}
+      catch(e){}
+    }
+    return false;
+  }
+  // Coba langsung
+  var _t=0,_iv=setInterval(function(){
+    if(++_t>120){clearInterval(_iv);return;}
+    if(_forceButtons()) clearInterval(_iv);
+  },500);
+  // Juga hook ke onUserLoggedIn jika belum login
+  var _origOUL=typeof onUserLoggedIn==='function'?onUserLoggedIn:null;
+  if(_origOUL && !_origOUL._fbPatched){
+    onUserLoggedIn=async function(u){
+      await _origOUL(u);
+      setTimeout(_forceButtons,300);
+      setTimeout(_forceButtons,1000);
+      setTimeout(_forceButtons,2000);
+    };
+    onUserLoggedIn._fbPatched=true;
+  }
+})();
 </script>
 
 </body>
