@@ -382,7 +382,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .dealer-img{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-72%);width:min(26vw,130px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,1));z-index:22;pointer-events:none;}
 .tcards-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:78%;z-index:5;}
 .ttype-lbl{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:.68em;color:var(--gold);letter-spacing:2px;white-space:nowrap;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:5px;z-index:5;}
-.phase-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:2px 10px;border-radius:5px;font-weight:700;display:none;z-index:30;}
+.phase-lbl{display:none;text-align:center;font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:3px 12px;border-radius:5px;font-weight:700;margin-bottom:4px;}
 
 /* SEATS */
 .seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;z-index:20;pointer-events:none;}
@@ -2721,10 +2721,10 @@ function _onFbScript(ok){
   <div id="turn-timer-bar"><div id="turn-timer-fill"></div></div>
   <div id="turn-timer-label"></div>
 
+  <div class="phase-lbl" id="g-phase"></div>
   <div class="table-zone">
     <div class="oval" id="oval">
       <img src="/wanita.png" alt="Dealer" class="dealer-img" />
-      <div class="phase-lbl" id="g-phase"></div>
       <div class="tcards-wrap" id="g-tcards">
         <span style="color:rgba(255,255,255,.2);font-size:.78em;">Meja kosong</span>
       </div>
@@ -3418,8 +3418,8 @@ const AV=['😎','🧑','👦','👩','🧔','👱','🧑‍🦱','👩‍🦰']
 const VO=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SO=['S','H','D','C'];
 const SPOS={
-  2:[[20,100],[96,50]],
-  3:[[20,100],[4,50],[96,50]],
+  2:[[50,100],[96,50]],
+  3:[[50,100],[4,50],[96,50]],
   4:[[20,100],[4,50],[96,50],[80,100]]
 };
 
@@ -3578,6 +3578,15 @@ function go(id){
   if(_cm2&&!_cm2.classList.contains('on')){_cm2.style.pointerEvents='none';_cm2.style.display='none';}
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
+  // Bersihkan animasi pembagian kartu saat keluar dari game
+  if(id!=='s-game'){
+    var _ov=document.getElementById('deal-anim-overlay');
+    if(_ov&&_ov.parentNode) _ov.parentNode.removeChild(_ov);
+    var _sov=document.getElementById('shuffle-anim-overlay');
+    if(_sov&&_sov.parentNode) _sov.parentNode.removeChild(_sov);
+    if(typeof _dealAnimRunning!=='undefined') _dealAnimRunning=false;
+    if(typeof _shuffleRunning!=='undefined') _shuffleRunning=false;
+  }
   // Owner/Cheat tombol
   if(id==='s-menu'&&typeof _updateSecretButtons==='function') _updateSecretButtons();
   // Kick listener
@@ -9994,6 +10003,7 @@ function playShuffleAnimation(onDone){
 
   // ── Overlay gelap ──
   var ov=document.createElement('div');
+  ov.id='shuffle-anim-overlay';
   ov.style.cssText=[
     'position:fixed','inset:0','z-index:10000',
     'background:rgba(0,0,0,.6)',
