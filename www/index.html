@@ -1840,6 +1840,62 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.3);
   border-radius:10px;padding:8px 14px;font-size:.85em;color:#a8f0ff;font-weight:700;text-align:center;
 }
+
+/* ── FITUR 2: Turn Timer Bar ── */
+#turn-timer-bar{height:4px;background:rgba(255,255,255,.08);overflow:hidden;margin:0;}
+#turn-timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#00ff88,#ffcc00,#ff4444);border-radius:2px;}
+#turn-timer-label{text-align:center;font-size:.6em;color:rgba(255,255,255,.35);letter-spacing:1px;height:14px;line-height:14px;}
+
+/* ── FITUR 3: Combo Preview ── */
+#combo-preview{text-align:center;font-size:.8em;font-weight:800;color:#0ef;letter-spacing:.5px;min-height:1.3em;padding:2px 0 3px;text-shadow:0 0 8px rgba(0,230,255,.5);}
+
+/* ── FITUR 5: Server Stats ── */
+#op-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.op-stat-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px;text-align:center;}
+.op-stat-val{font-size:1.4em;font-weight:900;color:#0ef;}
+.op-stat-lbl{font-size:.65em;color:rgba(255,255,255,.45);letter-spacing:.5px;}
+
+/* ── FITUR 7: Speed Bot Slider ── */
+.cheat-slider-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px;}
+.cheat-slider-row input[type=range]{flex:1;accent-color:#0ef;}
+.cheat-speed-label{font-size:.72em;color:#0ef;min-width:36px;text-align:right;font-weight:800;}
+
+/* ── FITUR 10: Achievement Modal ── */
+#achievement-modal{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;}
+#achievement-modal.on{display:flex;}
+.ach-box{background:linear-gradient(160deg,#0d1a0d,#0a1020);border:1px solid rgba(0,230,255,.3);border-radius:18px;padding:20px;width:min(92%,340px);max-height:80vh;overflow-y:auto;}
+.ach-title{font-size:1em;font-weight:900;letter-spacing:2px;color:#ffd700;text-align:center;margin-bottom:14px;}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ach-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 8px;text-align:center;opacity:.35;}
+.ach-item.unlocked{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.08);opacity:1;}
+.ach-icon{font-size:1.6em;margin-bottom:4px;}
+.ach-name{font-size:.7em;font-weight:800;color:rgba(255,255,255,.9);}
+.ach-desc{font-size:.6em;color:rgba(255,255,255,.4);margin-top:2px;}
+#ach-close-btn{margin-top:14px;width:100%;background:rgba(0,200,255,.15);border:1px solid rgba(0,200,255,.3);color:#0ef;border-radius:10px;padding:9px;font-family:'Rajdhani',sans-serif;font-size:.85em;font-weight:700;cursor:pointer;}
+#ach-popup{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,#1a1000,#3a2a00);border:2px solid #ffd700;border-radius:14px;padding:10px 18px;display:flex;align-items:center;gap:10px;z-index:9999;opacity:0;transition:all .4s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;white-space:nowrap;}
+#ach-popup.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.ach-popup-icon{font-size:1.5em;}
+.ach-popup-text{font-size:.78em;font-weight:700;}
+.ach-popup-name{color:#ffd700;font-size:1em;}
+
+/* ── FITUR 11: Card Back Preview ── */
+.cardback-preview{width:36px;height:50px;border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:1.1em;border:1.5px solid rgba(255,255,255,.2);}
+.cb-classic{background:#f0f0f0;border-color:#999;color:#333;}
+.cb-blue{background:linear-gradient(135deg,#001a3a,#0044a0);border-color:#0088ff;color:#4af;}
+.cb-red{background:linear-gradient(135deg,#2a0000,#7a0000);border-color:#ff3333;color:#f88;}
+.cb-dark{background:linear-gradient(135deg,#111,#222);border-color:#555;color:#666;}
+
+/* ── FITUR 12: Table Theme Preview + App ── */
+.theme-preview-box{width:60px;height:38px;border-radius:8px;margin:0 auto 4px;border:2px solid rgba(255,255,255,.2);}
+.table-theme-classic{background:linear-gradient(135deg,#0a3a14,#1a6030);}
+.table-theme-ocean{background:linear-gradient(135deg,#001a3a,#004466);}
+.table-theme-purple{background:linear-gradient(135deg,#1a001f,#3a005a);}
+.table-theme-red{background:linear-gradient(135deg,#2a0000,#6a0000);}
+.table-theme-gold{background:linear-gradient(135deg,#1a1000,#3a2a00);}
+.ttheme-ocean #oval{background:radial-gradient(ellipse at center,#003366 0%,#001a33 70%) !important;border-color:rgba(0,150,255,.3) !important;}
+.ttheme-purple #oval{background:radial-gradient(ellipse at center,#2a0040 0%,#150020 70%) !important;border-color:rgba(180,0,255,.3) !important;}
+.ttheme-red #oval{background:radial-gradient(ellipse at center,#4a0000 0%,#250000 70%) !important;border-color:rgba(255,0,0,.3) !important;}
+.ttheme-gold #oval{background:radial-gradient(ellipse at center,#2a2000 0%,#151000 70%) !important;border-color:rgba(255,215,0,.3) !important;}
 </style>
 <script>
 window.onerror=function(m,s,l,c,e){
@@ -2097,6 +2153,14 @@ function _onFbScript(ok){
         <span class="mode-desc">Fitur khusus tersembunyi</span>
       </span>
       <span class="mode-badge">SECRET</span>
+    </button>
+    <!-- Achievement button — tampil kalau sudah login -->
+    <button class="mode-btn" id="btn-achievement" onclick="_showAchievements()" style="margin-top:4px;display:none;">
+      <span class="mode-icon">🏅</span>
+      <span class="mode-text">
+        <span class="mode-title">ACHIEVEMENT</span>
+        <span class="mode-desc">Koleksi pencapaian kamu</span>
+      </span>
     </button>
   </div>
 </div>
@@ -2634,6 +2698,8 @@ function _onFbScript(ok){
     <div style="font-size:.7em;color:rgba(255,215,0,.55);" id="g-room"></div>
     <button onclick="confirmExit()" style="background:rgba(200,50,50,.25);border:1px solid rgba(255,80,80,.35);color:#ff8888;border-radius:8px;padding:5px 10px;font-size:.72em;font-weight:700;cursor:pointer;letter-spacing:.5px;">✕ Keluar</button>
   </div>
+  <div id="turn-timer-bar"><div id="turn-timer-fill"></div></div>
+  <div id="turn-timer-label"></div>
 
   <div class="table-zone">
     <div class="oval" id="oval">
@@ -2701,6 +2767,7 @@ function _onFbScript(ok){
   </div>
 
   <div class="actbar">
+    <div id="combo-preview"></div>
     <button class="btn b-green" id="btn-play" onclick="doPlay()">▶ MAIN</button>
     <button class="btn b-orange" id="btn-skip" onclick="doSkip()">⏭ SKIP</button>
   </div>
@@ -2759,9 +2826,11 @@ function _onFbScript(ok){
     <div class="shop-title">🛍️ TOKO</div>
     <div class="shop-bal"><span>💎</span><span id="shop-bal-val">0</span></div>
   </div>
-  <div class="shop-tabs">
-    <button class="shop-tab on" id="stab-skin" onclick="shopTab('skin')">🃏 Skin Kartu</button>
-    <button class="shop-tab" id="stab-frame" onclick="shopTab('frame')">🖼️ Avatar Frame</button>
+  <div class="shop-tabs" style="flex-wrap:wrap;">
+    <button class="shop-tab on" id="stab-skin" onclick="shopTab('skin')">🃏 Skin</button>
+    <button class="shop-tab" id="stab-frame" onclick="shopTab('frame')">🖼️ Frame</button>
+    <button class="shop-tab" id="stab-cardback" onclick="shopTab('cardback')">🂠 Belakang</button>
+    <button class="shop-tab" id="stab-table" onclick="shopTab('table')">🎨 Meja</button>
   </div>
   <!-- Skin Kartu -->
   <div class="shop-grid" id="shop-grid-skin">
@@ -2841,6 +2910,139 @@ function _onFbScript(ok){
       </div>
     </div>
   </div>
+
+  <!-- Card Back Skin -->
+  <div class="shop-grid" id="shop-grid-cardback" style="display:none;">
+    <div class="shop-item owned equipped" id="cbitem-classic">
+      <div class="equip-sticker" id="cbeq-classic" style="display:block;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-classic">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Classic White</div>
+        <div class="shop-item-desc">Belakang kartu putih bersih standar.</div>
+      </div>
+      <div class="shop-item-action">
+        <span class="shop-badge-free">GRATIS</span>
+        <button class="shop-btn shop-btn-equipped" id="cbbtn-classic" onclick="shopEquipCardBack('classic')">✓ Aktif</button>
+      </div>
+    </div>
+    <div class="shop-item" id="cbitem-blue">
+      <div class="equip-sticker" id="cbeq-blue" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-blue">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Blue Royal</div>
+        <div class="shop-item-desc">Belakang kartu biru mewah bergaya kerajaan.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 80</div>
+        <button class="shop-btn shop-btn-buy" id="cbbtn-blue" onclick="shopBuyCardBack('blue',80)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="cbitem-red">
+      <div class="equip-sticker" id="cbeq-red" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-red">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Red Classic</div>
+        <div class="shop-item-desc">Merah elegan, tampilan tradisional kartu remi.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 80</div>
+        <button class="shop-btn shop-btn-buy" id="cbbtn-red" onclick="shopBuyCardBack('red',80)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="cbitem-dark">
+      <div class="equip-sticker" id="cbeq-dark" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-dark">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Dark Minimal</div>
+        <div class="shop-item-desc">Hitam minimalis untuk tampilan yang dingin.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 80</div>
+        <button class="shop-btn shop-btn-buy" id="cbbtn-dark" onclick="shopBuyCardBack('dark',80)">Beli</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Theme -->
+  <div class="shop-grid" id="shop-grid-table" style="display:none;">
+    <div class="shop-item owned equipped" id="ttitem-classic">
+      <div class="equip-sticker" id="tteq-classic" style="display:block;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="theme-preview-box table-theme-classic"></div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Classic Hijau</div>
+        <div class="shop-item-desc">Meja hijau standar. Selalu tersedia gratis.</div>
+      </div>
+      <div class="shop-item-action">
+        <span class="shop-badge-free">GRATIS</span>
+        <button class="shop-btn shop-btn-equipped" id="ttbtn-classic" onclick="shopEquipTableTheme('classic')">✓ Aktif</button>
+      </div>
+    </div>
+    <div class="shop-item" id="ttitem-ocean">
+      <div class="equip-sticker" id="tteq-ocean" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="theme-preview-box table-theme-ocean"></div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Ocean Biru</div>
+        <div class="shop-item-desc">Meja biru laut yang menenangkan dan elegan.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 150</div>
+        <button class="shop-btn shop-btn-buy" id="ttbtn-ocean" onclick="shopBuyTableTheme('ocean',150)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="ttitem-purple">
+      <div class="equip-sticker" id="tteq-purple" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="theme-preview-box table-theme-purple"></div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Purple Malam</div>
+        <div class="shop-item-desc">Ungu gelap bertema malam yang misterius.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 150</div>
+        <button class="shop-btn shop-btn-buy" id="ttbtn-purple" onclick="shopBuyTableTheme('purple',150)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="ttitem-red">
+      <div class="equip-sticker" id="tteq-red" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="theme-preview-box table-theme-red"></div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Red Velvet</div>
+        <div class="shop-item-desc">Merah intens bak kain velvet casino premium.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 200</div>
+        <button class="shop-btn shop-btn-buy" id="ttbtn-red" onclick="shopBuyTableTheme('red',200)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="ttitem-gold">
+      <div class="equip-sticker" id="tteq-gold" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="theme-preview-box table-theme-gold"></div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Gold Premium</div>
+        <div class="shop-item-desc">Emas gelap mewah, eksklusif untuk pemain VIP.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 250</div>
+        <button class="shop-btn shop-btn-buy" id="ttbtn-gold" onclick="shopBuyTableTheme('gold',250)">Beli</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Achievement button in menu — inject via JS -->
+
+<!-- Achievement Modal -->
+<div id="achievement-modal">
+  <div class="ach-box">
+    <div class="ach-title">🏅 ACHIEVEMENT</div>
+    <div class="ach-grid" id="ach-grid"></div>
+    <button id="ach-close-btn" onclick="document.getElementById('achievement-modal').classList.remove('on')">Tutup</button>
+  </div>
+</div>
+
+<!-- Achievement Popup Toast -->
+<div id="ach-popup">
+  <div class="ach-popup-icon">🏆</div>
+  <div class="ach-popup-text">Achievement: <span class="ach-popup-name"></span></div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -2896,6 +3098,15 @@ function _onFbScript(ok){
       <div class="op-card-title green">👁️ LIVE MATCH MONITOR</div>
       <button class="op-btn op-btn-green op-btn-sm" onclick="opRefreshMatches()" style="margin-bottom:8px;">🔄 Refresh</button>
       <div class="op-list" id="op-match-list" style="max-height:260px;">
+        <div style="font-size:.75em;color:rgba(255,255,255,.3);padding:6px 0;">Klik Refresh…</div>
+      </div>
+    </div>
+
+    <!-- Server Stats -->
+    <div class="op-card">
+      <div class="op-card-title blue">📊 STATISTIK SERVER</div>
+      <button class="op-btn op-btn-blue op-btn-sm" onclick="opRefreshStats()" style="margin-bottom:8px;">🔄 Refresh Stats</button>
+      <div id="op-stats-grid">
         <div style="font-size:.75em;color:rgba(255,255,255,.3);padding:6px 0;">Klik Refresh…</div>
       </div>
     </div>
@@ -3058,6 +3269,32 @@ function _onFbScript(ok){
         <button class="op-btn op-btn-blue op-btn-sm" onclick="cheatForceCard()">⚡ Force</button>
       </div>
       <div id="cheat-forced-list" style="font-size:.72em;color:#0ef;margin-top:4px;"></div>
+    </div>
+
+    <!-- Speed Bot -->
+    <div class="cheat-card">
+      <div class="cheat-card-title">🚀 SPEED BOT</div>
+      <div style="font-size:.75em;color:rgba(255,255,255,.45);margin-bottom:8px;">Atur kecepatan bot lawan bermain</div>
+      <div class="cheat-slider-row">
+        <span style="font-size:.72em;color:rgba(255,255,255,.5);">Lambat</span>
+        <input type="range" id="cheat-bot-speed" min="0.3" max="5" step="0.1" value="1" oninput="cheatUpdateBotSpeedLabel(this.value);cheatSave()">
+        <span style="font-size:.72em;color:rgba(255,255,255,.5);">Cepat</span>
+        <span class="cheat-speed-label" id="cheat-speed-lbl">1×</span>
+      </div>
+      <div style="font-size:.68em;color:rgba(0,230,255,.4);">5× = sangat cepat · 0.3× = sangat lambat</div>
+    </div>
+
+    <!-- Infinite Time -->
+    <div class="cheat-card">
+      <div class="cheat-card-title">♾️ INFINITE TIME</div>
+      <div class="op-toggle-row">
+        <span class="op-toggle-lbl">Timer giliran tidak pernah habis</span>
+        <label class="op-toggle">
+          <input type="checkbox" id="cheat-infinite-time" onchange="cheatSave()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="font-size:.7em;color:rgba(0,230,255,.4);margin-top:4px;">Aktifkan agar tidak pernah auto-skip</div>
     </div>
 
   </div>
@@ -7640,8 +7877,17 @@ if(_ownerOrigGo){
 function _updateSecretButtons(){
   const obtn = document.getElementById('btn-owner-panel');
   const cbtn = document.getElementById('btn-cheat-menu');
+  const abtn = document.getElementById('btn-achievement');
   if(obtn){ if(_isOwner()) obtn.classList.add('visible'); else obtn.classList.remove('visible'); }
   if(cbtn){ if(_hasCheatAccess()) cbtn.classList.add('visible'); else cbtn.classList.remove('visible'); }
+  if(abtn){ abtn.style.display = (typeof firebase!=='undefined'&&firebase.auth&&firebase.auth().currentUser)?'flex':'none'; }
+}
+
+function cheatUpdateBotSpeedLabel(){
+  var sl = document.getElementById('cheat-bot-speed-slider');
+  var lb = document.getElementById('cheat-bot-speed-label');
+  if(!sl||!lb) return;
+  lb.textContent = sl.value + 'x';
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -7972,10 +8218,13 @@ function cheatSave(){
 }
 
 function _cheatApplyUI(){
-  const set = id => { const el=document.getElementById(id); if(el)el.checked=_cheatState[id.replace('cheat-','')||false]; };
   const f = (id,key) => { const el=document.getElementById(id); if(el)el.checked=!!_cheatState[key]; };
   f('cheat-scanner','scanner'); f('cheat-suggest','suggest'); f('cheat-goodcards','goodcards');
   f('cheat-autowin','autowin'); f('cheat-antiloss','antiloss'); f('cheat-seeall','seeall');
+  var iftime = document.getElementById('cheat-infinite-time');
+  if(iftime) iftime.checked = !!_cheatState.infiniteTime;
+  var sl = document.getElementById('cheat-bot-speed-slider');
+  if(sl){ sl.value = _cheatState.botSpeed||1; cheatUpdateBotSpeedLabel(); }
   _cheatRenderForcedList();
 }
 
@@ -8536,10 +8785,18 @@ function shopTab(tab){
   var gf=document.getElementById('shop-grid-frame');
   var ts=document.getElementById('stab-skin');
   var tf=document.getElementById('stab-frame');
+  var tcb=document.getElementById('stab-cardback');
+  var ttt=document.getElementById('stab-table');
+  var gcb=document.getElementById('shop-grid-cardback');
+  var gtt=document.getElementById('shop-grid-table');
   if(ts) ts.classList.toggle('on',tab==='skin');
   if(tf) tf.classList.toggle('on',tab==='frame');
+  if(tcb) tcb.classList.toggle('on',tab==='cardback');
+  if(ttt) ttt.classList.toggle('on',tab==='table');
   if(gs) gs.style.display=tab==='skin'?'flex':'none';
   if(gf) gf.style.display=tab==='frame'?'flex':'none';
+  if(gcb) gcb.style.display=tab==='cardback'?'flex':'none';
+  if(gtt) gtt.style.display=tab==='table'?'flex':'none';
 }
 window.shopTab = shopTab;
 
@@ -9025,6 +9282,569 @@ if(typeof renderGame==='function' && !renderGame._animPatched){
 }
 
 })(); // end IIFE sound + animation
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 1: ANIMASI KARTU DIMAINKAN (fly from hand to table)
+// ══════════════════════════════════════════════════════════════════════
+function _animateCardsToTable(callback){
+  const handArea = document.getElementById('g-hand');
+  const tableArea = document.getElementById('g-tcards');
+  if(!handArea || !tableArea){ if(callback) callback(); return; }
+
+  const selectedEls = handArea.querySelectorAll('.card.selected');
+  if(!selectedEls.length){ if(callback) callback(); return; }
+
+  const tableRect = tableArea.getBoundingClientRect();
+  const destX = tableRect.left + tableRect.width/2;
+  const destY = tableRect.top + tableRect.height/2;
+
+  let done = 0;
+  selectedEls.forEach(el=>{
+    const r = el.getBoundingClientRect();
+    const dx = destX - (r.left + r.width/2);
+    const dy = destY - (r.top + r.height/2);
+    el.style.transition = 'transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+    el.style.transformOrigin = 'center center';
+    el.style.transform = `translate(${dx}px,${dy}px) scale(0.7)`;
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+    el.style.zIndex = '200';
+    done++;
+    if(done===selectedEls.length){
+      setTimeout(()=>{ if(callback) callback(); }, 310);
+    }
+  });
+  if(!selectedEls.length && callback) callback();
+}
+
+// Patch doPlay untuk animasi
+const _origDoPlayAnim = (typeof doPlay==='function') ? doPlay : null;
+if(_origDoPlayAnim && !_origDoPlayAnim._animPatched2){
+  doPlay = function(){
+    if(!selCards.length){ _origDoPlayAnim(); return; }
+    _animateCardsToTable(()=> _origDoPlayAnim());
+  };
+  doPlay._animPatched2 = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 2: TURN TIMER (countdown bar + auto pass)
+// ══════════════════════════════════════════════════════════════════════
+let _turnTimerInterval = null;
+let _turnTimerSec = 0;
+const TURN_TIMER_DURATION = 30;
+
+function _startTurnTimer(){
+  _stopTurnTimer();
+  if(_cheatState.infiniteTime) return;
+  _turnTimerSec = TURN_TIMER_DURATION;
+  const fill = document.getElementById('turn-timer-fill');
+  const lbl  = document.getElementById('turn-timer-label');
+  if(!fill) return;
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  if(lbl) lbl.textContent = TURN_TIMER_DURATION+'s';
+  setTimeout(()=>{
+    fill.style.transition = `width ${TURN_TIMER_DURATION}s linear`;
+    fill.style.width = '0%';
+  }, 50);
+
+  _turnTimerInterval = setInterval(()=>{
+    _turnTimerSec--;
+    if(lbl) lbl.textContent = Math.max(0,_turnTimerSec)+'s';
+    if(_turnTimerSec <= 0){
+      _stopTurnTimer();
+      if(curSt && curSt.current_player===myIdx){
+        toast('⏰ Waktu habis! Auto skip...','warn');
+        doSkip();
+      }
+    }
+  }, 1000);
+}
+
+function _stopTurnTimer(){
+  if(_turnTimerInterval){ clearInterval(_turnTimerInterval); _turnTimerInterval=null; }
+  const fill = document.getElementById('turn-timer-fill');
+  const lbl  = document.getElementById('turn-timer-label');
+  if(fill){ fill.style.transition='none'; fill.style.width='100%'; }
+  if(lbl) lbl.textContent = '';
+}
+
+// Patch renderGame untuk timer
+const _origRenderGameTimer = (typeof renderGame==='function') ? renderGame : null;
+if(_origRenderGameTimer && !_origRenderGameTimer._timerPatched){
+  renderGame = function(st, firstDeal=false){
+    _origRenderGameTimer(st, firstDeal);
+    const isMy = st && st.current_player===myIdx;
+    const amAct = st && (st.active_players||[]).includes(myIdx);
+    const isOp = st && st.phase==='opening';
+    const myActed = isOp && st.opening_done && st.opening_done.includes(myIdx);
+    if(isMy && amAct && !myActed && !firstDeal) _startTurnTimer();
+    else _stopTurnTimer();
+  };
+  renderGame._timerPatched = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 3: COMBO PREVIEW
+// ══════════════════════════════════════════════════════════════════════
+const COMBO_NAMES = {
+  single:'Single',double:'Double',triple:'Triple',
+  straight3:'Straight Flush 3',straight4:'Straight Flush 4 🛑',
+  straight5plus:'Straight Flush 5+ 💣',
+  bomb4:'Bom 4x 💣',jqka:'Bom J-Q-K-A 💣'
+};
+
+function _getComboPreview(cards){
+  if(!cards||!cards.length) return '';
+  const n = cards.length;
+  const vals = cards.map(c=>c.value);
+  const suits = cards.map(c=>c.suit);
+  const allSameSuit = new Set(suits).size===1;
+  const valCounts = {};
+  vals.forEach(v=>{ valCounts[v]=(valCounts[v]||0)+1; });
+  const counts = Object.values(valCounts).sort((a,b)=>b-a);
+
+  if(n===1) return '🎴 Single';
+  if(n===2 && counts[0]===2) return '🃏 Double (Pair)';
+  if(n===3 && counts[0]===3) return '🃏 Triple';
+  if(n===4 && counts[0]===4) return '💣 Bom 4x';
+  if(n===4 && allSameSuit){
+    const vs=vals.map(v=>['J','Q','K','A'].indexOf(v)).sort((a,b)=>a-b);
+    if(vs.join(',')=='0,1,2,3') return '💣 Bom J-Q-K-A';
+  }
+  if(n>=3 && allSameSuit){
+    const ordered = vals.map(v=>['3','4','5','6','7','8','9','10','J','Q','K','A','2'].indexOf(v)).sort((a,b)=>a-b);
+    let isSeq=true;
+    for(let i=1;i<ordered.length;i++) if(ordered[i]!==ordered[i-1]+1){isSeq=false;break;}
+    if(isSeq){
+      if(n===3) return '🔥 Straight Flush 3';
+      if(n===4) return '🔥 Straight Flush 4 🛑';
+      return '💣 Straight Flush '+n+'+';
+    }
+  }
+  return n+' kartu dipilih';
+}
+
+function updateComboPreview(){
+  const el = document.getElementById('combo-preview');
+  if(!el) return;
+  if(!selCards||!selCards.length){ el.textContent=''; return; }
+  el.textContent = _getComboPreview(selCards);
+}
+
+// Patch handleCardTap untuk combo preview
+const _origHandleCardTap = (typeof handleCardTap==='function') ? handleCardTap : null;
+if(_origHandleCardTap && !_origHandleCardTap._comboPreviewed){
+  handleCardTap = function(el,card,idx){
+    _origHandleCardTap(el,card,idx);
+    updateComboPreview();
+  };
+  handleCardTap._comboPreviewed = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 5: STATISTIK SERVER (Owner Panel)
+// ══════════════════════════════════════════════════════════════════════
+async function opRefreshStats(){
+  const el = document.getElementById('op-stats-grid');
+  if(!el) return;
+  el.innerHTML = '<div style="color:rgba(255,255,255,.4);font-size:.75em;padding:4px;">Memuat...</div>';
+
+  let activeRooms=0, activePlayers=0, totalUsers='?';
+  try {
+    if(fbRtdb){
+      const snap = await fbRtdb.ref('rooms').get();
+      const rooms = snap.val()||{};
+      Object.values(rooms).forEach(r=>{
+        if(r && r.info){
+          activeRooms++;
+          activePlayers += Object.keys(r.info.players||{}).length;
+        }
+      });
+    }
+    if(fbDb){
+      const snaps = await fbDb.collection('users').get();
+      totalUsers = snaps.size;
+    }
+  } catch(e){ console.warn('[opStats]',e); }
+
+  el.innerHTML =
+    '<div class="op-stat-box"><div class="op-stat-val">'+activeRooms+'</div><div class="op-stat-lbl">Room Aktif</div></div>'+
+    '<div class="op-stat-box"><div class="op-stat-val">'+activePlayers+'</div><div class="op-stat-lbl">Player Online</div></div>'+
+    '<div class="op-stat-box"><div class="op-stat-val">'+totalUsers+'</div><div class="op-stat-lbl">Total User</div></div>'+
+    '<div class="op-stat-box"><div class="op-stat-val">'+(typeof sock!=='undefined'&&sock?'🟢':'🔴')+'</div><div class="op-stat-lbl">Socket Server</div></div>';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 7: SPEED BOT
+// ══════════════════════════════════════════════════════════════════════
+// Patch _botLoop untuk speed multiplier
+const _origBotLoopSpeed = (typeof _botLoop==='function') ? _botLoop : null;
+if(_origBotLoopSpeed){
+  const _patchedBotLoop = function(){
+    clearTimeout(_botTimer);
+    if(!_botGame||_botGame.gameOver)return;
+    const gs=_botGame;
+    const speedMult = _cheatState.botSpeed||1;
+
+    if(gs.phase==='opening'){
+      const pendingBots=gs.activePlayers.filter(p=>p!==0&&!gs.openingDone.has(p));
+      if(!pendingBots.length){if(!gs.openingDone.has(0))return;return;}
+      const baseDelay=_botDiff==='hard'?600:1100;
+      const delay=Math.round(baseDelay/speedMult);
+      _botTimer=setTimeout(()=>{
+        if(!_botGame||_botGame.gameOver)return;
+        const botsLeft=gs.activePlayers.filter(p=>p!==0&&!gs.openingDone.has(p));
+        if(!botsLeft.length){_botBroadcast();_patchedBotLoop();return;}
+        const pidx=botsLeft[0];
+        const hand=gs.hands[pidx];
+        const threes=hand.filter(c=>c.value==='3');
+        if(pidx===gs.openerIdx){const t3s=threes.find(c=>c.suit==='S');gs.playOpening(pidx,t3s?[t3s]:[]);}
+        else gs.playOpening(pidx,threes.length&&Math.random()>0.4?[threes[0]]:[]);
+        _botBroadcast();_patchedBotLoop();
+      },delay);
+      return;
+    }
+    const cp=gs.currentPlayer;
+    if(cp===0)return;
+    const baseDelay=_botDiff==='hard'?700:1300;
+    const delay=Math.round(baseDelay/speedMult);
+    _botTimer=setTimeout(()=>{
+      if(!_botGame||_botGame.gameOver||_botGame.currentPlayer===0)return;
+      const pidx=gs.currentPlayer;
+      const hand=gs.hands[pidx];const non3=hand.filter(c=>c.value!=='3');
+      let played=false;
+      if(gs.tableCards.length){
+        if(gs.tableType==='single'){
+          const cands=non3.filter(c=>_canBeat([c],gs.tableCards,gs.tableType)).sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);
+          if(cands.length){const[ok]=gs.playCards(pidx,[cands[0]]);if(ok)played=true;}
+        }
+        if(!played)gs.skipTurn(pidx);
+      } else {
+        if(non3.length){const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];const[ok]=gs.playCards(pidx,[c]);if(ok)played=true;}
+        if(!played&&hand.length)gs.skipTurn(pidx);
+      }
+      _botBroadcast();_patchedBotLoop();
+    },delay);
+  };
+  // Override _botLoop
+  window._botLoop = _patchedBotLoop;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 10: ACHIEVEMENT / BADGE
+// ══════════════════════════════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  {id:'first_win',   icon:'🏆', name:'Kemenangan Pertama', desc:'Menang game pertamamu'},
+  {id:'win3',        icon:'🔥', name:'Streak 3',          desc:'Menang 3x berturut-turut'},
+  {id:'win10',       icon:'⭐', name:'Veteran',            desc:'Menang 10x total'},
+  {id:'no_skip',     icon:'🎯', name:'Perfect Play',       desc:'Menang tanpa pernah skip'},
+  {id:'bomb_play',   icon:'💣', name:'Bomber',             desc:'Main kartu bom dalam game'},
+  {id:'win_fast',    icon:'⚡', name:'Kilat',              desc:'Menang dengan sisa 5 kartu'},
+  {id:'daily7',      icon:'📅', name:'Loyal Harian',      desc:'Login streak 7 hari'},
+  {id:'first_buy',   icon:'💎', name:'Pertama Beli',       desc:'Beli item pertama di toko'},
+];
+
+function _showAchievements(){
+  const modal = document.getElementById('achievement-modal');
+  if(!modal) return;
+  const grid = document.getElementById('ach-grid');
+  if(!grid) return;
+  const d = window.currentUserData||{};
+  const unlocked = d.achievements||[];
+  grid.innerHTML = '';
+  ACHIEVEMENTS.forEach(a=>{
+    const isUnlocked = unlocked.includes(a.id);
+    const div = document.createElement('div');
+    div.className = 'ach-item'+(isUnlocked?' unlocked':'');
+    div.innerHTML = '<div class="ach-icon">'+a.icon+'</div><div class="ach-name">'+a.name+'</div><div class="ach-desc">'+a.desc+'</div>';
+    grid.appendChild(div);
+  });
+  modal.classList.add('on');
+}
+window._showAchievements = _showAchievements;
+
+async function _unlockAchievement(id){
+  const d = window.currentUserData||{};
+  const unlocked = d.achievements||[];
+  if(unlocked.includes(id)) return;
+  unlocked.push(id);
+  if(window.currentUserData) window.currentUserData.achievements = unlocked;
+  if(window.fbDb && window.currentUser && !window.currentUser.isGuest){
+    window.fbDb.collection('users').doc(window.currentUser.uid)
+      .update({achievements: firebase.firestore.FieldValue.arrayUnion(id)}).catch(()=>{});
+  }
+  const ach = ACHIEVEMENTS.find(a=>a.id===id);
+  if(ach) _showAchPopup(ach);
+}
+
+function _showAchPopup(ach){
+  const pop = document.getElementById('ach-popup');
+  if(!pop) return;
+  pop.querySelector('.ach-popup-icon').textContent = ach.icon;
+  pop.querySelector('.ach-popup-name').textContent = ach.name;
+  pop.classList.add('on');
+  setTimeout(()=>pop.classList.remove('on'), 3500);
+}
+
+function _checkAchievementsAfterGame(st){
+  if(!st || !window.currentUser || window.currentUser.isGuest) return;
+  const me = typeof myIdx!=='undefined'?myIdx:0;
+  const rank = (st.rankings||[]).indexOf(me);
+  if(rank!==0) return; // only check on win
+  const d = window.currentUserData||{};
+  const wins = (d.totalWins||0)+1;
+  if(window.currentUserData) window.currentUserData.totalWins = wins;
+  if(window.fbDb && window.currentUser){
+    window.fbDb.collection('users').doc(window.currentUser.uid)
+      .update({totalWins: firebase.firestore.FieldValue.increment(1)}).catch(()=>{});
+  }
+  if(wins===1) _unlockAchievement('first_win');
+  if(wins>=10) _unlockAchievement('win10');
+  const streak = (d.winStreak||0)+1;
+  if(window.currentUserData) window.currentUserData.winStreak=streak;
+  if(window.fbDb && window.currentUser){
+    window.fbDb.collection('users').doc(window.currentUser.uid)
+      .update({winStreak: firebase.firestore.FieldValue.increment(1)}).catch(()=>{});
+  }
+  if(streak>=3) _unlockAchievement('win3');
+  const loginStreak = d.loginStreak||0;
+  if(loginStreak>=7) _unlockAchievement('daily7');
+}
+
+// Patch showOver to check achievements
+const _origShowOverAch = (typeof showOver==='function') ? showOver : null;
+if(_origShowOverAch && !_origShowOverAch._achPatched){
+  showOver = function(st){
+    _origShowOverAch(st);
+    setTimeout(()=>_checkAchievementsAfterGame(st), 1000);
+  };
+  showOver._achPatched = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 11: CARD BACK SKIN
+// ══════════════════════════════════════════════════════════════════════
+function _applyCardBackSkin(){
+  const skin = (window.currentUserData&&window.currentUserData.cardBackSkin) ||
+    (function(){ try{ return localStorage.getItem('hoki_cardback_skin')||'classic'; }catch(_){ return 'classic'; }}());
+  document.querySelectorAll('.card:not(.tcard)').forEach(el=>{
+    el.classList.remove('cb-skin-blue','cb-skin-red','cb-skin-dark');
+    if(skin==='blue') el.classList.add('cb-skin-blue');
+    if(skin==='red')  el.classList.add('cb-skin-red');
+    if(skin==='dark') el.classList.add('cb-skin-dark');
+  });
+}
+
+async function shopEquipCardBack(id){
+  if(!window.currentUser||!window.fbDb) return;
+  const d = window.currentUserData||{};
+  if(id!=='classic' && !(d.ownedCardBacks||['classic']).includes(id)){
+    toast('Beli dulu item ini!','warn'); return;
+  }
+  try {
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({cardBackSkin:id});
+    if(window.currentUserData) window.currentUserData.cardBackSkin=id;
+    try{ localStorage.setItem('hoki_cardback_skin',id); }catch(_){}
+    _shopRenderCardBacks();
+    toast('🎴 Card back "'+id+'" diaktifkan!','ok');
+  } catch(e){ toast('Gagal equip','warn'); }
+}
+window.shopEquipCardBack = shopEquipCardBack;
+
+function shopBuyCardBack(id, price){
+  const d = window.currentUserData||{};
+  if((d.ownedCardBacks||['classic']).includes(id)){ shopEquipCardBack(id); return; }
+  _shopPending={type:'cardback',id,price};
+  const names={blue:'Blue Royal',red:'Red Classic',dark:'Dark Minimal'};
+  const t=document.getElementById('sc-title'); if(t) t.textContent='Beli '+names[id]+'?';
+  const de=document.getElementById('sc-desc'); if(de) de.textContent='Card back '+names[id]+' untuk kartu di tanganmu.';
+  const p=document.getElementById('sc-price'); if(p) p.textContent='💎 '+price;
+  const m=document.getElementById('shop-confirm-modal'); if(m) m.classList.add('on');
+}
+window.shopBuyCardBack = shopBuyCardBack;
+
+function _shopRenderCardBacks(){
+  const d = window.currentUserData||{};
+  const ownedCB = d.ownedCardBacks||['classic'];
+  const curCB   = d.cardBackSkin||'classic';
+  ['classic','blue','red','dark'].forEach(id=>{
+    const owned = ownedCB.includes(id)||id==='classic';
+    const equipped = curCB===id;
+    const btn = document.getElementById('cbbtn-'+id);
+    const seq = document.getElementById('cbeq-'+id);
+    const item= document.getElementById('cbitem-'+id);
+    if(!btn) return;
+    if(item){ item.classList.toggle('owned',owned); item.classList.toggle('equipped',equipped); }
+    if(seq) seq.style.display=equipped?'block':'none';
+    if(equipped){ btn.className='shop-btn shop-btn-equipped'; btn.textContent='✓ Aktif'; }
+    else if(owned){ btn.className='shop-btn shop-btn-equip'; btn.textContent='Pakai'; btn.onclick=()=>shopEquipCardBack(id); }
+    else { btn.className='shop-btn shop-btn-buy'; btn.textContent='Beli'; }
+  });
+}
+
+// Patch shopConfirmBuy for cardback
+const _origShopConfirmBuyCB = (typeof shopConfirmBuy==='function') ? shopConfirmBuy : null;
+if(_origShopConfirmBuyCB && !_origShopConfirmBuyCB._cbPatched){
+  shopConfirmBuy = async function(){
+    if(_shopPending && _shopPending.type==='cardback'){
+      const m=document.getElementById('shop-confirm-modal'); if(m) m.classList.remove('on');
+      const {id,price}=_shopPending; _shopPending=null;
+      const bal=(window.currentUserData&&window.currentUserData.diamonds)||0;
+      if(bal<price){ toast('💎 Diamond tidak cukup!','warn'); return; }
+      try {
+        const inc=firebase.firestore.FieldValue.increment;
+        const arr=firebase.firestore.FieldValue.arrayUnion;
+        await window.fbDb.collection('users').doc(window.currentUser.uid)
+          .update({diamonds:inc(-price),ownedCardBacks:arr(id),cardBackSkin:id});
+        if(window.currentUserData){
+          window.currentUserData.diamonds=bal-price;
+          window.currentUserData.ownedCardBacks=[...(window.currentUserData.ownedCardBacks||['classic']),id];
+          window.currentUserData.cardBackSkin=id;
+        }
+        try{ localStorage.setItem('hoki_cardback_skin',id); }catch(_){}
+        _updateDiamondHUD();
+        _shopRenderCardBacks();
+        _unlockAchievement('first_buy');
+        toast('✅ Berhasil dibeli!','ok');
+      } catch(e){ toast('Gagal beli','warn'); }
+      return;
+    }
+    if(_shopPending && (_shopPending.type==='table_theme')){
+      const m=document.getElementById('shop-confirm-modal'); if(m) m.classList.remove('on');
+      const {id,price}=_shopPending; _shopPending=null;
+      const bal=(window.currentUserData&&window.currentUserData.diamonds)||0;
+      if(bal<price){ toast('💎 Diamond tidak cukup!','warn'); return; }
+      try {
+        const inc=firebase.firestore.FieldValue.increment;
+        const arr=firebase.firestore.FieldValue.arrayUnion;
+        await window.fbDb.collection('users').doc(window.currentUser.uid)
+          .update({diamonds:inc(-price),ownedTableThemes:arr(id),tableTheme:id});
+        if(window.currentUserData){
+          window.currentUserData.diamonds=bal-price;
+          window.currentUserData.ownedTableThemes=[...(window.currentUserData.ownedTableThemes||['classic']),id];
+          window.currentUserData.tableTheme=id;
+        }
+        try{ localStorage.setItem('hoki_table_theme',id); }catch(_){}
+        _updateDiamondHUD();
+        _shopRenderTableThemes();
+        _applyTableTheme(id);
+        _unlockAchievement('first_buy');
+        toast('✅ Berhasil dibeli!','ok');
+      } catch(e){ toast('Gagal beli','warn'); }
+      return;
+    }
+    _origShopConfirmBuyCB();
+  };
+  shopConfirmBuy._cbPatched = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 12: TABLE THEME
+// ══════════════════════════════════════════════════════════════════════
+const TABLE_THEMES = {
+  classic: 'Classic Hijau',
+  ocean:   'Ocean Biru',
+  purple:  'Purple Malam',
+  red:     'Red Velvet',
+  gold:    'Gold Premium',
+};
+
+function _applyTableTheme(id){
+  const body = document.body;
+  body.classList.remove('ttheme-classic','ttheme-ocean','ttheme-purple','ttheme-red','ttheme-gold');
+  if(id && id!=='classic') body.classList.add('ttheme-'+id);
+}
+
+async function shopEquipTableTheme(id){
+  if(!window.currentUser||!window.fbDb) return;
+  const d = window.currentUserData||{};
+  if(id!=='classic' && !(d.ownedTableThemes||['classic']).includes(id)){
+    toast('Beli dulu!','warn'); return;
+  }
+  try {
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({tableTheme:id});
+    if(window.currentUserData) window.currentUserData.tableTheme=id;
+    try{ localStorage.setItem('hoki_table_theme',id); }catch(_){}
+    _shopRenderTableThemes();
+    _applyTableTheme(id);
+    toast('🎨 Tema meja "'+TABLE_THEMES[id]+'" diaktifkan!','ok');
+  } catch(e){ toast('Gagal equip','warn'); }
+}
+window.shopEquipTableTheme = shopEquipTableTheme;
+
+function shopBuyTableTheme(id, price){
+  const d = window.currentUserData||{};
+  if((d.ownedTableThemes||['classic']).includes(id)){ shopEquipTableTheme(id); return; }
+  _shopPending={type:'table_theme',id,price};
+  const t=document.getElementById('sc-title'); if(t) t.textContent='Beli Tema '+TABLE_THEMES[id]+'?';
+  const de=document.getElementById('sc-desc'); if(de) de.textContent='Ubah tampilan meja permainan.';
+  const p=document.getElementById('sc-price'); if(p) p.textContent='💎 '+price;
+  const m=document.getElementById('shop-confirm-modal'); if(m) m.classList.add('on');
+}
+window.shopBuyTableTheme = shopBuyTableTheme;
+
+function _shopRenderTableThemes(){
+  const d = window.currentUserData||{};
+  const owned = d.ownedTableThemes||['classic'];
+  const cur   = d.tableTheme||'classic';
+  Object.keys(TABLE_THEMES).forEach(id=>{
+    const isOwned = owned.includes(id)||id==='classic';
+    const equipped = cur===id;
+    const btn = document.getElementById('ttbtn-'+id);
+    const seq = document.getElementById('tteq-'+id);
+    const item= document.getElementById('ttitem-'+id);
+    if(!btn) return;
+    if(item){ item.classList.toggle('owned',isOwned); item.classList.toggle('equipped',equipped); }
+    if(seq) seq.style.display=equipped?'block':'none';
+    if(equipped){ btn.className='shop-btn shop-btn-equipped'; btn.textContent='✓ Aktif'; }
+    else if(isOwned){ btn.className='shop-btn shop-btn-equip'; btn.textContent='Pakai'; btn.onclick=()=>shopEquipTableTheme(id); }
+    else { btn.className='shop-btn shop-btn-buy'; btn.textContent='Beli'; }
+  });
+}
+
+// Load saved theme on startup
+(function(){
+  const t=function(){try{return localStorage.getItem('hoki_table_theme')||'classic';}catch(_){return 'classic';}}();
+  _applyTableTheme(t);
+})();
+
+// Patch _shopRenderAll to also render new categories
+const _origShopRenderAll = (typeof _shopRenderAll==='function') ? _shopRenderAll : null;
+if(_origShopRenderAll && !_origShopRenderAll._extPatched){
+  _shopRenderAll = function(){
+    _origShopRenderAll();
+    _shopRenderCardBacks();
+    _shopRenderTableThemes();
+  };
+  _shopRenderAll._extPatched = true;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FITUR 8: INFINITE TIME (cheat)
+// ══════════════════════════════════════════════════════════════════════
+// already handled inside _startTurnTimer via _cheatState.infiniteTime
+
+// Update cheatSave/cheatLoad to include new states
+const _origCheatSave = (typeof cheatSave==='function') ? cheatSave : null;
+if(_origCheatSave && !_origCheatSave._extended){
+  cheatSave = function(){
+    if(typeof _cheatState==='undefined') return;
+    _cheatState.infiniteTime = document.getElementById('cheat-infinite-time')?.checked||false;
+    const spd = document.getElementById('cheat-bot-speed');
+    _cheatState.botSpeed = spd ? parseFloat(spd.value) : 1;
+    _origCheatSave();
+  };
+  cheatSave._extended = true;
+}
+
+// Init cheat state extended fields
+if(typeof _cheatState!=='undefined'){
+  _cheatState.infiniteTime = false;
+  _cheatState.botSpeed = 1;
+}
+
 </script>
 
 </body>
