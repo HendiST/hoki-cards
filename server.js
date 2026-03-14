@@ -7,7 +7,7 @@ const path = require('path');
 const os   = require('os');
 const { Server } = require('socket.io');
 
-const PORT = 3000;
+const PORT = 5000;
 
 // ══════════════════════════════════════════════
 //  GAME LOGIC
