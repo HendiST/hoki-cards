@@ -504,33 +504,37 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   cursor:pointer;
   touch-action:none;
 }
-/* ── Expanded: popup kotak mengambang ── */
+/* ── Expanded: popup kotak mengambang — sama persis dengan lobby-chat-panel ── */
 #chatbar.expanded{
-  right:6px;
-  bottom:6px;
-  left:6px;
+  right:14px;
+  bottom:62px;
+  left:auto;
   top:auto;
-  height:52vh;
-  background:rgba(0,16,6,.97);
-  border:1.5px solid rgba(0,200,80,.25);
+  width:min(90vw,320px);
+  height:auto;
+  max-height:70vh;
+  background:rgba(0,15,5,.97);
+  border:1.5px solid rgba(0,200,80,.3);
   border-radius:16px;
-  box-shadow:0 4px 32px rgba(0,0,0,.8);
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  padding:12px;
+  gap:8px;
 }
 /* ── Header ── */
 #chatbar-header{
   display:flex;
   align-items:center;
-  padding:0 12px;
+  padding:0 4px;
   gap:8px;
-  min-height:44px;
+  min-height:32px;
   cursor:grab;
   flex-shrink:0;
-  border-bottom:1px solid rgba(0,200,80,.12);
-  background:rgba(0,30,12,.5);
-  border-radius:16px 16px 0 0;
+  border-bottom:1px solid rgba(0,200,80,.15);
+  background:transparent;
+  border-radius:0;
   touch-action:none;
   position:relative;
 }
@@ -544,16 +548,8 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   border-bottom:none;
   cursor:pointer;
 }
-/* Drag-handle pill */
-#chatbar.expanded #chatbar-header::before{
-  content:'';
-  position:absolute;
-  top:5px; left:50%;
-  transform:translateX(-50%);
-  width:30px; height:3px;
-  background:rgba(255,255,255,.18);
-  border-radius:3px;
-}
+/* drag handle only in collapsed */
+#chatbar.expanded #chatbar-header::before{ display:none; }
 #chatbar-toggle{
   flex:1;
   font-size:.78em;
@@ -594,19 +590,17 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   overflow:hidden;
 }
 #chat-log{
-  flex:1;
+  height:160px;
   overflow-y:auto;
   overflow-x:hidden;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(0,200,80,.2) transparent;
+  scrollbar-width:none;
   display:flex;
   flex-direction:column;
   gap:3px;
-  padding:8px 10px 4px;
+  padding:4px 2px;
   min-height:0;
 }
-#chat-log::-webkit-scrollbar{width:3px;}
-#chat-log::-webkit-scrollbar-thumb{background:rgba(0,200,80,.2);border-radius:3px;}
+#chat-log::-webkit-scrollbar{display:none;}
 
 /* ── Bubble row wrapper ── */
 .chat-row{
@@ -1349,6 +1343,66 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .pf-empty-msg{
   text-align:center;padding:24px;font-size:.82em;color:rgba(255,255,255,.28);
 }
+/* ── Friend Request System ── */
+.pf-friend-req-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
+  border-radius:12px;padding:10px 12px;margin-bottom:6px;
+}
+.pf-friend-req-av{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#1a3a1a,#0a1a0a);
+  border:2px solid rgba(255,215,0,.35);
+  display:flex;align-items:center;justify-content:center;font-size:1.3em;
+  overflow:hidden;flex-shrink:0;
+}
+.pf-friend-req-info{flex:1;}
+.pf-friend-req-name{font-size:.9em;font-weight:700;color:#fff;}
+.pf-friend-req-sub{font-size:.62em;color:rgba(255,215,0,.5);margin-top:1px;}
+.pf-friend-req-actions{display:flex;gap:5px;}
+.pf-req-acc{background:rgba(39,174,96,.25);border:1px solid rgba(39,174,96,.4);color:#2ecc71;border-radius:8px;padding:6px 11px;font-size:.8em;font-weight:700;cursor:pointer;white-space:nowrap;}
+.pf-req-acc:active{transform:scale(.88);}
+.pf-req-dec{background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;border-radius:8px;padding:6px 10px;font-size:.8em;cursor:pointer;}
+.pf-req-dec:active{transform:scale(.88);}
+#pf-req-badge{
+  display:none;background:#e74c3c;color:#fff;
+  border-radius:10px;padding:1px 7px;font-size:.68em;font-weight:800;
+  margin-left:4px;vertical-align:middle;
+}
+#pf-req-badge.on{display:inline;}
+/* ── Search result preview card ── */
+#pf-search-result{
+  display:none;background:rgba(0,0,0,.5);
+  border:1.5px solid rgba(255,215,0,.3);border-radius:14px;
+  padding:14px 14px 12px;width:100%;
+  flex-direction:column;gap:10px;animation:fadeUp .25s ease both;
+}
+#pf-search-result.show{display:flex;}
+.pf-sr-row{display:flex;align-items:center;gap:12px;}
+.pf-sr-av{
+  width:50px;height:50px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1a3a1a,#091209);
+  border:2.5px solid rgba(255,215,0,.4);
+  display:flex;align-items:center;justify-content:center;font-size:1.7em;overflow:hidden;
+}
+.pf-sr-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pf-sr-info{flex:1;min-width:0;}
+.pf-sr-name{font-size:.97em;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-sr-id{font-size:.62em;color:rgba(255,215,0,.5);}
+.pf-sr-rank{font-size:.6em;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:2px;}
+.pf-sr-actions{display:flex;gap:8px;width:100%;}
+.pf-sr-add-btn{
+  flex:1;padding:10px;background:linear-gradient(135deg,#1a5c1a,#27ae60);
+  border:none;border-radius:10px;color:#fff;
+  font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:700;cursor:pointer;letter-spacing:.5px;
+}
+.pf-sr-add-btn:active{transform:scale(.96);}
+.pf-sr-add-btn:disabled{opacity:.4;pointer-events:none;}
+.pf-sr-cancel-btn{
+  padding:10px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;color:#aaa;font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;cursor:pointer;
+}
+.pf-sr-cancel-btn:active{transform:scale(.96);}
 /* RULES BUTTON */
 .mb-rules{
   background:linear-gradient(135deg,#2a2a00,#7a6800,#2a2a00);
@@ -1651,7 +1705,7 @@ function _onFbScript(ok){
     <!-- Tabs -->
     <div class="pf-tabs">
       <button class="pf-tab active" id="pft-profil" onclick="pfTab('profil')">Profil</button>
-      <button class="pf-tab" id="pft-teman" onclick="pfTab('teman')">Teman <span id="pf-friend-count" style="font-size:.8em;opacity:.7;"></span></button>
+      <button class="pf-tab" id="pft-teman" onclick="pfTab('teman')">Teman <span id="pf-friend-count" style="font-size:.8em;opacity:.7;"></span><span id="pf-tab-req-dot" style="display:none;width:8px;height:8px;border-radius:50%;background:#e74c3c;display:inline-block;vertical-align:middle;margin-left:4px;"></span></button>
       <button class="pf-tab" id="pft-riwayat" onclick="pfTab('riwayat')">Riwayat</button>
     </div>
 
@@ -1717,17 +1771,47 @@ function _onFbScript(ok){
 
     <!-- ── TAB TEMAN ── -->
     <div id="pf-panel-teman" style="display:none;width:100%;flex-direction:column;gap:10px;">
+
+      <!-- Permintaan Masuk — tampil kalau ada -->
+      <div class="pf-card" id="pf-req-panel" style="display:none;">
+        <div class="pf-section-lbl" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>📨 PERMINTAAN MASUK <span id="pf-req-badge"></span></span>
+        </div>
+        <div id="pf-req-list" style="margin-top:6px;"></div>
+      </div>
+
+      <!-- Cari & Tambah Teman -->
       <div class="pf-card">
-        <div class="pf-section-lbl">➕ TAMBAH TEMAN</div>
-        <div class="pf-add-friend-row">
-          <input class="pf-add-inp" id="pf-add-inp" placeholder="ID 6 digit angka teman..." maxlength="6" inputmode="numeric" pattern="[0-9]*">
-          <button class="pf-add-go" onclick="pfAddFriend()">Tambah</button>
+        <div class="pf-section-lbl">🔍 CARI TEMAN VIA ID</div>
+        <div style="font-size:.7em;color:rgba(255,255,255,.32);margin-bottom:8px;">Masukkan ID 6 digit teman, lalu klik Cari</div>
+        <div class="pf-add-friend-row" style="gap:8px;">
+          <input class="pf-add-inp" id="pf-add-inp" placeholder="Contoh: 587853" maxlength="6"
+            inputmode="numeric" pattern="[0-9]*"
+            onkeydown="if(event.key==='Enter')pfSearchUser()">
+          <button class="pf-add-go" onclick="pfSearchUser()">🔍 Cari</button>
+        </div>
+        <!-- Hasil pencarian -->
+        <div id="pf-search-result">
+          <div class="pf-sr-row">
+            <div class="pf-sr-av" id="pf-sr-av">😎</div>
+            <div class="pf-sr-info">
+              <div class="pf-sr-name" id="pf-sr-name">—</div>
+              <div class="pf-sr-id" id="pf-sr-id"></div>
+              <span class="pf-sr-rank pf-rank-bronze" id="pf-sr-rank">🥉 BRONZE</span>
+            </div>
+          </div>
+          <div class="pf-sr-actions">
+            <button class="pf-sr-add-btn" id="pf-sr-add-btn" onclick="pfAddFriendFromSearch()">➕ Kirim Permintaan</button>
+            <button class="pf-sr-cancel-btn" onclick="pfSearchClear()">✕</button>
+          </div>
         </div>
       </div>
+
+      <!-- Daftar Teman -->
       <div class="pf-card">
         <div class="pf-section-lbl">👥 DAFTAR TEMAN</div>
         <div id="pf-friend-list">
-          <div class="pf-empty-msg">Belum ada teman. Tambah via ID!</div>
+          <div class="pf-empty-msg">Belum ada teman. Cari via ID di atas!</div>
         </div>
       </div>
     </div><!-- /pf-panel-teman -->
@@ -3170,6 +3254,10 @@ function _hostListenActions(){
       [ok,msg]=_rtdbGame.playCards(pidx,cards);
     } else if(act.type==='skip'){
       [ok,msg]=_rtdbGame.skipTurn(pidx);
+    } else if(act.type==='quit'){
+      // Pemain keluar — auto kalah
+      _hostHandlePlayerQuit(pidx);
+      return;
     }
     if(!ok){
       const errUid=_rtdbPlayerUids[pidx];
@@ -3186,6 +3274,66 @@ function _hostListenActions(){
     }
   });
   _rtdbListeners.push(()=>ref.off('child_added',fn));
+
+  // ── Fix 5 & 6: Deteksi disconnect pemain ──
+  // Host listen ke presence masing-masing pemain
+  for(const [idx,uid] of Object.entries(_rtdbPlayerUids)){
+    if(uid === currentUser.uid) continue; // skip host sendiri
+    const presRef = fbRtdb.ref('rooms/'+_rtdbRoom+'/presence/'+uid);
+    // Setiap client menulis presence-nya; kalau disconnect → hapus otomatis
+    const presFn = presRef.on('value', async snap=>{
+      if(!_rtdbGame || _rtdbGame.gameOver) return;
+      if(snap.val() === null){
+        // Pemain disconnect — proses auto kalah
+        const pi = parseInt(idx);
+        const wasActive = _rtdbGame.activePlayers.includes(pi);
+        if(wasActive){
+          const pnames = await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/playerNames').get();
+          const names = pnames.val()||{};
+          toast('⚠️ '+( names[pi]||'Pemain '+(pi+1))+' keluar dari game!','warn');
+          _hostHandlePlayerQuit(pi);
+        }
+      }
+    });
+    _rtdbListeners.push(()=>presRef.off('value',presFn));
+  }
+}
+
+// ── Handle pemain keluar saat game ──
+function _hostHandlePlayerQuit(pidx){
+  if(!_rtdbGame||_rtdbGame.gameOver) return;
+  const gs = _rtdbGame;
+  const ai = gs.activePlayers.indexOf(pidx);
+  if(ai === -1) return; // sudah tidak aktif
+  // Keluarkan dari active players
+  gs.activePlayers.splice(ai,1);
+  gs.stoppedPlayers.add(pidx);
+  gs.hands[pidx] = []; // kosongkan tangan
+  gs.message = 'Pemain '+(pidx+1)+' keluar — dianggap kalah!';
+  // Cek apakah hanya 1 pemain aktif tersisa
+  if(gs.activePlayers.length === 1){
+    const winner = gs.activePlayers[0];
+    gs.rankings.push(winner);
+    gs.activePlayers = [];
+    gs.gameOver = true;
+    gs.message += ' | 🏆 Pemain '+(winner+1)+' Menang!';
+  } else if(gs.activePlayers.length === 0){
+    gs.gameOver = true;
+  }
+  // Kalau giliran pemain yang quit, pindahkan giliran
+  if(!gs.gameOver && gs.currentPlayer === pidx){
+    gs._next(pidx);
+  }
+  _broadcastState().then(()=>{
+    if(_rtdbGame){
+      fbRtdb.ref('rooms/'+_rtdbRoom+'/info/playerNames').get().then(pnames=>{
+        const st=_rtdbGame.toState(0);
+        st.room_id=_rtdbRoom; st.player_names=pnames.val()||{};
+        curSt=st; renderGame(st,false);
+        if(st.game_over) showOver(st);
+      });
+    }
+  });
 }
 
 function _clientListenState(){
@@ -3205,6 +3353,14 @@ function _clientListenState(){
     if(fullState.game_over)showOver(fullState);
   });
   _rtdbListeners.push(()=>ref.off('value',fn));
+
+  // ── Fix 5: Tulis presence client agar host bisa deteksi disconnect ──
+  if(currentUser && !_rtdbIsHost){
+    const presRef = fbRtdb.ref('rooms/'+_rtdbRoom+'/presence/'+currentUser.uid);
+    presRef.set(true);
+    presRef.onDisconnect().remove(); // hapus otomatis kalau disconnect
+    _rtdbListeners.push(()=>{ presRef.remove().catch(()=>{}); });
+  }
 }
 
 function _clientListenError(){
@@ -4051,6 +4207,8 @@ async function onUserLoggedIn(user){
     if(typeof _pfUpdateFab === 'function')  _pfUpdateFab();
     // ── Invite listener ──
     if(fbRtdb && typeof _startListenInvites === 'function') _startListenInvites();
+    // ── Real-time friend request badge ──
+    if(fbDb) _startListenFriendRequests();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -4166,12 +4324,17 @@ function _isChatEnabled(){
 }
 
 // ── Init chat saat game mulai ──
+let _chatCollapsedRight  = '14px';
+let _chatCollapsedBottom = '72px';
+
 function _initChat(){
   _chatExpanded = false;
   _chatTab = 'local';
   _localMsgCache = [];
   _globalMsgCache = [];
   _chatOverlayTimers = {};
+  _chatCollapsedRight  = '14px';
+  _chatCollapsedBottom = '72px';
   clearChatReply();
 
   const bar    = document.getElementById('chatbar');
@@ -4187,15 +4350,18 @@ function _initChat(){
   // Reset ke state collapsed (tombol bulat)
   bar.style.display = 'flex';
   bar.className = 'collapsed';
+  bar.style.right  = _chatCollapsedRight;
+  bar.style.bottom = _chatCollapsedBottom;
+  bar.style.left   = '';
   expand.style.display = 'none';
   toggle.textContent = '💬 Chat';
   document.getElementById('chat-log').innerHTML = '';
 
-  // ── Tap 1x = toggle, drag = geser FAB ──
+  // ── Tap 1x = toggle, drag = geser FAB (HANYA saat collapsed) ──
   if(header && !header._chatDragInit){
     header._chatDragInit = true;
 
-    let _sx=0,_sy=0,_sr=14,_sb=14,_startH=0;
+    let _sx=0,_sy=0,_sr=14,_sb=72;
     let _dragging=false;
     const DRAG_THRESHOLD=10;
 
@@ -4203,28 +4369,26 @@ function _initChat(){
       _sx=cx; _sy=cy; _dragging=false;
       _sr=parseFloat(bar.style.right)||14;
       _sb=parseFloat(bar.style.bottom)||72;
-      _startH=bar.offsetHeight||Math.round(window.innerHeight*0.52);
     };
 
     const onMove=(cx,cy)=>{
+      if(_chatExpanded) return; // jangan geser saat expanded
       const dx=cx-_sx, dy=cy-_sy;
       if(!_dragging){
         if(Math.abs(dx)<DRAG_THRESHOLD&&Math.abs(dy)<DRAG_THRESHOLD) return;
         _dragging=true;
       }
-      if(_chatExpanded){
-        // Drag ke atas (dy negatif) = tambah tinggi, sampai hampir full screen
-        const H=window.innerHeight;
-        const newH=Math.max(120, Math.min(H-50, _startH-dy));
-        bar.style.height=newH+'px';
-      } else {
-        // Collapsed: geser FAB
-        const W=window.innerWidth,H=window.innerHeight;
-        const bw=bar.offsetWidth||110,bh=bar.offsetHeight||44;
-        bar.style.right=Math.max(6,Math.min(W-bw-6,_sr-dx))+'px';
-        bar.style.bottom=Math.max(6,Math.min(H-bh-6,_sb-dy))+'px';
-        bar.style.left='auto';
-      }
+      // Hanya geser FAB saat collapsed
+      const W=window.innerWidth,H=window.innerHeight;
+      const bw=bar.offsetWidth||110,bh=bar.offsetHeight||44;
+      const nr=Math.max(6,Math.min(W-bw-6,_sr-dx));
+      const nb=Math.max(6,Math.min(H-bh-6,_sb-dy));
+      bar.style.right=nr+'px';
+      bar.style.bottom=nb+'px';
+      bar.style.left='auto';
+      // Update tersimpan secara realtime agar restore benar
+      _chatCollapsedRight  = nr+'px';
+      _chatCollapsedBottom = nb+'px';
     };
 
     const onEnd=()=>{
@@ -4233,8 +4397,10 @@ function _initChat(){
         const rect=bar.getBoundingClientRect();
         const W=window.innerWidth,bw=bar.offsetWidth||110;
         const goRight=(rect.left+bw/2)>W/2;
+        const snapR = goRight ? Math.max(6,parseFloat(bar.style.right)||14) : W-bw-6;
         bar.style.transition='right .18s,bottom .18s';
-        bar.style.right=(goRight?Math.max(6,parseFloat(bar.style.right)||14):W-bw-6)+'px';
+        bar.style.right=snapR+'px';
+        _chatCollapsedRight = snapR+'px';
         setTimeout(()=>{bar.style.transition='';},200);
       }
       _dragging=false;
@@ -4280,6 +4446,9 @@ function _destroyChat(){
   if(h) h._chatDragInit = false;
   _localMsgCache = [];
   _globalMsgCache = [];
+  _chatCollapsedRight  = '14px';
+  _chatCollapsedBottom = '72px';
+  _chatExpanded = false;
 }
 
 // ── Toggle expand/collapse ──
@@ -4290,23 +4459,31 @@ function toggleChatExpand(){
   const toggle = document.getElementById('chatbar-toggle');
   const emojis = document.getElementById('chatbar-emoji-btns');
   if(_chatExpanded){
+    // Simpan posisi collapsed sebelum expand
+    _chatCollapsedRight  = bar.style.right  || '14px';
+    _chatCollapsedBottom = bar.style.bottom || '72px';
+
     bar.className = 'expanded';
-    bar.style.right = ''; bar.style.left = ''; bar.style.bottom = '';
-    bar.style.height = Math.round(window.innerHeight * 0.52) + 'px';
+    bar.style.right  = _chatCollapsedRight;
+    bar.style.bottom = (parseFloat(_chatCollapsedBottom) + 50) + 'px';
+    bar.style.left   = 'auto';
+    bar.style.top    = 'auto';
+    bar.style.height = '';
     bar.style.display = 'flex';
     expand.style.display = 'flex';
     if(emojis) emojis.style.display = 'flex';
-    toggle.textContent = '✕ Tutup';
+    toggle.textContent = '✕ Tutup Chat';
     _renderChatLog();
     setTimeout(()=>{ const log=document.getElementById('chat-log'); log.scrollTop=log.scrollHeight; },50);
   } else {
     bar.className = 'collapsed';
     bar.style.display = 'flex';
     bar.style.height = '';
-    bar.style.top = '';
-    bar.style.left = '';
-    bar.style.right = '14px';
-    bar.style.bottom = '72px';
+    bar.style.top    = '';
+    bar.style.left   = '';
+    // Kembalikan ke posisi semula yang tersimpan
+    bar.style.right  = _chatCollapsedRight  || '14px';
+    bar.style.bottom = _chatCollapsedBottom || '72px';
     expand.style.display = 'none';
     if(emojis) emojis.style.display = 'none';
     toggle.textContent = '💬 Chat';
@@ -4531,15 +4708,17 @@ function _showOverlayMsg(entry, isGlobal){
 
 // ── Emoji Reaction ──
 function sendEmojiReact(emoji){
-  if(!_isChatEnabled()) return;
+  // Validasi minimal: harus ada room
+  if(!_rtdbRoom || !fbRtdb || !currentUser) {
+    toast('Chat tidak tersedia','warn'); return;
+  }
   const payload = { emoji, uid: currentUser.uid, name: currentUserData?.name||'?', ts: Date.now() };
+  // Animasi lokal DULU agar langsung responsif
+  _animateEmoji(emoji, true, 'Kamu');
   // Simpan ke RTDB, auto-hapus setelah 3 detik
-  const ref = fbRtdb.ref('rooms/'+_rtdbRoom+'/reactions').push(payload);
-  ref.then(r=>{
+  fbRtdb.ref('rooms/'+_rtdbRoom+'/reactions').push(payload).then(r=>{
     setTimeout(()=>r.remove().catch(()=>{}), 3000);
   }).catch(()=>{});
-  // Animasi lokal langsung
-  _animateEmoji(emoji, true, 'Kamu');
 }
 
 function _listenReactions(){
@@ -4599,10 +4778,16 @@ function _animateEmoji(emoji, fromMe, senderName){
     el.appendChild(nm);
   }
 
+  // Tentukan posisi awal
   const origin = fromMe ? _getMyAvatarPos() : _getTableCenter();
+  el.style.position = 'fixed';
   el.style.left = (origin.x - 24) + 'px';
   el.style.top  = (origin.y - 24) + 'px';
+  el.style.zIndex = '9999';
+  el.style.pointerEvents = 'none';
   document.body.appendChild(el);
+  // Paksa reflow agar animasi berjalan
+  el.getBoundingClientRect();
   setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1900);
 }
 
@@ -4929,7 +5114,7 @@ function pfTab(tab){
       }
     }
   });
-  if(tab === 'teman')   pfLoadFriends();
+  if(tab === 'teman')   { pfLoadFriends(); pfLoadFriendRequests(); }
   if(tab === 'riwayat') pfLoadMatchHistory();
 }
 
@@ -5227,44 +5412,219 @@ function _pfBuildFriendRow(f){
   return row;
 }
 
-async function pfAddFriend(){
+// ── State pencarian ──
+let _pfSearchResult = null; // { uid, name, avatar, photoBase64, stars }
+
+// ── Cari user by ID (tombol Cari) ──
+async function pfSearchUser(){
   const inp = document.getElementById('pf-add-inp');
-  const inputId = inp.value.trim();
+  const inputId = (inp.value||'').trim();
   if(!inputId){ toast('Masukkan ID teman!','warn'); return; }
   if(!currentUser||!fbDb){ toast('Login dulu!','warn'); return; }
 
-  // Cek apakah shortId sendiri
-  const myShortId = currentUserData?.shortId || '';
-  if(inputId === myShortId){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+  const myShortId = currentUserData?.shortId||'';
+  if(inputId === myShortId){ toast('Itu ID kamu sendiri!','warn'); return; }
+
+  const btn = document.querySelector('.pf-add-go');
+  if(btn){ btn.disabled=true; btn.textContent='Mencari...'; }
+  pfSearchClear();
 
   try {
-    // Cari user berdasarkan shortId
     const q = await fbDb.collection('users').where('shortId','==',inputId).limit(1).get();
-    if(q.empty){ toast('❌ ID tidak ditemukan!'); return; }
+    if(q.empty){ toast('❌ ID '+inputId+' tidak ditemukan!'); return; }
     const snap = q.docs[0];
-    const uid = snap.id;
-    const d = snap.data();
+    const uid  = snap.id;
+    const d    = snap.data();
 
-    if(uid === currentUser.uid){ toast('Tidak bisa menambah diri sendiri!','warn'); return; }
+    _pfSearchResult = { uid, name:d.name||'?', avatar:d.avatar||'😎', photoBase64:d.photoBase64||null, stars:d.stars||0 };
 
-    // Cek sudah teman?
-    const fSnap = await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).get();
-    if(fSnap.exists){ toast('Sudah jadi teman!','warn'); return; }
-    // Simpan ke friends subcollection (kedua arah)
-    const friendData = { uid, name: d.name||'?', avatar: d.avatar||'😎', photoBase64: d.photoBase64||null, addedAt: Date.now() };
+    // Render preview card
+    const avEl = document.getElementById('pf-sr-av');
+    if(d.photoBase64){
+      avEl.innerHTML = '<img src="'+d.photoBase64+'">';
+    } else {
+      avEl.textContent = d.avatar||'😎';
+    }
+    document.getElementById('pf-sr-name').textContent = d.name||'?';
+    document.getElementById('pf-sr-id').textContent   = 'ID: '+(d.shortId||uid.slice(0,8));
+
+    // Rank badge
+    const rankEl = document.getElementById('pf-sr-rank');
+    const rank = _calcRank(d.wins||0);
+    rankEl.textContent  = rank.label;
+    rankEl.className    = 'pf-sr-rank '+rank.cls;
+
+    // Cek status relasi
+    const addBtn = document.getElementById('pf-sr-add-btn');
+    const alreadyFriend = await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).get();
+    if(alreadyFriend.exists){
+      addBtn.textContent  = '✓ Sudah Teman';
+      addBtn.disabled     = true;
+    } else {
+      const sentSnap = await fbDb.collection('users').doc(uid).collection('friend_requests').doc(currentUser.uid).get();
+      if(sentSnap.exists){
+        addBtn.textContent = '⏳ Menunggu Konfirmasi';
+        addBtn.disabled    = true;
+      } else {
+        addBtn.textContent = '➕ Kirim Permintaan';
+        addBtn.disabled    = false;
+      }
+    }
+
+    document.getElementById('pf-search-result').classList.add('show');
+  } catch(e){ toast('Gagal cari user: '+(e.message||''),'warn'); }
+  finally {
+    if(btn){ btn.disabled=false; btn.textContent='🔍 Cari'; }
+  }
+}
+
+// ── Tutup preview card ──
+function pfSearchClear(){
+  _pfSearchResult = null;
+  document.getElementById('pf-search-result').classList.remove('show');
+}
+
+// ── Kirim permintaan dari preview card ──
+async function pfAddFriendFromSearch(){
+  if(!_pfSearchResult||!currentUser||!fbDb) return;
+  const { uid, name, avatar, photoBase64 } = _pfSearchResult;
+  const addBtn = document.getElementById('pf-sr-add-btn');
+  if(addBtn){ addBtn.disabled=true; addBtn.textContent='Mengirim...'; }
+
+  try {
+    // Cek apakah dia sudah kirim request ke kita → langsung accept
+    const recvSnap = await fbDb.collection('users').doc(currentUser.uid).collection('friend_requests').doc(uid).get();
+    if(recvSnap.exists){
+      await pfAcceptRequest(uid, name, avatar, photoBase64, false);
+      pfSearchClear();
+      document.getElementById('pf-add-inp').value = '';
+      return;
+    }
+
+    // Kirim request ke target: /users/{uid}/friend_requests/{myUid}
+    const myName = (currentUserData?.name||'?').slice(0,20);
+    await fbDb.collection('users').doc(uid).collection('friend_requests').doc(currentUser.uid).set({
+      uid:   currentUser.uid,
+      name:  myName,
+      avatar: currentUserData?.avatar||'😎',
+      photoBase64: currentUserData?.photoBase64||null,
+      ts: Date.now()
+    });
+
+    if(addBtn){ addBtn.textContent='⏳ Menunggu Konfirmasi'; addBtn.disabled=true; }
+    toast('📨 Permintaan dikirim ke '+_esc(name)+'!','ok');
+    document.getElementById('pf-add-inp').value = '';
+  } catch(e){
+    toast('Gagal: '+(e.message||'Missing or insufficient permissions'),'warn');
+    if(addBtn){ addBtn.disabled=false; addBtn.textContent='➕ Kirim Permintaan'; }
+  }
+}
+
+// ── Fungsi lama dipertahankan sebagai alias ──
+async function pfAddFriend(){ pfSearchUser(); }
+
+// ── Load incoming friend requests ──
+async function pfLoadFriendRequests(){
+  if(!currentUser||!fbDb) return;
+  try {
+    const snap = await fbDb.collection('users').doc(currentUser.uid)
+      .collection('friend_requests').orderBy('ts','desc').get();
+    const panel = document.getElementById('pf-req-panel');
+    const list  = document.getElementById('pf-req-list');
+    const badge = document.getElementById('pf-req-badge');
+    if(!panel||!list) return;
+
+    if(snap.empty){
+      panel.style.display = 'none';
+      if(badge){ badge.classList.remove('on'); badge.textContent=''; }
+      return;
+    }
+    panel.style.display = 'block';
+    if(badge){ badge.classList.add('on'); badge.textContent = snap.size; }
+    list.innerHTML = '';
+
+    snap.docs.forEach(doc=>{
+      const r = doc.data();
+      const row = document.createElement('div');
+      row.className = 'pf-friend-req-item';
+      const avHtml = r.photoBase64
+        ? '<img src="'+r.photoBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+        : (r.avatar||'😎');
+      // Simpan data ke dataset untuk tombol
+      const accId = 'pfreq-acc-'+r.uid;
+      const decId = 'pfreq-dec-'+r.uid;
+      row.innerHTML =
+        '<div class="pf-friend-req-av">'+avHtml+'</div>'+
+        '<div class="pf-friend-req-info">'+
+          '<div class="pf-friend-req-name">'+_esc(r.name||'?')+'</div>'+
+          '<div class="pf-friend-req-sub">Ingin berteman dengan kamu</div>'+
+        '</div>'+
+        '<div class="pf-friend-req-actions">'+
+          '<button class="pf-req-acc" id="'+accId+'">✓ Terima</button>'+
+          '<button class="pf-req-dec" id="'+decId+'">✕</button>'+
+        '</div>';
+      list.appendChild(row);
+
+      // Pasang event listener (aman dari XSS)
+      document.getElementById(accId)?.addEventListener('click', ()=>{
+        pfAcceptRequest(r.uid, r.name||'?', r.avatar||'😎', r.photoBase64||null, false);
+      });
+      document.getElementById(decId)?.addEventListener('click', (e)=>{
+        pfDeclineRequest(r.uid, e.currentTarget);
+      });
+    });
+  } catch(e){ console.warn('[pfLoadFriendRequests]',e); }
+}
+
+// ── Terima permintaan pertemanan ──
+async function pfAcceptRequest(uid, name, avatar, photoBase64, silent){
+  if(!currentUser||!fbDb) return;
+  try {
+    // Ambil data lengkap user dari Firestore untuk akurasi
+    let d = { name, avatar, photoBase64 };
+    try {
+      const uSnap = await fbDb.collection('users').doc(uid).get();
+      if(uSnap.exists){ const ud = uSnap.data(); d = { name: ud.name||name, avatar: ud.avatar||avatar, photoBase64: ud.photoBase64||photoBase64 }; }
+    } catch(_){}
+
+    const friendData = { uid, name:d.name, avatar:d.avatar||'😎', photoBase64:d.photoBase64||null, addedAt:Date.now() };
     await fbDb.collection('users').doc(currentUser.uid).collection('friends').doc(uid).set(friendData);
     await fbDb.collection('users').doc(uid).collection('friends').doc(currentUser.uid).set({
-      uid: currentUser.uid,
-      name: currentUserData?.name||'?',
+      uid:  currentUser.uid,
+      name: (currentUserData?.name||'?').slice(0,20),
       avatar: currentUserData?.avatar||'😎',
       photoBase64: currentUserData?.photoBase64||null,
       addedAt: Date.now()
     });
-    inp.value = '';
-    toast('✅ '+d.name+' ditambahkan sebagai teman!', 'ok');
+    // Hapus request kedua sisi
+    await fbDb.collection('users').doc(currentUser.uid).collection('friend_requests').doc(uid).delete().catch(()=>{});
+    await fbDb.collection('users').doc(uid).collection('friend_requests').doc(currentUser.uid).delete().catch(()=>{});
+
+    toast('✅ '+_esc(d.name)+' sekarang jadi teman kamu! 🎉', 'ok');
     pfLoadFriends();
-  } catch(e){ toast('Gagal menambah teman: '+(e.message||''),'warn'); }
+    pfLoadFriendRequests();
+  } catch(e){ toast('Gagal terima: '+(e.message||''),'warn'); }
 }
+
+// ── Tolak permintaan pertemanan ──
+async function pfDeclineRequest(uid, btnEl){
+  if(!currentUser||!fbDb) return;
+  try {
+    await fbDb.collection('users').doc(currentUser.uid).collection('friend_requests').doc(uid).delete();
+    const row = btnEl?.closest('.pf-friend-req-item');
+    if(row){ row.style.opacity='0'; row.style.transition='opacity .3s'; setTimeout(()=>row.remove(), 300); }
+    // Update badge
+    await new Promise(r=>setTimeout(r,320));
+    const list  = document.getElementById('pf-req-list');
+    const badge = document.getElementById('pf-req-badge');
+    const panel = document.getElementById('pf-req-panel');
+    const remaining = list ? list.querySelectorAll('.pf-friend-req-item').length : 0;
+    if(badge) badge.textContent = remaining||'';
+    if(remaining===0 && panel){ panel.style.display='none'; if(badge)badge.classList.remove('on'); }
+    toast('Permintaan ditolak','ok');
+  } catch(e){ toast('Gagal tolak permintaan','warn'); }
+}
+
 
 async function pfRemoveFriend(uid, name, rowEl){
   if(!confirm('Hapus '+name+' dari teman?')) return;
@@ -5524,6 +5884,55 @@ function _pfUpdateFab(){
 }
 
 // ── Hook into onUserLoggedIn is done by patching the function below ──
+
+// ── Real-time listener: friend requests masuk → update badge + notif ──
+let _friendReqListener = null;
+function _startListenFriendRequests(){
+  if(!currentUser||currentUser.isGuest||!fbDb) return;
+  if(_friendReqListener){ try{ _friendReqListener(); }catch(_){} }
+
+  const ref = fbDb.collection('users').doc(currentUser.uid)
+    .collection('friend_requests');
+
+  _friendReqListener = ref.onSnapshot(snap=>{
+    const count = snap.size || 0;
+
+    // Update badge di tab Teman
+    const badge = document.getElementById('pf-req-badge');
+    if(badge){
+      badge.textContent = count > 0 ? count : '';
+      badge.classList.toggle('on', count > 0);
+    }
+
+    // Update dot merah di Profile FAB
+    const dot = document.getElementById('pf-unread-dot');
+    if(dot) dot.classList.toggle('on', count > 0);
+    // Update dot di tab Teman
+    const tabDot = document.getElementById('pf-tab-req-dot');
+    if(tabDot) tabDot.style.display = count > 0 ? 'inline-block' : 'none';
+
+    // Notif toast hanya saat ada request baru (bukan saat awal load)
+    if(!_friendReqListener._initialized){
+      _friendReqListener._initialized = true;
+      _friendReqListener._prevCount = count;
+      return;
+    }
+    if(count > (_friendReqListener._prevCount||0)){
+      const newDoc = snap.docChanges().find(c=>c.type==='added');
+      if(newDoc){
+        const r = newDoc.doc.data();
+        toast('📨 '+(r.name||'Seseorang')+' ingin berteman!','info');
+      }
+    }
+    _friendReqListener._prevCount = count;
+
+    // Kalau panel teman sedang terbuka, refresh
+    const temanPanel = document.getElementById('pf-panel-teman');
+    if(temanPanel && temanPanel.style.display !== 'none'){
+      pfLoadFriendRequests();
+    }
+  }, ()=>{});
+}
 
 // ── PM unread dot check (simplified: check if there are any new PMs) ──
 function _pfCheckUnread(){
@@ -5841,16 +6250,20 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
 <!-- ══════════════════ RANKED LOBBY ══════════════════════════ -->
 <div id="s-ranked" class="scr" style="position:relative;">
   <!-- Overlay searching -->
-  <div id="mm-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+  <div id="mm-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
     <div style="font-family:'Cinzel',serif;font-size:1.15em;color:#FFD700;letter-spacing:2px;">🔍 MENCARI LAWAN</div>
-    <div style="width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,215,0,.15);border-top-color:#FFD700;border-right-color:#e65100;animation:mmSpin 1.2s linear infinite;position:relative;">
-      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8em;animation:mmSpin 1.2s linear infinite reverse;">⚔️</span>
+    <div style="width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,215,0,.15);border-top-color:#FFD700;border-right-color:#e65100;animation:mmSpin 1.2s linear infinite;position:relative;">
+      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.6em;animation:mmSpin 1.2s linear infinite reverse;">⚔️</span>
     </div>
+    <!-- Slot pemain yang sudah ditemukan -->
+    <div class="mm-slots" id="mm-slots"></div>
+    <!-- Status: berapa pemain sudah/kurang -->
+    <div id="mm-status" style="font-size:.82em;color:rgba(255,255,255,.55);text-align:center;min-height:20px;"></div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-      <div style="font-size:.7em;color:rgba(255,255,255,.35);letter-spacing:1px;">WAKTU TERSISA</div>
-      <div id="mm-countdown" style="font-size:2.8em;font-weight:800;color:#FFD700;font-family:'Rajdhani',sans-serif;min-width:60px;text-align:center;">30</div>
+      <div style="font-size:.65em;color:rgba(255,255,255,.3);letter-spacing:1px;">WAKTU TERSISA</div>
+      <div id="mm-countdown" style="font-size:2.4em;font-weight:800;color:#FFD700;font-family:'Rajdhani',sans-serif;min-width:60px;text-align:center;">30</div>
     </div>
-    <div id="mm-search-status" style="font-size:.8em;color:rgba(255,255,255,.45);text-align:center;">Mencari pemain ranked…</div>
+    <div id="mm-search-status" style="font-size:.78em;color:rgba(255,255,255,.45);text-align:center;">Mencari pemain ranked…</div>
     <button onclick="cancelMatchmaking()" style="background:rgba(255,50,50,.15);border:1px solid rgba(255,80,80,.3);color:rgba(255,150,150,.8);font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;padding:10px 28px;border-radius:10px;cursor:pointer;">
       ✕ Batalkan
     </button>
@@ -5986,6 +6399,8 @@ async function _mmStartMatchmaking(np, name){
   if(ov){ ov.style.display='flex'; }
   var cd=document.getElementById('mm-countdown');
   if(cd){ cd.textContent=_mmSearchSec; cd.style.color='#FFD700'; }
+  // Tampilkan slot kosong langsung
+  _mmRenderSearchSlots([currentUser.uid], np);
 
   // Mulai countdown DULU sebelum await Firebase
   clearInterval(_mmInterval);
@@ -6210,7 +6625,24 @@ function _mmRenderSearchSlots(uids,np){
     el.appendChild(div);
   }
   const status=document.getElementById('mm-status');
-  if(status) status.textContent=uids.length+'/'+(np||_mmNp)+' pemain ditemukan…';
+  const found = uids.length;
+  const need  = (np||_mmNp) - found;
+  if(status){
+    if(need > 0){
+      status.innerHTML = found+'/'+(np||_mmNp)+' pemain ditemukan&ensp;·&ensp;<span style="color:#FF9800;font-weight:800;">Kurang '+need+' pemain lagi</span>';
+    } else {
+      status.textContent = 'Semua pemain ditemukan! Memulai...';
+    }
+  }
+  // Update status di mm-search-status juga
+  const ss = document.getElementById('mm-search-status');
+  if(ss){
+    if(need > 0){
+      ss.innerHTML = found+'/'+(np||_mmNp)+' pemain — <span style="color:#FF9800;font-weight:700;">-'+need+' pemain</span>';
+    } else {
+      ss.textContent = 'Semua pemain siap!';
+    }
+  }
 }
 
 function _mmRenderReadySlots(playerMap){
@@ -6310,6 +6742,16 @@ async function _lbLoad(t){
 // ── Override backMenu untuk handle ranked ──
 const _backMenuOriginal = backMenu;
 backMenu = function(){
+  // Fix 6: Kirim sinyal quit ke host jika sedang online game
+  if(_rtdbRoom && !_rtdbIsHost && currentUser && _rtdbGame === null){
+    // Client mode: beritahu host bahwa kita quit
+    fbRtdb.ref('rooms/'+_rtdbRoom+'/actions').push({
+      type:'quit',
+      player_idx: _rtdbMyIdx,
+      uid: currentUser.uid,
+      ts: Date.now()
+    }).catch(()=>{});
+  }
   if(_mmPhase!=='idle') _mmCleanup();
   _isRankedMode=false;
   _backMenuOriginal();
