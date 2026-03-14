@@ -4972,10 +4972,6 @@ async function onUserLoggedIn(user){
     if(fbDb) _startListenFriendRequests();
     // ── Sync cheat access dari Firestore ke localStorage ──
     if(fbDb && typeof _syncCheatAccess === 'function') _syncCheatAccess();
-    // ── Listen global message dari Owner ──
-    if(fbRtdb && typeof _listenGlobalMessage === 'function') _listenGlobalMessage();
-    // ── Init ekonomi (diamond, shop) ──
-    if(fbDb && typeof initEconomy === 'function') initEconomy();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -7532,11 +7528,17 @@ backMenu = function(){
 //  Tech: Firebase Auth + Firestore + RTDB + Capacitor Android
 // ══════════════════════════════════════════════════════════════════════════
 
-// ── OWNER ID (harus sama dengan isAdmin() di Firestore rules) ──
+// ── OWNER ID (hardcoded UID sebagai utama) ──
 const OWNER_UID = 'nl8JN4JnzSVqtdGGFvhNWW44FuH2';
 
-// ── Helper: apakah user ini Owner? ──
-function _isOwner(){ return currentUser && currentUser.uid === OWNER_UID; }
+// ── Helper: apakah user ini Owner? (UID hardcode ATAU Firestore owners/localStorage) ──
+function _isOwner(){
+  if(!currentUser) return false;
+  if(currentUser.uid === OWNER_UID) return true;
+  // Fallback: cek localStorage flag yang di-set saat sync
+  try{ if(localStorage.getItem('hoki_is_owner')==='1') return true; }catch(_){}
+  return false;
+}
 
 // ── Helper: apakah user ini punya akses cheat? ──
 function _hasCheatAccess(){
@@ -7546,17 +7548,45 @@ function _hasCheatAccess(){
   } catch(_){ return false; }
 }
 
-// ── Sync cheat access dari Firestore ke localStorage (dipanggil saat login) ──
+// ── Sync cheat access + owner status dari Firestore ke localStorage ──
 async function _syncCheatAccess(){
   if(!currentUser||!fbDb) return;
+  // Log UID untuk debug
+  console.log('[Hoki] currentUser.uid =', currentUser.uid, '| OWNER_UID =', OWNER_UID);
   try {
-    const snap = await fbDb.collection('cheat_access').doc(currentUser.uid).get();
-    if(snap.exists){
-      _opGrantCheatLocal(currentUser.uid);
+    // Cek apakah ada di cheat_access
+    const snapC = await fbDb.collection('cheat_access').doc(currentUser.uid).get();
+    if(snapC.exists) _opGrantCheatLocal(currentUser.uid);
+    // Cek apakah ada di owners collection (fallback UID)
+    const snapO = await fbDb.collection('owners').doc(currentUser.uid).get();
+    if(snapO.exists){
+      try{ localStorage.setItem('hoki_is_owner','1'); }catch(_){}
+      console.log('[Hoki] User diakui sebagai OWNER via Firestore owners collection');
+    } else {
+      // Auto-register ke owners jika UID cocok (hardcoded)
+      if(currentUser.uid === OWNER_UID){
+        await fbDb.collection('owners').doc(currentUser.uid).set({ uid:currentUser.uid, addedAt:Date.now() }).catch(()=>{});
+        try{ localStorage.setItem('hoki_is_owner','1'); }catch(_){}
+        console.log('[Hoki] OWNER_UID auto-registered ke Firestore owners collection');
+      } else {
+        try{ localStorage.removeItem('hoki_is_owner'); }catch(_){}
+        // Petunjuk untuk Owner yang UID-nya berbeda
+        console.log('[Hoki] Untuk tambah UID ini ke owners, panggil: _addMeAsOwner()');
+      }
     }
-  } catch(_){}
+  } catch(e){ console.warn('[_syncCheatAccess]',e); }
   if(typeof _updateSecretButtons === 'function') _updateSecretButtons();
 }
+
+// ── Helper: tambah diri sebagai Owner (panggil sekali dari console jika panel tak muncul) ──
+async function _addMeAsOwner(){
+  if(!currentUser||currentUser.isGuest||!fbDb){ console.warn('Harus login dulu!'); return; }
+  await fbDb.collection('owners').doc(currentUser.uid).set({ uid:currentUser.uid, addedAt:Date.now() });
+  try{ localStorage.setItem('hoki_is_owner','1'); }catch(_){}
+  console.log('[Hoki] UID '+currentUser.uid+' ditambahkan sebagai owner! Refresh halaman.');
+  _updateSecretButtons();
+}
+window._addMeAsOwner = _addMeAsOwner;
 
 // ── Patch go() untuk tampilkan tombol Owner/Cheat saat ke menu ──
 const _ownerOrigGo = (typeof go === 'function') ? go : null;
@@ -8280,6 +8310,573 @@ if(typeof go==='function' && !go._ownerPatched){
     onUserLoggedIn._fbPatched=true;
   }
 })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     EKONOMI GAME: DIAMOND, DAILY REWARD, SKIN, FRAME
+     ══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+// ── Konstanta ──
+var DAILY_REWARDS = [50, 50, 50, 50, 50, 100, 150];
+var WIN_DIAMONDS  = [30, 15, 5, 0];
+var _ecoLoaded    = false;
+
+// ══ DIAMOND HUD ══════════════════════════════════════════════════════
+function _updateDiamondHUD(val){
+  var el  = document.getElementById('diamond-val');
+  var hud = document.getElementById('diamond-hud');
+  var sb  = document.getElementById('shop-bal-val');
+  var v   = val !== undefined ? val : ((window.currentUserData && window.currentUserData.diamonds)||0);
+  if(el)  el.textContent  = v;
+  if(sb)  sb.textContent  = v;
+  if(hud && window.currentUser && !window.currentUser.isGuest) hud.classList.add('vis');
+}
+window._updateDiamondHUD = _updateDiamondHUD;
+
+function _animateDiamondGain(amount, anchorEl){
+  var anchor = anchorEl || document.getElementById('diamond-hud');
+  if(!anchor) return;
+  var r  = anchor.getBoundingClientRect();
+  var el = document.createElement('div');
+  el.className   = 'diamond-float';
+  el.textContent = '+'+amount+' 💎';
+  el.style.left  = (r.left + r.width/2 - 30)+'px';
+  el.style.top   = (r.top - 10)+'px';
+  document.body.appendChild(el);
+  setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 1500);
+}
+
+async function _addDiamonds(amount, anchorEl){
+  if(!window.currentUser||window.currentUser.isGuest||!window.fbDb||amount<=0) return;
+  try {
+    var inc = firebase.firestore.FieldValue.increment;
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({ diamonds: inc(amount) });
+    if(window.currentUserData) window.currentUserData.diamonds = (window.currentUserData.diamonds||0)+amount;
+    _updateDiamondHUD();
+    _animateDiamondGain(amount, anchorEl);
+  } catch(e){ console.warn('[addDiamonds]',e); }
+}
+window._addDiamonds = _addDiamonds;
+
+// ══ DAILY REWARD ═════════════════════════════════════════════════════
+function _todayStr(){ return new Date().toISOString().slice(0,10); }
+
+async function checkDailyReward(){
+  if(!window.currentUser||window.currentUser.isGuest||!window.fbDb) return;
+  try {
+    var ref  = window.fbDb.collection('users').doc(window.currentUser.uid);
+    var snap = await ref.get();
+    if(!snap.exists) return;
+    var d     = snap.data();
+    var today = _todayStr();
+    if(d.lastLoginDate===today) return;
+    var yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+    var yStr=yesterday.toISOString().slice(0,10);
+    var streak = 1;
+    if(d.lastLoginDate===yStr) streak=Math.min((d.loginStreak||0)+1,7);
+    await ref.update({ lastLoginDate:today, loginStreak:streak, pendingDailyReward:true }).catch(function(){});
+    if(window.currentUserData){ window.currentUserData.lastLoginDate=today; window.currentUserData.loginStreak=streak; window.currentUserData.pendingDailyReward=true; }
+    _showDailyRewardModal(streak);
+  } catch(e){ console.warn('[checkDailyReward]',e); }
+}
+window.checkDailyReward = checkDailyReward;
+
+function _showDailyRewardModal(streak){
+  var amt   = DAILY_REWARDS[(streak-1)%7];
+  var modal = document.getElementById('daily-reward-modal');
+  if(!modal) return;
+  var lbl=document.getElementById('dr-streak-lbl');
+  if(lbl) lbl.textContent='STREAK HARI KE-'+streak+(streak===7?' 🔥 MAX!':'');
+  var row=document.getElementById('dr-streak-row');
+  if(row){
+    row.innerHTML='';
+    for(var i=1;i<=7;i++){
+      var div=document.createElement('div');
+      var isToday=i===streak, isDone=i<streak;
+      div.className='dr-day'+(isDone?' done':'')+(isToday?' today':'');
+      div.innerHTML='<div class="dr-day-n">'+i+'</div><div class="dr-day-amt">'+(i===6?'100':i===7?'150':'50')+'💎</div>';
+      row.appendChild(div);
+    }
+  }
+  var amtEl=document.getElementById('dr-reward-amt');
+  if(amtEl) amtEl.textContent='+'+amt+' 💎';
+  modal.classList.add('on');
+}
+
+async function claimDailyReward(){
+  var modal=document.getElementById('daily-reward-modal');
+  if(modal) modal.classList.remove('on');
+  if(!window.currentUser||window.currentUser.isGuest||!window.fbDb) return;
+  var streak=(window.currentUserData&&window.currentUserData.loginStreak)||1;
+  var amt=DAILY_REWARDS[(streak-1)%7];
+  try {
+    var inc=firebase.firestore.FieldValue.increment;
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({ diamonds:inc(amt), pendingDailyReward:false });
+    if(window.currentUserData){ window.currentUserData.diamonds=(window.currentUserData.diamonds||0)+amt; window.currentUserData.pendingDailyReward=false; }
+    _updateDiamondHUD();
+    setTimeout(function(){ _animateDiamondGain(amt); },300);
+    if(typeof toast==='function') toast('🎁 Hadiah harian: +'+amt+' 💎 diterima!','ok');
+  } catch(e){ if(typeof toast==='function') toast('Gagal klaim hadiah','warn'); }
+}
+window.claimDailyReward = claimDailyReward;
+
+// ══ SHOP ═════════════════════════════════════════════════════════════
+var _shopPending = null;
+
+function goShop(){
+  if(!window.currentUser||window.currentUser.isGuest){ if(typeof toast==='function') toast('Login dulu untuk buka toko!','warn'); return; }
+  _updateDiamondHUD();
+  _shopRenderAll();
+  if(typeof go==='function') go('s-shop');
+}
+window.goShop = goShop;
+
+function shopTab(tab){
+  var gs=document.getElementById('shop-grid-skin');
+  var gf=document.getElementById('shop-grid-frame');
+  var ts=document.getElementById('stab-skin');
+  var tf=document.getElementById('stab-frame');
+  if(ts) ts.classList.toggle('on',tab==='skin');
+  if(tf) tf.classList.toggle('on',tab==='frame');
+  if(gs) gs.style.display=tab==='skin'?'flex':'none';
+  if(gf) gf.style.display=tab==='frame'?'flex':'none';
+}
+window.shopTab = shopTab;
+
+function _shopRenderAll(){
+  var d=window.currentUserData||{};
+  var ownedSkins =(d.ownedSkins ||['classic']);
+  var ownedFrames=(d.ownedFrames||['default']);
+  var curSkin    = d.cardSkin    ||'classic';
+  var curFrame   = d.avatarFrame ||'default';
+  ['classic','dark','gold'].forEach(function(id){
+    var owned=ownedSkins.includes(id), equipped=curSkin===id;
+    var item=document.getElementById('sitem-'+id);
+    var btn =document.getElementById('sbtn-'+id);
+    var seq =document.getElementById('seq-'+id);
+    if(!item||!btn) return;
+    item.classList.toggle('owned',   owned);
+    item.classList.toggle('equipped',equipped);
+    if(seq) seq.style.display=equipped?'block':'none';
+    if(equipped){ btn.className='shop-btn shop-btn-equipped'; btn.textContent='✓ Aktif'; }
+    else if(owned){ btn.className='shop-btn shop-btn-equip'; btn.textContent='Pakai'; }
+    else { btn.className='shop-btn shop-btn-buy'; btn.textContent='Beli'; }
+  });
+  ['default','silver','gold'].forEach(function(id){
+    var owned=ownedFrames.includes(id), equipped=curFrame===id;
+    var item=document.getElementById('fitem-'+id);
+    var btn =document.getElementById('fbtn-'+id);
+    var feq =document.getElementById('feq-'+id);
+    if(!item||!btn) return;
+    item.classList.toggle('owned',   owned);
+    item.classList.toggle('equipped',equipped);
+    if(feq) feq.style.display=equipped?'block':'none';
+    if(equipped){ btn.className='shop-btn shop-btn-equipped'; btn.textContent='✓ Aktif'; }
+    else if(owned){ btn.className='shop-btn shop-btn-equip'; btn.textContent='Pakai'; }
+    else { btn.className='shop-btn shop-btn-buy'; btn.textContent='Beli'; }
+  });
+}
+window._shopRenderAll = _shopRenderAll;
+
+function shopBuyOrEquip(skinId, price){
+  var d=window.currentUserData||{};
+  if((d.ownedSkins||['classic']).includes(skinId)){ shopEquipSkin(skinId); return; }
+  _shopPending={type:'skin',id:skinId,price:price};
+  var names={dark:'Dark Neon',gold:'Gold Luxury'};
+  var t=document.getElementById('sc-title'); if(t) t.textContent='Beli Skin '+names[skinId]+'?';
+  var de=document.getElementById('sc-desc');  if(de) de.textContent='Skin '+names[skinId]+' akan langsung aktif setelah dibeli.';
+  var p=document.getElementById('sc-price'); if(p) p.textContent='💎 '+price;
+  var m=document.getElementById('shop-confirm-modal'); if(m) m.classList.add('on');
+}
+window.shopBuyOrEquip = shopBuyOrEquip;
+
+function frameBuyOrEquip(frameId, price){
+  var d=window.currentUserData||{};
+  if((d.ownedFrames||['default']).includes(frameId)){ shopEquipFrame(frameId); return; }
+  _shopPending={type:'frame',id:frameId,price:price};
+  var names={silver:'Silver Frame',gold:'Gold Frame'};
+  var t=document.getElementById('sc-title'); if(t) t.textContent='Beli '+names[frameId]+'?';
+  var de=document.getElementById('sc-desc'); if(de) de.textContent=names[frameId]+' akan langsung aktif setelah dibeli.';
+  var p=document.getElementById('sc-price'); if(p) p.textContent='💎 '+price;
+  var m=document.getElementById('shop-confirm-modal'); if(m) m.classList.add('on');
+}
+window.frameBuyOrEquip = frameBuyOrEquip;
+
+async function shopConfirmBuy(){
+  var m=document.getElementById('shop-confirm-modal'); if(m) m.classList.remove('on');
+  if(!_shopPending||!window.currentUser||!window.fbDb) return;
+  var type=_shopPending.type, id=_shopPending.id, price=_shopPending.price;
+  _shopPending=null;
+  var bal=(window.currentUserData&&window.currentUserData.diamonds)||0;
+  if(bal<price){ if(typeof toast==='function') toast('💎 Diamond tidak cukup! Butuh '+(price-bal)+' lagi.','warn'); return; }
+  try {
+    var inc=firebase.firestore.FieldValue.increment;
+    var arr=firebase.firestore.FieldValue.arrayUnion;
+    var upd={diamonds:inc(-price)};
+    if(type==='skin')  { upd.ownedSkins=arr(id); upd.cardSkin=id; }
+    if(type==='frame') { upd.ownedFrames=arr(id); upd.avatarFrame=id; }
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update(upd);
+    if(window.currentUserData){
+      window.currentUserData.diamonds=bal-price;
+      if(type==='skin'){ window.currentUserData.ownedSkins=[...(window.currentUserData.ownedSkins||['classic']),id]; window.currentUserData.cardSkin=id; }
+      if(type==='frame'){ window.currentUserData.ownedFrames=[...(window.currentUserData.ownedFrames||['default']),id]; window.currentUserData.avatarFrame=id; }
+    }
+    try{ localStorage.setItem('hoki_card_skin',  window.currentUserData.cardSkin  ||'classic'); }catch(_){}
+    try{ localStorage.setItem('hoki_avatar_frame',window.currentUserData.avatarFrame||'default'); }catch(_){}
+    _updateDiamondHUD();
+    _shopRenderAll();
+    _applyAvatarFrame();
+    if(typeof toast==='function') toast('✅ Berhasil dibeli & diaktifkan!','ok');
+  } catch(e){ if(typeof toast==='function') toast('Gagal beli: '+(e.message||''),'warn'); }
+}
+window.shopConfirmBuy = shopConfirmBuy;
+
+async function shopEquipSkin(skinId){
+  if(!window.currentUser||!window.fbDb) return;
+  try {
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({cardSkin:skinId});
+    if(window.currentUserData) window.currentUserData.cardSkin=skinId;
+    try{ localStorage.setItem('hoki_card_skin',skinId); }catch(_){}
+    _shopRenderAll();
+    if(typeof toast==='function') toast('🃏 Skin "'+skinId+'" diaktifkan!','ok');
+  } catch(e){ if(typeof toast==='function') toast('Gagal equip skin','warn'); }
+}
+window.shopEquipSkin = shopEquipSkin;
+
+async function shopEquipFrame(frameId){
+  if(!window.currentUser||!window.fbDb) return;
+  try {
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({avatarFrame:frameId});
+    if(window.currentUserData) window.currentUserData.avatarFrame=frameId;
+    try{ localStorage.setItem('hoki_avatar_frame',frameId); }catch(_){}
+    _shopRenderAll();
+    _applyAvatarFrame();
+    if(typeof toast==='function') toast('🖼️ Frame "'+frameId+'" diaktifkan!','ok');
+  } catch(e){ if(typeof toast==='function') toast('Gagal equip frame','warn'); }
+}
+window.shopEquipFrame = shopEquipFrame;
+
+// ══ AVATAR FRAME ═════════════════════════════════════════════════════
+function _applyAvatarFrame(){
+  var frame=(window.currentUserData&&window.currentUserData.avatarFrame)||
+            (function(){ try{ return localStorage.getItem('hoki_avatar_frame')||'default'; }catch(_){ return 'default'; }}());
+  document.querySelectorAll('.pf-avatar-ring,.rdy-av,.pfm-av').forEach(function(el){
+    el.classList.remove('frame-silver-border','frame-gold-border');
+    if(frame==='silver') el.classList.add('frame-silver-border');
+    if(frame==='gold')   el.classList.add('frame-gold-border');
+  });
+}
+window._applyAvatarFrame = _applyAvatarFrame;
+
+// ══ CARD SKIN PATCH ══════════════════════════════════════════════════
+if(typeof makeCardEl === 'function' && !makeCardEl._skinPatched){
+  var _origMakeCardEl = makeCardEl;
+  makeCardEl = function(card, isTable, isSel, delay){
+    var el   = _origMakeCardEl(card, isTable, isSel, delay);
+    var skin = (window.currentUserData&&window.currentUserData.cardSkin) ||
+               (function(){ try{ return localStorage.getItem('hoki_card_skin')||'classic'; }catch(_){ return 'classic'; }}());
+    if(skin==='dark') el.classList.add('skin-dark');
+    if(skin==='gold') el.classList.add('skin-gold');
+    return el;
+  };
+  makeCardEl._skinPatched = true;
+}
+
+// ══ WIN REWARD PATCH ═════════════════════════════════════════════════
+if(typeof showOver === 'function' && !showOver._ecoPatched){
+  var _origShowOver = showOver;
+  showOver = function(st){
+    _origShowOver(st);
+    var rankPos = (st.rankings||[]).indexOf(typeof myIdx!=='undefined'?myIdx:-1);
+    var reward  = rankPos>=0 ? WIN_DIAMONDS[Math.min(rankPos,WIN_DIAMONDS.length-1)] : 0;
+    var banner  = document.getElementById('win-reward-banner');
+    if(banner){
+      if(reward>0){
+        banner.style.display='block';
+        banner.textContent='💎 +'+reward+' Diamond'+(rankPos===0?' (Menang!)':rankPos===1?' (Runner-up)':' (Posisi '+(rankPos+1)+')');
+      } else { banner.style.display='none'; }
+    }
+    if(reward>0) _addDiamonds(reward, banner);
+  };
+  showOver._ecoPatched = true;
+}
+
+// ══ INIT EKONOMI ═════════════════════════════════════════════════════
+async function initEconomy(){
+  if(!window.currentUser||window.currentUser.isGuest||!window.fbDb) return;
+  if(_ecoLoaded) return;
+  _ecoLoaded=true;
+  var d=window.currentUserData||{};
+  if(d.diamonds===undefined){
+    await window.fbDb.collection('users').doc(window.currentUser.uid).update({
+      diamonds:0, ownedSkins:['classic'], ownedFrames:['default'],
+      cardSkin:'classic', avatarFrame:'default'
+    }).catch(function(){});
+    if(window.currentUserData){ window.currentUserData.diamonds=0; window.currentUserData.ownedSkins=['classic']; window.currentUserData.ownedFrames=['default']; window.currentUserData.cardSkin='classic'; window.currentUserData.avatarFrame='default'; }
+  }
+  _applyAvatarFrame();
+  _updateDiamondHUD();
+  await checkDailyReward();
+}
+window.initEconomy = initEconomy;
+
+// ── Hook onUserLoggedIn ──
+if(typeof onUserLoggedIn==='function' && !onUserLoggedIn._ecoHooked){
+  var _ecoOrigLogin = onUserLoggedIn;
+  onUserLoggedIn = async function(user){
+    await _ecoOrigLogin(user);
+    _ecoLoaded = false;
+    await initEconomy();
+  };
+  onUserLoggedIn._ecoHooked = true;
+}
+
+// ── Refresh HUD saat ke menu/shop ──
+if(typeof go==='function' && !go._ecoPatched){
+  var _ecoOrigGo = go;
+  go = function(id){
+    _ecoOrigGo(id);
+    if(id==='s-menu'){ _updateDiamondHUD(); _applyAvatarFrame(); }
+    if(id==='s-shop'){ _updateDiamondHUD(); _shopRenderAll(); }
+  };
+  go._ecoPatched = true;
+}
+
+// ── Jika user sudah login saat script ini diload ──
+if(window.currentUser && !window.currentUser.isGuest) initEconomy();
+
+})(); // end IIFE ekonomi
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SOUND EFFECTS (Web Audio API) + CARD DEAL ANIMATION
+     ══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+// ── Audio Context ──
+var _ac = null;
+function _getAC(){
+  if(!_ac) try{ _ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  if(_ac && _ac.state==='suspended') _ac.resume();
+  return _ac;
+}
+
+// ── Generic tone generator ──
+function _playTone(freq, type, dur, vol, decay){
+  var ac=_getAC(); if(!ac) return;
+  var osc=ac.createOscillator();
+  var g  =ac.createGain();
+  osc.type      = type||'sine';
+  osc.frequency.setValueAtTime(freq, ac.currentTime);
+  g.gain.setValueAtTime(vol||0.4, ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+(decay||dur||0.3));
+  osc.connect(g); g.connect(ac.destination);
+  osc.start(); osc.stop(ac.currentTime+(dur||0.3));
+}
+
+// ── Noise burst (card shuffle/deal whoosh) ──
+function _playNoise(dur, vol){
+  var ac=_getAC(); if(!ac) return;
+  var bufSize = ac.sampleRate * dur;
+  var buf = ac.createBuffer(1, bufSize, ac.sampleRate);
+  var data= buf.getChannelData(0);
+  for(var i=0;i<bufSize;i++) data[i]=(Math.random()*2-1);
+  var src=ac.createBufferSource();
+  src.buffer=buf;
+  var g=ac.createGain();
+  g.gain.setValueAtTime(vol||0.12, ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+dur);
+  var filt=ac.createBiquadFilter();
+  filt.type='bandpass'; filt.frequency.value=1200; filt.Q.value=1.5;
+  src.connect(filt); filt.connect(g); g.connect(ac.destination);
+  src.start(); src.stop(ac.currentTime+dur);
+}
+
+// ── PUBLIC SOUND FUNCTIONS ──
+function sfxDeal(){ // Card dealt to player
+  _playNoise(0.08, 0.15);
+  setTimeout(function(){ _playTone(1200,'square',0.04,0.08); }, 30);
+}
+function sfxPlace(){ // Card placed on table
+  _playNoise(0.06, 0.2);
+  _playTone(400,'triangle',0.08,0.18, 0.08);
+}
+function sfxPass(){ // Player passes
+  _playTone(350,'sine',0.15,0.12, 0.15);
+}
+function sfxTurnYours(){ // Your turn bell
+  _playTone(880,'sine',0.12,0.25); 
+  setTimeout(function(){ _playTone(1100,'sine',0.12,0.2); },120);
+}
+function sfxWin(){
+  [0,0.1,0.2,0.35,0.5].forEach(function(t,i){
+    setTimeout(function(){ _playTone([523,659,784,1047,1319][i],'sine',0.3,0.3,0.3); }, t*1000);
+  });
+}
+function sfxLose(){
+  _playTone(440,'sawtooth',0.2,0.25,0.2);
+  setTimeout(function(){ _playTone(330,'sawtooth',0.25,0.2,0.25); },200);
+  setTimeout(function(){ _playTone(220,'sawtooth',0.35,0.15,0.35); },450);
+}
+function sfxClick(){
+  _playTone(800,'square',0.05,0.08,0.05);
+}
+
+// Expose globally
+window.sfxDeal=sfxDeal; window.sfxPlace=sfxPlace;
+window.sfxPass=sfxPass; window.sfxTurnYours=sfxTurnYours;
+window.sfxWin=sfxWin;   window.sfxLose=sfxLose;
+window.sfxClick=sfxClick;
+
+// ── PATCH: Card place sound ──
+if(typeof socket!=='undefined'){
+  socket.on('game_state', function(st){
+    if(st && st.lastAction==='place') sfxPlace();
+    if(st && st.lastAction==='pass')  sfxPass();
+  });
+}
+
+// ── PATCH: Your turn sound ──
+if(typeof socket!=='undefined'){
+  socket.on('your_turn', function(){ sfxTurnYours(); });
+}
+
+// ── PATCH: Win/Lose sound via showOver ──
+if(typeof showOver==='function' && !showOver._sfxPatched){
+  var _sfxOrigShowOver=showOver;
+  showOver=function(st){
+    _sfxOrigShowOver(st);
+    var me=typeof myIdx!=='undefined'?myIdx:-1;
+    var rank=(st.rankings||[]).indexOf(me);
+    if(rank===0) sfxWin();
+    else if(rank>0) sfxLose();
+  };
+  showOver._sfxPatched=true;
+}
+
+// ── ADD CLICK SOUNDS TO GAME BUTTONS ──
+document.addEventListener('click', function(e){
+  var t=e.target;
+  if(t.matches('.btn,.mode-btn,.card,.rdy-btn,.shop-btn,button') ||
+     t.closest('.btn,.mode-btn,.card,.rdy-btn,.shop-btn,button')){
+    sfxClick();
+  }
+});
+
+// ══ CARD DEAL ANIMATION ══════════════════════════════════════════════
+
+var _dealAnimRunning = false;
+
+function playDealAnimation(numPlayers, cardsPerPlayer, onDone){
+  if(_dealAnimRunning){ if(onDone) onDone(); return; }
+  _dealAnimRunning = true;
+
+  // Find game area center
+  var gameEl = document.getElementById('s-game') || document.body;
+  var r = gameEl.getBoundingClientRect();
+  var cx = r.left + r.width/2;
+  var cy = r.top  + r.height/2;
+
+  // Calculate player positions around table (top, left, right for opponents; bottom for self)
+  var playerPositions = _getPlayerPositions(numPlayers, r);
+
+  // Create overlay
+  var overlay = document.createElement('div');
+  overlay.id = 'deal-anim-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;';
+  document.body.appendChild(overlay);
+
+  var totalCards = numPlayers * cardsPerPlayer;
+  var delay = 0;
+  var step  = 120; // ms between each card
+
+  for(var i=0; i<totalCards; i++){
+    (function(idx){
+      var playerIdx = idx % numPlayers;
+      var dest = playerPositions[playerIdx];
+      setTimeout(function(){
+        _dealOneCard(overlay, cx, cy, dest.x, dest.y);
+        sfxDeal();
+      }, idx * step);
+    })(i);
+  }
+
+  // Remove overlay after animation completes
+  setTimeout(function(){
+    _dealAnimRunning = false;
+    if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    if(onDone) onDone();
+  }, totalCards * step + 600);
+}
+window.playDealAnimation = playDealAnimation;
+
+function _getPlayerPositions(n, r){
+  // Returns positions for each player's hand area
+  var positions = [];
+  var cx = r.left + r.width/2;
+  var cy = r.top  + r.height/2;
+  var rx = r.width  * 0.38;
+  var ry = r.height * 0.38;
+  for(var i=0; i<n; i++){
+    // 0 = self (bottom), 1 = left, 2 = top, 3 = right for standard table layout
+    var angle = (Math.PI/2) + i*(2*Math.PI/n);
+    positions.push({ x: cx + rx*Math.cos(angle), y: cy + ry*Math.sin(angle) });
+  }
+  return positions;
+}
+
+function _dealOneCard(overlay, fromX, fromY, toX, toY){
+  var card = document.createElement('div');
+  card.style.cssText = [
+    'position:fixed',
+    'width:36px', 'height:52px',
+    'background:linear-gradient(135deg,#1a3a5c 60%,#1e4976)',
+    'border:2px solid #fff',
+    'border-radius:6px',
+    'box-shadow:0 2px 8px rgba(0,0,0,.5)',
+    'left:'+(fromX-18)+'px',
+    'top:'+(fromY-26)+'px',
+    'transform:rotate('+((Math.random()*30)-15)+'deg)',
+    'transition:all 0.35s cubic-bezier(0.22,1,0.36,1)',
+    'opacity:1',
+    'z-index:9999'
+  ].join(';');
+
+  // Tiny suit symbol on back
+  card.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.3em;opacity:0.4;">🂠</div>';
+  overlay.appendChild(card);
+
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      card.style.left   = (toX-18)+'px';
+      card.style.top    = (toY-26)+'px';
+      card.style.transform = 'rotate('+((Math.random()*10)-5)+'deg) scale(0.85)';
+      card.style.opacity= '0';
+      setTimeout(function(){ if(card.parentNode) card.parentNode.removeChild(card); }, 500);
+    });
+  });
+}
+
+// ── PATCH renderGame to trigger deal animation on fresh deal ──
+if(typeof renderGame==='function' && !renderGame._animPatched){
+  var _animOrigRender = renderGame;
+  renderGame = function(st, firstDeal){
+    _animOrigRender(st, firstDeal);
+    if(firstDeal && st && st.hands){
+      var numP  = st.hands.length;
+      var cards = (st.hands[0]||[]).length || 13;
+      setTimeout(function(){ playDealAnimation(numP, cards, null); }, 200);
+    }
+  };
+  renderGame._animPatched = true;
+}
+
+})(); // end IIFE sound + animation
 </script>
 
 </body>
