@@ -1007,6 +1007,9 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 @keyframes dealIn{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
 @keyframes tableCardIn{from{transform:translateY(-28px) scale(0.7);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+@keyframes dealReveal{from{opacity:0;transform:scale(0.15) translateY(12px) rotate(-18deg);}to{opacity:1;transform:scale(1) rotate(0) translateY(0);}}
+.card.deal-hidden{opacity:0!important;transform:scale(0.1)!important;transition:none!important;}
+.card.deal-reveal{animation:dealReveal .32s cubic-bezier(.22,1,.36,1) both;}
 @keyframes winPop{0%{transform:scale(0) rotate(-10deg);opacity:0;}60%{transform:scale(1.12) rotate(3deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
 @keyframes bombShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px) rotate(-4deg);}40%{transform:translateX(8px) rotate(4deg);}60%{transform:translateX(-6px) rotate(-2deg);}80%{transform:translateX(6px) rotate(2deg);}}
 .tcard-anim{animation:tableCardIn .32s cubic-bezier(.22,1,.36,1) both;}
@@ -3441,6 +3444,7 @@ function buildSeats(st){
     const rank=(st.rankings||[]).indexOf(i);
     const seat=document.createElement('div');
     seat.className=`seat${isTurn?' is-turn':''}${isMe?' is-me':''}${!isAct?' is-out':''}${isStop?' is-stop':''}`;
+    seat.dataset.idx=i;
     seat.style.left=p[0]+'%';seat.style.top=p[1]+'%';
     let badge='';
     if(!isAct)badge=`<span class="sbadge out">${rank>=0?'🏆'+(rank+1):'❌'}</span>`;
@@ -3557,7 +3561,8 @@ function renderHand(cards,animate=false){
   cards.forEach((c,i)=>{
     const isSel=selCards.some(s=>s.suit===c.suit&&s.value===c.value);
     const isReord=reorderIdx===i;
-    const el=makeCardEl(c,false,isSel,animate?i*0.055+0.04:0);
+    const el=makeCardEl(c,false,isSel,0);
+    if(animate) el.classList.add('deal-hidden');
     if(isReord) el.classList.add('reorder-active');
 
     // ── TAP VS SCROLL DETECTION ──
@@ -8846,93 +8851,144 @@ document.addEventListener('click', function(e){
 // ══ CARD DEAL ANIMATION ══════════════════════════════════════════════
 
 var _dealAnimRunning = false;
+var _dealTransit     = 320; // ms for card to fly from center to destination
 
 function playDealAnimation(numPlayers, cardsPerPlayer, onDone){
   if(_dealAnimRunning){ if(onDone) onDone(); return; }
   _dealAnimRunning = true;
 
-  // Find game area center
-  var gameEl = document.getElementById('s-game') || document.body;
-  var r = gameEl.getBoundingClientRect();
-  var cx = r.left + r.width/2;
-  var cy = r.top  + r.height/2;
+  // Source: center of oval (table), fallback to game center
+  var ovalEl  = document.getElementById('oval');
+  var gameEl  = document.getElementById('s-game') || document.body;
+  var srcRect = (ovalEl || gameEl).getBoundingClientRect();
+  var cx = srcRect.left + srcRect.width  / 2;
+  var cy = srcRect.top  + srcRect.height / 2;
 
-  // Calculate player positions around table (top, left, right for opponents; bottom for self)
-  var playerPositions = _getPlayerPositions(numPlayers, r);
+  // Destinations: real DOM positions
+  var playerPositions = _getSeatPositions(numPlayers);
 
-  // Create overlay
   var overlay = document.createElement('div');
-  overlay.id = 'deal-anim-overlay';
+  overlay.id  = 'deal-anim-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;';
   document.body.appendChild(overlay);
 
+  var step    = 90;                // ms between each card dealt
+  var transit = _dealTransit;      // ms flight time
   var totalCards = numPlayers * cardsPerPlayer;
-  var delay = 0;
-  var step  = 120; // ms between each card
+  var myI = (typeof myIdx === 'number') ? myIdx : 0;
 
-  for(var i=0; i<totalCards; i++){
+  for(var i = 0; i < totalCards; i++){
     (function(idx){
       var playerIdx = idx % numPlayers;
-      var dest = playerPositions[playerIdx];
+      var dest = playerPositions[playerIdx] || {x: cx, y: cy};
       setTimeout(function(){
         _dealOneCard(overlay, cx, cy, dest.x, dest.y);
         sfxDeal();
+        // Reveal actual hand card when animated card arrives at MY position
+        if(playerIdx === myI){
+          var cardNum = Math.floor(idx / numPlayers);
+          setTimeout(function(){
+            var handCards = document.querySelectorAll('#g-hand .card');
+            if(handCards[cardNum]){
+              handCards[cardNum].classList.remove('deal-hidden');
+              handCards[cardNum].classList.add('deal-reveal');
+            }
+          }, transit);
+        }
       }, idx * step);
     })(i);
   }
 
-  // Remove overlay after animation completes
+  // Cleanup — make sure no card stays invisible
   setTimeout(function(){
     _dealAnimRunning = false;
+    document.querySelectorAll('#g-hand .card.deal-hidden').forEach(function(c){
+      c.classList.remove('deal-hidden');
+      c.classList.add('deal-reveal');
+    });
     if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
     if(onDone) onDone();
-  }, totalCards * step + 600);
+  }, totalCards * step + transit + 500);
 }
 window.playDealAnimation = playDealAnimation;
 
-function _getPlayerPositions(n, r){
-  // Returns positions for each player's hand area
+function _getSeatPositions(n){
   var positions = [];
-  var cx = r.left + r.width/2;
-  var cy = r.top  + r.height/2;
-  var rx = r.width  * 0.38;
-  var ry = r.height * 0.38;
-  for(var i=0; i<n; i++){
-    // 0 = self (bottom), 1 = left, 2 = top, 3 = right for standard table layout
-    var angle = (Math.PI/2) + i*(2*Math.PI/n);
-    positions.push({ x: cx + rx*Math.cos(angle), y: cy + ry*Math.sin(angle) });
+  var myI    = (typeof myIdx === 'number') ? myIdx : 0;
+  var gameEl = document.getElementById('s-game') || document.body;
+  var r      = gameEl.getBoundingClientRect();
+  var cx     = r.left + r.width  / 2;
+  var cy     = r.top  + r.height / 2;
+
+  for(var i = 0; i < n; i++){
+    if(i === myI){
+      // Self: use hand area center (bottom strip)
+      var handEl = document.getElementById('g-hand');
+      if(handEl){
+        var hr = handEl.getBoundingClientRect();
+        positions[i] = { x: hr.left + hr.width / 2, y: hr.top + hr.height / 2 };
+      } else {
+        positions[i] = { x: cx, y: r.bottom - 70 };
+      }
+    } else {
+      // Opponent: use actual seat element (data-idx="i")
+      var seatEl = document.querySelector('.seat[data-idx="'+i+'"]');
+      if(seatEl){
+        var sr = seatEl.getBoundingClientRect();
+        positions[i] = { x: sr.left + sr.width / 2, y: sr.top + sr.height / 2 };
+      } else {
+        // Fallback: SPOS percentage inside oval
+        var ovalEl = document.getElementById('oval');
+        var or2    = ovalEl ? ovalEl.getBoundingClientRect() : r;
+        var np     = n;
+        var spos   = (typeof SPOS !== 'undefined') ? (SPOS[np] || SPOS[4]) : null;
+        if(spos){
+          var vi = (i - myI + np) % np;
+          var p  = spos[vi] || [50, 50];
+          positions[i] = { x: or2.left + or2.width * p[0] / 100, y: or2.top + or2.height * p[1] / 100 };
+        } else {
+          var angle = (Math.PI / 2) + i * (2 * Math.PI / n);
+          positions[i] = { x: cx + r.width * 0.35 * Math.cos(angle), y: cy + r.height * 0.35 * Math.sin(angle) };
+        }
+      }
+    }
   }
   return positions;
 }
 
 function _dealOneCard(overlay, fromX, fromY, toX, toY){
   var card = document.createElement('div');
+  var rot  = (Math.random() * 30) - 15;
   card.style.cssText = [
     'position:fixed',
-    'width:36px', 'height:52px',
+    'width:34px','height:50px',
     'background:linear-gradient(135deg,#1a3a5c 60%,#1e4976)',
-    'border:2px solid #fff',
+    'border:2px solid rgba(255,255,255,.85)',
     'border-radius:6px',
-    'box-shadow:0 2px 8px rgba(0,0,0,.5)',
-    'left:'+(fromX-18)+'px',
-    'top:'+(fromY-26)+'px',
-    'transform:rotate('+((Math.random()*30)-15)+'deg)',
-    'transition:all 0.35s cubic-bezier(0.22,1,0.36,1)',
+    'box-shadow:0 4px 14px rgba(0,0,0,.65)',
+    'left:' +(fromX-17)+'px',
+    'top:'  +(fromY-25)+'px',
+    'transform:rotate('+rot+'deg) scale(1)',
+    'transition:left '+(_dealTransit/1000)+'s cubic-bezier(.22,1,.36,1),'
+              +'top '  +(_dealTransit/1000)+'s cubic-bezier(.22,1,.36,1),'
+              +'transform '+(_dealTransit/1000)+'s cubic-bezier(.22,1,.36,1),'
+              +'opacity .12s ease '+(_dealTransit/1000*0.8)+'s',
     'opacity:1',
-    'z-index:9999'
+    'z-index:9999',
+    'display:flex','align-items:center','justify-content:center',
+    'font-size:1.4em','color:rgba(255,255,255,.35)'
   ].join(';');
-
-  // Tiny suit symbol on back
-  card.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.3em;opacity:0.4;">🂠</div>';
+  card.textContent = '🂠';
   overlay.appendChild(card);
 
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
-      card.style.left   = (toX-18)+'px';
-      card.style.top    = (toY-26)+'px';
-      card.style.transform = 'rotate('+((Math.random()*10)-5)+'deg) scale(0.85)';
-      card.style.opacity= '0';
-      setTimeout(function(){ if(card.parentNode) card.parentNode.removeChild(card); }, 500);
+      var endRot = (Math.random() * 10) - 5;
+      card.style.left      = (toX - 17) + 'px';
+      card.style.top       = (toY - 25) + 'px';
+      card.style.transform = 'rotate('+endRot+'deg) scale(0.72)';
+      card.style.opacity   = '0';
+      setTimeout(function(){ if(card.parentNode) card.parentNode.removeChild(card); }, _dealTransit + 200);
     });
   });
 }
@@ -8945,7 +9001,7 @@ if(typeof renderGame==='function' && !renderGame._animPatched){
     if(firstDeal && st && st.hand && st.hand.length > 0){
       var numP  = st.num_players || (st.hand_counts ? st.hand_counts.length : 2);
       var cards = st.hand.length || 13;
-      setTimeout(function(){ playDealAnimation(numP, cards, null); }, 200);
+      setTimeout(function(){ playDealAnimation(numP, cards, null); }, 300);
     }
   };
   renderGame._animPatched = true;
