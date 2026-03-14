@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poker Suruan</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+    }
+
+    /* ── Main Table Container ── */
+    .table-container {
+      position: relative;
+      width: 800px;
+      height: 450px;
+      background-image: url('/meja.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
+
+    /* ── Dealer / Wanita ── */
+    .dealer {
+      position: absolute;
+      top: -90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: auto;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,0.8));
+      z-index: 10;
+    }
+
+    /* ── Center Title ── */
+    .table-title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: rgba(255, 220, 80, 0.30);
+      text-transform: uppercase;
+      text-shadow:
+        0 0 30px rgba(255, 200, 0, 0.2),
+        0 2px 4px rgba(0,0,0,0.5);
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      z-index: 5;
+    }
+
+    /* ── Player Slot Base ── */
+    .player-slot {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 8;
+    }
+
+    .player-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3a3a3a, #1a1a1a);
+      border: 2px solid rgba(255, 220, 80, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,0.5),
+        0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    .player-box {
+      background: rgba(10, 20, 10, 0.82);
+      border: 1px solid rgba(255, 220, 80, 0.55);
+      border-radius: 8px;
+      padding: 4px 10px;
+      text-align: center;
+      min-width: 90px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    }
+
+    .player-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffd84a;
+      text-transform: uppercase;
+    }
+
+    .player-chips {
+      font-size: 10px;
+      color: #aaffaa;
+      margin-top: 1px;
+    }
+
+    /* Card placeholders */
+    .player-cards {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .card {
+      width: 22px;
+      height: 32px;
+      background: #fff;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .card.back {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      border-color: #444;
+    }
+
+    /* ── Player 4 — Left Middle ── */
+    .player-4 {
+      left: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* ── Player 3 — Left Bottom ── */
+    .player-3 {
+      left: 30px;
+      bottom: 55px;
+    }
+
+    /* ── Player 1 — Right Middle ── */
+    .player-1 {
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* ── Player 2 — Right Bottom ── */
+    .player-2 {
+      right: 30px;
+      bottom: 55px;
+    }
+
+    /* ── Community Cards Area (center) ── */
+    .community-area {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: 6px;
+      margin-top: 28px;
+      z-index: 6;
+    }
+
+    .community-area .card {
+      width: 32px;
+      height: 46px;
+      border-radius: 4px;
+    }
+
+    /* ── Pot Display ── */
+    .pot-display {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 220, 80, 0.5);
+      border-radius: 20px;
+      padding: 3px 14px;
+      font-size: 12px;
+      color: #ffd84a;
+      font-weight: 700;
+      letter-spacing: 1px;
+      z-index: 7;
+      white-space: nowrap;
+    }
+
+    /* ── Action Buttons ── */
+    .action-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .btn {
+      padding: 7px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    }
+
+    .btn-fold   { background: #8b1a1a; color: #ffcaca; }
+    .btn-check  { background: #1a5c1a; color: #caffca; }
+    .btn-call   { background: #1a3a8b; color: #cad6ff; }
+    .btn-raise  { background: #7a5a00; color: #fff5cc; }
+
+    /* ── Dealer Button (chip) ── */
+    .dealer-chip {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff, #cccccc);
+      border: 2px solid #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 900;
+      color: #333;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      z-index: 9;
+      /* near Player 2 */
+      right: 128px;
+      bottom: 88px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="table-container">
+
+    <!-- Dealer character -->
+    <img src="/wanita.png" alt="Dealer" class="dealer" />
+
+    <!-- Center watermark title -->
+    <div class="table-title">Poker Suruan</div>
+
+    <!-- Pot -->
+    <div class="pot-display">POT: Rp 0</div>
+
+    <!-- Dealer chip -->
+    <div class="dealer-chip">D</div>
+
+    <!-- Community cards (center of table) -->
+    <div class="community-area">
+      <div class="card back"></div>
+      <div class="card back"></div>
+      <div class="card back"></div>
+      <div class="card back"></div>
+      <div class="card back"></div>
+    </div>
+
+    <!-- Player 4 — Left Middle -->
+    <div class="player-slot player-4">
+      <div class="player-avatar">👤</div>
+      <div class="player-box">
+        <div class="player-name">Player 4</div>
+        <div class="player-chips">Rp 10.000</div>
+      </div>
+      <div class="player-cards">
+        <div class="card back"></div>
+        <div class="card back"></div>
+      </div>
+    </div>
+
+    <!-- Player 3 — Left Bottom -->
+    <div class="player-slot player-3">
+      <div class="player-avatar">👤</div>
+      <div class="player-box">
+        <div class="player-name">Player 3</div>
+        <div class="player-chips">Rp 10.000</div>
+      </div>
+      <div class="player-cards">
+        <div class="card back"></div>
+        <div class="card back"></div>
+      </div>
+    </div>
+
+    <!-- Player 1 — Right Middle -->
+    <div class="player-slot player-1">
+      <div class="player-cards">
+        <div class="card back"></div>
+        <div class="card back"></div>
+      </div>
+      <div class="player-box">
+        <div class="player-name">Player 1</div>
+        <div class="player-chips">Rp 10.000</div>
+      </div>
+      <div class="player-avatar">👤</div>
+    </div>
+
+    <!-- Player 2 — Right Bottom -->
+    <div class="player-slot player-2">
+      <div class="player-cards">
+        <div class="card back"></div>
+        <div class="card back"></div>
+      </div>
+      <div class="player-box">
+        <div class="player-name">Player 2</div>
+        <div class="player-chips">Rp 10.000</div>
+      </div>
+      <div class="player-avatar">👤</div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-bar">
+      <button class="btn btn-fold">Fold</button>
+      <button class="btn btn-check">Check</button>
+      <button class="btn btn-call">Call</button>
+      <button class="btn btn-raise">Raise</button>
+    </div>
+
+  </div>
+
+</body>
+</html>
