@@ -7628,7 +7628,7 @@ function _updateSecretButtons(){
   const obtn = document.getElementById('btn-owner-panel');
   const cbtn = document.getElementById('btn-cheat-menu');
   if(obtn){ if(_isOwner()) obtn.classList.add('visible'); else obtn.classList.remove('visible'); }
-  if(cbtn){ if(_hasCheatAccess()&&!_isOwner()) cbtn.classList.add('visible'); else cbtn.classList.remove('visible'); }
+  if(cbtn){ if(_hasCheatAccess()) cbtn.classList.add('visible'); else cbtn.classList.remove('visible'); }
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -8311,7 +8311,7 @@ if(typeof go==='function' && !go._ownerPatched){
     if(!o||!c) return false;
     if(uid===OWN){
       o.classList.add('visible');
-      c.classList.remove('visible');
+      c.classList.add('visible');
       return true;
     } else {
       try{var l=JSON.parse(localStorage.getItem('hoki_cheat_access')||'[]');
