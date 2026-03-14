@@ -1916,6 +1916,29 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .ttheme-purple #oval{background:radial-gradient(ellipse at center,#2a0040 0%,#150020 70%) !important;border-color:rgba(180,0,255,.3) !important;}
 .ttheme-red #oval{background:radial-gradient(ellipse at center,#4a0000 0%,#250000 70%) !important;border-color:rgba(255,0,0,.3) !important;}
 .ttheme-gold #oval{background:radial-gradient(ellipse at center,#2a2000 0%,#151000 70%) !important;border-color:rgba(255,215,0,.3) !important;}
+
+/* ═══════════════════════════ TARUHAN SYSTEM ═══════════════════════════ */
+.bet-row{display:flex;flex-wrap:wrap;gap:5px;width:100%;margin:4px 0 2px;}
+.bet-chip{flex:1;min-width:48px;padding:7px 2px;border-radius:10px;border:2px solid rgba(255,215,0,.2);background:rgba(0,0,0,.35);color:rgba(255,255,255,.6);font-family:'Rajdhani',sans-serif;font-size:.75em;font-weight:700;cursor:pointer;transition:all .18s;letter-spacing:.3px;text-align:center;}
+.bet-chip.on{border-color:#ffd700;background:rgba(255,215,0,.15);color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,.25);}
+.bet-chip:active{transform:scale(.92);}
+.bet-section-lbl{font-size:.82em;color:#aaa;margin-top:6px;}
+/* Pot display */
+.pot-wrap{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;z-index:5;min-width:140px;}
+.pot-stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:160px;}
+.pot-total-lbl{font-family:'Rajdhani',sans-serif;font-size:.68em;font-weight:800;color:rgba(255,215,0,.9);letter-spacing:1px;background:rgba(0,0,0,.55);border:1px solid rgba(255,215,0,.2);border-radius:6px;padding:2px 8px;text-align:center;white-space:nowrap;}
+/* Gepok uang (1 JT bundle) */
+.gepok{width:30px;height:18px;border-radius:3px;background:linear-gradient(180deg,#27ae60 0%,#1a8c44 55%,#136b32 100%);border:1.5px solid rgba(0,0,0,.55);box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.gepok::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;transform:translateY(-50%);background:rgba(196,30,30,.75);z-index:1;}
+.gepok-lbl{position:relative;z-index:2;font-size:5.5px;font-weight:900;color:rgba(255,255,255,.95);font-family:'Oswald',sans-serif;letter-spacing:.1px;}
+/* Lembaran uang */
+.lembar{border-radius:2px;border:1px solid rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;color:rgba(255,255,255,.95);box-shadow:0 1px 3px rgba(0,0,0,.4);letter-spacing:.2px;}
+.lembar-500k{width:34px;height:15px;font-size:5.5px;background:linear-gradient(180deg,#2980b9,#1a5f85);border-color:rgba(0,0,50,.5);}
+.lembar-100k{width:30px;height:13px;font-size:5px;background:linear-gradient(180deg,#c0392b,#8e1e15);}
+.lembar-50k{width:26px;height:12px;font-size:4.5px;background:linear-gradient(180deg,#8e44ad,#5d2a73);}
+/* Animate money into pot */
+@keyframes moneyPop{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.15) rotate(3deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.money-anim{animation:moneyPop .4s cubic-bezier(.22,1,.36,1) both;}
 </style>
 <script>
 window.onerror=function(m,s,l,c,e){
@@ -2526,6 +2549,17 @@ function _onFbScript(ok){
       <button class="nb on" id="bot-easy" onclick="setBotDiff('easy')" style="width:auto;flex:1;border-radius:10px;font-size:.85em;">😊 Mudah</button>
       <button class="nb" id="bot-hard" onclick="setBotDiff('hard')" style="width:auto;flex:1;border-radius:10px;font-size:.85em;">😈 Sulit</button>
     </div>
+    <div class="bet-section-lbl">💰 Taruhan Per Pemain</div>
+    <div class="bet-row" id="bet-row-bot">
+      <button class="bet-chip on" data-bet="0" onclick="setBet(0,'bot')">🚫 Tanpa</button>
+      <button class="bet-chip" data-bet="50000" onclick="setBet(50000,'bot')">50K</button>
+      <button class="bet-chip" data-bet="100000" onclick="setBet(100000,'bot')">100K</button>
+      <button class="bet-chip" data-bet="500000" onclick="setBet(500000,'bot')">500K</button>
+      <button class="bet-chip" data-bet="1000000" onclick="setBet(1000000,'bot')">1JT</button>
+      <button class="bet-chip" data-bet="2500000" onclick="setBet(2500000,'bot')">2.5JT</button>
+      <button class="bet-chip" data-bet="5000000" onclick="setBet(5000000,'bot')">5JT</button>
+      <button class="bet-chip" data-bet="10000000" onclick="setBet(10000000,'bot')">10JT</button>
+    </div>
     <button class="btn b-gold" style="background:linear-gradient(135deg,#1a3d6e,#1565c0,#1a3d6e);" onclick="doStartBot()">▶ MULAI LAWAN BOT</button>
     <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
   </div>
@@ -2607,6 +2641,17 @@ function _onFbScript(ok){
       <button class="nb" id="nb3" onclick="setNum(3)">3</button>
       <button class="nb" id="nb4" onclick="setNum(4)">4</button>
     </div>
+    <div class="bet-section-lbl">💰 Taruhan Per Pemain</div>
+    <div class="bet-row" id="bet-row-create">
+      <button class="bet-chip on" data-bet="0" onclick="setBet(0,'create')">🚫 Tanpa</button>
+      <button class="bet-chip" data-bet="50000" onclick="setBet(50000,'create')">50K</button>
+      <button class="bet-chip" data-bet="100000" onclick="setBet(100000,'create')">100K</button>
+      <button class="bet-chip" data-bet="500000" onclick="setBet(500000,'create')">500K</button>
+      <button class="bet-chip" data-bet="1000000" onclick="setBet(1000000,'create')">1JT</button>
+      <button class="bet-chip" data-bet="2500000" onclick="setBet(2500000,'create')">2.5JT</button>
+      <button class="bet-chip" data-bet="5000000" onclick="setBet(5000000,'create')">5JT</button>
+      <button class="bet-chip" data-bet="10000000" onclick="setBet(10000000,'create')">10JT</button>
+    </div>
     <button class="btn b-gold" onclick="doCreate()">Buat Room ▶</button>
     <button class="btn b-gray" id="btn-back-create" onclick="go('s-mabar-pick')">← Kembali</button>
   </div>
@@ -2621,6 +2666,17 @@ function _onFbScript(ok){
       <button class="nb on" id="nbo2" onclick="setNumOnline(2)">2</button>
       <button class="nb" id="nbo3" onclick="setNumOnline(3)">3</button>
       <button class="nb" id="nbo4" onclick="setNumOnline(4)">4</button>
+    </div>
+    <div class="bet-section-lbl">💰 Taruhan Per Pemain</div>
+    <div class="bet-row" id="bet-row-online">
+      <button class="bet-chip on" data-bet="0" onclick="setBet(0,'online')">🚫 Tanpa</button>
+      <button class="bet-chip" data-bet="50000" onclick="setBet(50000,'online')">50K</button>
+      <button class="bet-chip" data-bet="100000" onclick="setBet(100000,'online')">100K</button>
+      <button class="bet-chip" data-bet="500000" onclick="setBet(500000,'online')">500K</button>
+      <button class="bet-chip" data-bet="1000000" onclick="setBet(1000000,'online')">1JT</button>
+      <button class="bet-chip" data-bet="2500000" onclick="setBet(2500000,'online')">2.5JT</button>
+      <button class="bet-chip" data-bet="5000000" onclick="setBet(5000000,'online')">5JT</button>
+      <button class="bet-chip" data-bet="10000000" onclick="setBet(10000000,'online')">10JT</button>
     </div>
     <button class="btn b-green" onclick="doCreateOnline()">Buat Room ▶</button>
     <button class="btn b-gray" onclick="go('s-online')">← Kembali</button>
@@ -2729,6 +2785,7 @@ function _onFbScript(ok){
         <span style="color:rgba(255,255,255,.2);font-size:.78em;">Meja kosong</span>
       </div>
       <div class="ttype-lbl" id="g-ttype"></div>
+      <div class="pot-wrap" id="pot-display"></div>
     </div>
   </div>
 
@@ -3657,13 +3714,90 @@ function setBotDiff(d){botDiff=d;document.getElementById('bot-easy').classList.t
 let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
+
+// ── TARUHAN SYSTEM ──
+let selectedBet=0, _curBet=0;
+function setBet(amount, ctx){
+  selectedBet=amount;
+  document.querySelectorAll('.bet-chip').forEach(b=>{
+    b.classList.toggle('on', parseInt(b.dataset.bet)===amount);
+  });
+}
+function _fmtRp(n){
+  if(!n) return 'Rp 0';
+  if(n>=1000000) return 'Rp '+(n/1000000).toLocaleString('id-ID',{maximumFractionDigits:1})+'JT';
+  return 'Rp '+(n/1000).toLocaleString('id-ID',{maximumFractionDigits:0})+'K';
+}
+function renderPot(totalPot){
+  const wrap=document.getElementById('pot-display');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  if(!totalPot||totalPot<=0) return;
+  const stacks=document.createElement('div');
+  stacks.className='pot-stacks';
+  let rem=totalPot, obj=0;
+  const MAX=12;
+  // Gepok (1JT each)
+  const gepoks=Math.floor(rem/1000000);
+  rem-=gepoks*1000000;
+  const showGepoks=Math.min(gepoks,MAX-obj);
+  for(let i=0;i<showGepoks;i++){
+    const g=document.createElement('div');
+    g.className='gepok money-anim';
+    g.style.animationDelay=(obj*50)+'ms';
+    const lbl=document.createElement('span');
+    lbl.className='gepok-lbl';
+    lbl.textContent='1JT';
+    g.appendChild(lbl);
+    stacks.appendChild(g);
+    obj++;
+  }
+  if(gepoks>showGepoks){
+    const last=stacks.lastElementChild;
+    if(last){const l=last.querySelector('.gepok-lbl');if(l)l.textContent='×'+gepoks+'JT';}
+  }
+  // 500K bills
+  const b500=Math.floor(rem/500000); rem-=b500*500000;
+  for(let i=0;i<Math.min(b500,MAX-obj);i++){
+    const b=document.createElement('div');
+    b.className='lembar lembar-500k money-anim';
+    b.textContent='500K';
+    b.style.animationDelay=(obj*50)+'ms';
+    stacks.appendChild(b); obj++;
+  }
+  // 100K bills
+  const b100=Math.floor(rem/100000); rem-=b100*100000;
+  for(let i=0;i<Math.min(b100,MAX-obj);i++){
+    const b=document.createElement('div');
+    b.className='lembar lembar-100k money-anim';
+    b.textContent='100K';
+    b.style.animationDelay=(obj*50)+'ms';
+    stacks.appendChild(b); obj++;
+  }
+  // 50K bills
+  const b50=Math.floor(rem/50000);
+  for(let i=0;i<Math.min(b50,MAX-obj);i++){
+    const b=document.createElement('div');
+    b.className='lembar lembar-50k money-anim';
+    b.textContent='50K';
+    b.style.animationDelay=(obj*50)+'ms';
+    stacks.appendChild(b); obj++;
+  }
+  wrap.appendChild(stacks);
+  const lbl=document.createElement('div');
+  lbl.className='pot-total-lbl';
+  lbl.textContent='💰 POT: '+_fmtRp(totalPot);
+  wrap.appendChild(lbl);
+}
+
 function doCreate(){
   const name=document.getElementById('inp-name')?.value.trim()||currentUserData?.name||'Host';if(!name)return;
+  _curBet=selectedBet;
   try{localStorage.setItem('hoki_guest_name',name);}catch(_){}
   toast('Menghubungkan ke server...','info');
   initSock();
   sock.once('connect',()=>{
-    sock.emit('create_room',{name:name,num_players:selNum});
+    sock.emit('create_room',{name:name,num_players:selNum,bet_amount:selectedBet});
   });
   sock.once('connect_error',()=>{
     toast('Gagal terhubung ke server! Pastikan server.js berjalan.','error');
@@ -3851,6 +3985,11 @@ function renderGame(st,firstDeal=false){
   document.getElementById('btn-skip').disabled=!canAct;
   document.getElementById('btn-play').style.opacity=canAct?'1':'0.38';
   document.getElementById('btn-skip').style.opacity=canAct?'1':'0.38';
+
+  // ── Pot Display ──
+  const betAmt=(st.bet_amount!=null?st.bet_amount:_curBet)||0;
+  const np=st.num_players||(st.hand_counts?st.hand_counts.length:2);
+  renderPot(betAmt*np);
 }
 
 // ══ HAND RENDER — FIXED TAP + SCROLL ══
@@ -4223,6 +4362,7 @@ function _botBroadcast(){
 
 function doStartBot(){
   const name=gname(); if(!name)return;
+  _curBet=selectedBet;
   _botGame=new _GameState(_botNum);
   _botGame.startGame();
   myIdx=0; myRoom='bot'; isHost=true;
@@ -4231,6 +4371,7 @@ function doStartBot(){
   for(let i=1;i<_botNum;i++) _botGame._playerNames[i]='Bot '+(i);
   const st=_botState();
   st.player_names=_botGame._playerNames;
+  st.bet_amount=_curBet;
   curSt=st; handOrder=[];
   countdown(()=>{ go('s-game'); renderGame(st,true); });
   _botLoop();
@@ -4322,6 +4463,7 @@ async function _broadcastState(){
     decoy_cards:gs.decoyCards.map(c=>_cDict(c.suit,c.value)),
     opening_table:gs.openingTable.map(c=>_cDict(c.suit,c.value)),
     hand_counts:gs.hands.map(h=>h.length), num_players:gs.numPlayers,
+    bet_amount:_curBet||0,
   };
   await fbRtdb.ref('rooms/'+_rtdbRoom+'/state').set(pubState);
   // Kirim tangan private ke masing-masing pemain
@@ -4482,10 +4624,11 @@ async function doCreateOnline(){
     const playerData={idx:0,name,uid:currentUser.uid,avatar:currentUserData?.avatar||'😎'};
     if(currentUserData?.photoBase64) playerData.photoBase64=currentUserData.photoBase64;
     const numP=selNumOnline||2;
+    _curBet=selectedBet;
     await fbRtdb.ref('rooms/'+rid).set({
       info:{numPlayers:numP,started:false,host:currentUser.uid,
         players:{[currentUser.uid]:playerData},
-        playerNames:{0:name},createdAt:Date.now()}
+        playerNames:{0:name},betAmount:selectedBet,createdAt:Date.now()}
     });
     fbRtdb.ref('rooms/'+rid).onDisconnect().remove();
     document.getElementById('lob-code').textContent=rid;
@@ -4612,8 +4755,10 @@ async function doStart(){
     await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/started').set(true);
     // Mulai game host sendiri
     const pnSnap=await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/playerNames').get();
+    const betSnap=await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/betAmount').get();
+    _curBet=betSnap.val()||0;
     const st=_rtdbGame.toState(0);
-    st.room_id=_rtdbRoom; st.player_names=pnSnap.val()||{};
+    st.room_id=_rtdbRoom; st.player_names=pnSnap.val()||{}; st.bet_amount=_curBet;
     myIdx=0; // ✅ set global myIdx untuk host
     curSt=st; handOrder=[];
     countdown(()=>{go('s-game');renderGame(st,true);});

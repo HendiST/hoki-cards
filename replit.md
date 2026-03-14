@@ -43,6 +43,17 @@ The app runs with `node server.js`. No build step required.
 - **Give Reward** — Kirim diamond ke player by UID
 - **Global Message** — Broadcast pesan ke semua player yang sedang online, dengan pilihan durasi
 
+## Taruhan (Betting) System
+
+- **Bet Selector** — Saat buat room (Bot, Mabar Privat, Online), pilih taruhan per pemain: Tanpa, 50K, 100K, 500K, 1JT, 2.5JT, 5JT, 10JT
+- **Visual Pot di Meja** — Total taruhan (bet × jumlah pemain) ditampilkan di tengah meja sebagai:
+  - **Gepok uang** (hijau, rubber band merah) untuk setiap Rp 1.000.000
+  - **Lembaran 500K** (biru), **100K** (merah), **50K** (ungu) untuk sisa yang tidak genap 1JT
+  - Max 12 objek uang di meja (performa terjaga)
+  - Animasi pop-in saat objek muncul
+- **Label POT** — Menampilkan total pot di bawah tumpukan uang
+- **Propagasi bet_amount** — Tersimpan di server (socket.io mabar), RTDB (online), dan bot state
+
 ## Sound Effects & Animations
 
 - Sound effects via Web Audio API (no external files): deal, place, pass, turn, win, lose, click

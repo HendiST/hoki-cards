@@ -388,6 +388,7 @@ function getState(roomId,fp=null){
   const r=rooms[roomId];const s=r.game.toDict(fp);
   s.room_id=roomId;s.player_names=r.playerNames;
   s.num_players=r.numPlayers;s.players_joined=Object.keys(r.players).length;
+  s.bet_amount=r.betAmount||0;
   return s;
 }
 
@@ -479,6 +480,7 @@ io.on('connection',socket=>{
     const name=data.name||'Pemain 1';
     const botMode=!!data.bot_mode;
     const botDiff=data.bot_diff||'easy';
+    const betAmount=parseInt(data.bet_amount)||0;
     const rid=genId();
     const gs=new GameState(n);
     const botNames=['Bot-A','Bot-B','Bot-C'];
@@ -486,7 +488,7 @@ io.on('connection',socket=>{
     if(botMode)for(let i=1;i<n;i++)pnames[i]='🤖 '+botNames[i-1];
 
     rooms[rid]={game:gs,players:{[socket.id]:0},playerNames:pnames,
-      numPlayers:n,hostSid:socket.id,started:false,
+      numPlayers:n,hostSid:socket.id,started:false,betAmount,
       botMode,botDiff,botIndices:botMode?Array.from({length:n-1},(_,i)=>i+1):[]};
     sidRoom[socket.id]=rid;socket.join(rid);
 
