@@ -348,7 +348,16 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 
 /* ═══ GAME ═══ */
 #s-game{
-  background:radial-gradient(ellipse at 50% 40%,#0a1a08 0%,#020602 100%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(180,130,0,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 0% 100%, rgba(0,120,40,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(0,120,40,0.12) 0%, transparent 50%),
+    repeating-linear-gradient(
+      -45deg,
+      transparent, transparent 38px,
+      rgba(255,215,0,0.018) 38px, rgba(255,215,0,0.018) 39px
+    ),
+    linear-gradient(180deg,#07100a 0%,#0a160b 45%,#060d07 100%);
   padding:0;overflow:hidden;justify-content:flex-start;align-items:stretch;
 }
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(0,0,0,.6);flex-shrink:0;border-bottom:1px solid rgba(255,215,0,.1);}
@@ -370,10 +379,10 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   box-shadow:none;
 }
 .oval::after{display:none;}
-.dealer-img{position:absolute;top:-48px;left:50%;transform:translateX(-50%);width:min(22vw,110px);height:auto;filter:drop-shadow(0 4px 20px rgba(0,0,0,.95));z-index:25;pointer-events:none;}
+.dealer-img{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:min(26vw,130px);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,1));z-index:22;pointer-events:none;}
 .tcards-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:78%;z-index:5;}
 .ttype-lbl{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:.68em;color:var(--gold);letter-spacing:2px;white-space:nowrap;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:5px;z-index:5;}
-.phase-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:2px 10px;border-radius:5px;font-weight:700;display:none;}
+.phase-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.65em;color:#fff;letter-spacing:.5px;white-space:nowrap;background:rgba(180,80,0,.6);padding:2px 10px;border-radius:5px;font-weight:700;display:none;z-index:30;}
 
 /* SEATS */
 .seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;z-index:20;pointer-events:none;}
@@ -3409,9 +3418,9 @@ const AV=['😎','🧑','👦','👩','🧔','👱','🧑‍🦱','👩‍🦰']
 const VO=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SO=['S','H','D','C'];
 const SPOS={
-  2:[[15,68],[85,30]],
-  3:[[15,68],[15,30],[85,30]],
-  4:[[15,68],[15,30],[85,30],[85,68]]
+  2:[[20,118],[96,50]],
+  3:[[20,118],[4,50],[96,50]],
+  4:[[20,118],[4,50],[96,50],[80,118]]
 };
 
 let sock=null,myIdx=null,myRoom=null,isHost=false;
