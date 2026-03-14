@@ -74,6 +74,7 @@ The app runs with `node server.js`. No build step required.
 ### 3. Git push otomatis
 - Setelah **semua fitur dalam satu sesi selesai dan sudah ditest**, langsung push ke GitHub **tanpa menunggu perintah dari user**
 - Perintah push: `git push "https://HendiST:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/HendiST/hoki-cards" HEAD:main`
+- `GITHUB_PERSONAL_ACCESS_TOKEN` **sudah tersimpan sebagai Replit Secret** — langsung pakai, jangan minta ke user lagi
 - Tidak perlu minta izin user untuk push — lakukan otomatis setelah semua selesai
 
 ### 4. Urutan kerja yang benar
