@@ -1884,6 +1884,14 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cb-blue{background:linear-gradient(135deg,#001a3a,#0044a0);border-color:#0088ff;color:#4af;}
 .cb-red{background:linear-gradient(135deg,#2a0000,#7a0000);border-color:#ff3333;color:#f88;}
 .cb-dark{background:linear-gradient(135deg,#111,#222);border-color:#555;color:#666;}
+.cb-striped{background:repeating-linear-gradient(-45deg,#0d2a45 0px,#0d2a45 3px,#1a5a8a 3px,#1a5a8a 6px);border-color:#4499cc;color:#6cf;}
+.cb-batik{background:radial-gradient(ellipse at 28% 28%,rgba(200,120,10,.55) 0%,transparent 52%),radial-gradient(ellipse at 72% 72%,rgba(180,90,0,.45) 0%,transparent 52%),radial-gradient(circle at 50% 50%,rgba(255,180,0,.12) 0%,transparent 65%),#1a0900;border-color:#c8860b;color:#e8a020;}
+/* Card back in-game skins (.card elementos) */
+.cb-skin-striped{background:repeating-linear-gradient(-45deg,#0d2a45 0px,#0d2a45 3px,#1a5a8a 3px,#1a5a8a 6px)!important;border-color:#4499cc!important;}
+.cb-skin-batik{background:radial-gradient(ellipse at 28% 28%,rgba(200,120,10,.55) 0%,transparent 52%),radial-gradient(ellipse at 72% 72%,rgba(180,90,0,.45) 0%,transparent 52%),#1a0900!important;border-color:#c8860b!important;}
+/* Deal animation overlay card back classes */
+.g-card-cb-striped{background:repeating-linear-gradient(-45deg,#1a3a5c 0px,#1a3a5c 3px,#0d5c8a 3px,#0d5c8a 6px)!important;border-color:#4499cc!important;}
+.g-card-cb-batik{background:radial-gradient(ellipse at 30% 30%,rgba(180,100,0,.5) 0%,transparent 55%),radial-gradient(ellipse at 70% 70%,rgba(180,100,0,.4) 0%,transparent 55%),#1a0800!important;border-color:#c8860b!important;}
 
 /* ── FITUR 12: Table Theme Preview + App ── */
 .theme-preview-box{width:60px;height:38px;border-radius:8px;margin:0 auto 4px;border:2px solid rgba(255,255,255,.2);}
@@ -2959,6 +2967,30 @@ function _onFbScript(ok){
       <div class="shop-item-action">
         <div class="shop-price">💎 80</div>
         <button class="shop-btn shop-btn-buy" id="cbbtn-dark" onclick="shopBuyCardBack('dark',80)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="cbitem-striped">
+      <div class="equip-sticker" id="cbeq-striped" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-striped">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Bergaris Biru</div>
+        <div class="shop-item-desc">Motif garis diagonal biru sporty.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 120</div>
+        <button class="shop-btn shop-btn-buy" id="cbbtn-striped" onclick="shopBuyCardBack('striped',120)">Beli</button>
+      </div>
+    </div>
+    <div class="shop-item" id="cbitem-batik">
+      <div class="equip-sticker" id="cbeq-batik" style="display:none;">✓ AKTIF</div>
+      <div class="shop-item-preview"><div class="cardback-preview cb-batik">🂠</div></div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Batik Nusantara</div>
+        <div class="shop-item-desc">Motif batik coklat emas khas Indonesia.</div>
+      </div>
+      <div class="shop-item-action">
+        <div class="shop-price">💎 200</div>
+        <button class="shop-btn shop-btn-buy" id="cbbtn-batik" onclick="shopBuyCardBack('batik',200)">Beli</button>
       </div>
     </div>
   </div>
@@ -9288,6 +9320,8 @@ if(typeof renderGame==='function' && !renderGame._animPatched){
 //  FITUR 1: ANIMASI KARTU DIMAINKAN (fly from hand to table)
 // ══════════════════════════════════════════════════════════════════════
 function _animateCardsToTable(callback){
+  // Suara blap saat kartu diletakkan ke meja
+  if(typeof window.sfxBlap==='function') window.sfxBlap();
   const handArea = document.getElementById('g-hand');
   const tableArea = document.getElementById('g-tcards');
   if(!handArea || !tableArea){ if(callback) callback(); return; }
@@ -9631,10 +9665,12 @@ function _applyCardBackSkin(){
   const skin = (window.currentUserData&&window.currentUserData.cardBackSkin) ||
     (function(){ try{ return localStorage.getItem('hoki_cardback_skin')||'classic'; }catch(_){ return 'classic'; }}());
   document.querySelectorAll('.card:not(.tcard)').forEach(el=>{
-    el.classList.remove('cb-skin-blue','cb-skin-red','cb-skin-dark');
-    if(skin==='blue') el.classList.add('cb-skin-blue');
-    if(skin==='red')  el.classList.add('cb-skin-red');
-    if(skin==='dark') el.classList.add('cb-skin-dark');
+    el.classList.remove('cb-skin-blue','cb-skin-red','cb-skin-dark','cb-skin-striped','cb-skin-batik');
+    if(skin==='blue')    el.classList.add('cb-skin-blue');
+    if(skin==='red')     el.classList.add('cb-skin-red');
+    if(skin==='dark')    el.classList.add('cb-skin-dark');
+    if(skin==='striped') el.classList.add('cb-skin-striped');
+    if(skin==='batik')   el.classList.add('cb-skin-batik');
   });
 }
 
@@ -9658,7 +9694,7 @@ function shopBuyCardBack(id, price){
   const d = window.currentUserData||{};
   if((d.ownedCardBacks||['classic']).includes(id)){ shopEquipCardBack(id); return; }
   _shopPending={type:'cardback',id,price};
-  const names={blue:'Blue Royal',red:'Red Classic',dark:'Dark Minimal'};
+  const names={blue:'Blue Royal',red:'Red Classic',dark:'Dark Minimal',striped:'Bergaris Biru',batik:'Batik Nusantara'};
   const t=document.getElementById('sc-title'); if(t) t.textContent='Beli '+names[id]+'?';
   const de=document.getElementById('sc-desc'); if(de) de.textContent='Card back '+names[id]+' untuk kartu di tanganmu.';
   const p=document.getElementById('sc-price'); if(p) p.textContent='💎 '+price;
@@ -9670,7 +9706,7 @@ function _shopRenderCardBacks(){
   const d = window.currentUserData||{};
   const ownedCB = d.ownedCardBacks||['classic'];
   const curCB   = d.cardBackSkin||'classic';
-  ['classic','blue','red','dark'].forEach(id=>{
+  ['classic','blue','red','dark','striped','batik'].forEach(id=>{
     const owned = ownedCB.includes(id)||id==='classic';
     const equipped = curCB===id;
     const btn = document.getElementById('cbbtn-'+id);
@@ -10097,7 +10133,7 @@ function _doRiffleEffect(ov, deck, CW, CH, N){
   }
 }
 
-// ══ ENHANCED DEAL: kartu terbang 3D dengan perspektif ══
+// ══ ENHANCED DEAL: kartu terbang 3D → numpuk di depan avatar ══
 function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
   var ov=document.createElement('div');
   ov.id='deal-anim-overlay';
@@ -10110,56 +10146,76 @@ function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
   var srcRect=(ovalEl||gameEl).getBoundingClientRect();
   var cx=srcRect.left+srcRect.width/2;
   var cy=srcRect.top+srcRect.height/2;
-  var positions=typeof _getSeatPositions==='function'?_getSeatPositions(numPlayers):[];
+  var positions=typeof window._getSeatPositions==='function'?window._getSeatPositions(numPlayers):[];
 
-  var step=85, transit=340;
+  // Card back style berdasarkan skin yang dipilih
+  var cbClass=typeof window._getCbClass==='function'?window._getCbClass():'';
+  var bgStyle=
+    cbClass==='g-card-cb-blue'  ?'linear-gradient(148deg,#001a3a 55%,#0044a0)':
+    cbClass==='g-card-cb-red'   ?'linear-gradient(148deg,#2a0000 55%,#7a0000)':
+    cbClass==='g-card-cb-dark'  ?'linear-gradient(148deg,#0a0a0a 55%,#1a1a1a)':
+    cbClass==='g-card-cb-striped'?'repeating-linear-gradient(-45deg,#1a3a5c 0px,#1a3a5c 3px,#0d5c8a 3px,#0d5c8a 6px)':
+    cbClass==='g-card-cb-batik' ?'radial-gradient(ellipse at 30% 30%,rgba(180,100,0,.5) 0%,transparent 55%),radial-gradient(ellipse at 70% 70%,rgba(180,100,0,.4) 0%,transparent 55%) #1a0800':
+    'linear-gradient(148deg,#1c3d60 55%,#1a5080)';
+  var bdColor=
+    cbClass==='g-card-cb-blue'  ?'#0088ff':
+    cbClass==='g-card-cb-red'   ?'#ff3333':
+    cbClass==='g-card-cb-dark'  ?'#555':
+    cbClass==='g-card-cb-striped'?'#4499cc':
+    cbClass==='g-card-cb-batik' ?'#c8860b':
+    'rgba(255,255,255,.82)';
+
+  var step=92, transit=360;
   var totalCards=numPlayers*cardsPerPlayer;
-  var CW=34, CH=50;
+  var CW=30, CH=44;
+  // Track tumpukan kartu per pemain
+  var stackCount=[];
+  for(var p=0;p<numPlayers;p++) stackCount[p]=0;
 
   for(var i=0;i<totalCards;i++){
     (function(idx){
       var pIdx=idx%numPlayers;
       var dest=positions[pIdx]||{x:cx,y:cy};
+      var myStack=stackCount[pIdx]++;
       setTimeout(function(){
         var card=document.createElement('div');
-        var rot=(Math.random()*28)-14;
+        var startRot=(Math.random()*22)-11;
         card.style.cssText=[
           'position:fixed',
           'width:'+CW+'px','height:'+CH+'px',
-          'background:linear-gradient(148deg,#1c3d60 55%,#1a5080)',
-          'border:2px solid rgba(255,255,255,.85)',
-          'border-radius:6px',
-          'box-shadow:0 10px 28px rgba(0,0,0,.8),0 3px 8px rgba(0,0,0,.5)',
+          'background:'+bgStyle,
+          'border:1.5px solid '+bdColor,
+          'border-radius:5px',
+          'box-shadow:0 10px 24px rgba(0,0,0,.8)',
           'left:'+(cx-CW/2)+'px',
           'top:'+(cy-CH/2)+'px',
-          'transform:rotate('+rot+'deg) rotateX(-12deg) rotateY('+(Math.random()*16-8)+'deg) translateZ(40px) scale(1.12)',
+          'transform:rotate('+startRot+'deg) rotateX(-10deg) rotateY('+(Math.random()*14-7)+'deg) translateZ(38px) scale(1.1)',
           'transition:left '+transit+'ms cubic-bezier(.22,1,.36,1),'+
                      'top '+transit+'ms cubic-bezier(.22,1,.36,1),'+
                      'transform '+transit+'ms cubic-bezier(.22,1,.36,1),'+
-                     'opacity .1s ease '+(transit*0.82)+'ms,'+
                      'box-shadow '+transit+'ms ease',
-          'opacity:1','z-index:9999',
-          'will-change:left,top,transform'
+          'opacity:1','z-index:9999','will-change:left,top,transform'
         ].join(';');
         ov.appendChild(card);
 
         if(typeof sfxDeal==='function') sfxDeal();
-        if(pIdx===myI && typeof sfxCardStack==='function'){
-          setTimeout(sfxCardStack, transit*0.88);
-        }
 
+        // Terbang ke posisi pemain, lalu TETAP tampil sebagai tumpukan
         requestAnimationFrame(function(){
           requestAnimationFrame(function(){
-            var endRot=(Math.random()*8)-4;
-            card.style.left=(dest.x-CW/2)+'px';
-            card.style.top=(dest.y-CH/2)+'px';
-            card.style.transform='rotate('+endRot+'deg) rotateX(3deg) translateZ(0px) scale(0.72)';
-            card.style.opacity='0';
-            card.style.boxShadow='0 2px 6px rgba(0,0,0,.35)';
-            setTimeout(function(){ if(card.parentNode) card.parentNode.removeChild(card); }, transit+200);
+            var sOff=myStack*2; // offset tumpukan: setiap kartu sedikit geser
+            var endRot=(Math.random()*6)-3;
+            card.style.left=(dest.x - CW/2 - sOff*0.5)+'px';
+            card.style.top =(dest.y - CH/2 - sOff)+'px';
+            card.style.transform='rotate('+endRot+'deg) rotateX(4deg) translateZ(0px) scale(0.85)';
+            card.style.boxShadow='0 '+(3+myStack)+'px '+(8+myStack*2)+'px rgba(0,0,0,.55)';
+
+            // Suara kartu mendarat
+            if(typeof sfxCardStack==='function') setTimeout(sfxCardStack, transit*0.88);
           });
         });
 
+        // Reveal kartu tangan sendiri satu per satu setelah mendarat
         if(pIdx===myI){
           var cardNum=Math.floor(idx/numPlayers);
           setTimeout(function(){
@@ -10168,20 +10224,27 @@ function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
               hc[cardNum].classList.remove('deal-hidden');
               hc[cardNum].classList.add('deal-reveal');
             }
-          }, transit);
+          }, transit+120);
         }
       }, idx*step);
     })(i);
   }
 
+  // Setelah semua kartu dibagi: reveal sisa tangan + fade tumpukan overlay
+  var finishAt=totalCards*step+transit+700;
   setTimeout(function(){
     document.querySelectorAll('#g-hand .card.deal-hidden').forEach(function(c){
       c.classList.remove('deal-hidden');
       c.classList.add('deal-reveal');
     });
-    if(ov.parentNode) ov.parentNode.removeChild(ov);
-    if(onDone) onDone();
-  }, totalCards*step+transit+500);
+    // Tumpukan kartu di avatar perlahan menghilang
+    ov.style.transition='opacity .55s ease';
+    ov.style.opacity='0';
+    setTimeout(function(){
+      if(ov.parentNode) ov.parentNode.removeChild(ov);
+      if(onDone) onDone();
+    }, 600);
+  }, finishAt);
 }
 
 // ══ PATCH renderGame: intercept firstDeal → shuffle dulu, baru deal 3D ══
@@ -10304,10 +10367,9 @@ function sfxBomb(){
 window.sfxBomb = sfxBomb;
 
 // Override sfxPlace dengan versi lebih "blap"
-var _origSfxPlace = window.sfxPlace;
-window.sfxPlace = function(){
-  sfxBlap();
-};
+window.sfxPlace = function(){ sfxBlap(); };
+// Juga patch window.sfxBlap agar doPlay bisa memanggilnya
+window.sfxBlap = sfxBlap;
 
 // ══ 2. PATCH game_state UNTUK BOMB + SOUND ══════════════════════
 // Patch socket untuk bomb sound
@@ -10335,18 +10397,40 @@ if(_origRenderForBomb && !_origRenderForBomb._bombPatched){
   renderGame._bombPatched = true;
 }
 
-// ══ 3. SOUND CARD FLIP SAAT PILIH KARTU ═════════════════════════
-setTimeout(function(){
-  var _prev = (typeof handleCardTap==='function') ? handleCardTap : null;
-  if(_prev && !_prev._flipSoundPatched){
-    handleCardTap = function(el, card, idx){
-      sfxCardFlip();
-      if(navigator.vibrate) navigator.vibrate(18);
-      _prev(el, card, idx);
-    };
-    handleCardTap._flipSoundPatched = true;
+// ══ 3. SOUND CARD FLIP + HAPTIC via event delegation langsung ══
+// Lebih andal karena tidak bergantung pada patch function wrapper.
+// Setiap klik/tap pada .card di dalam #g-hand → bunyi flip + haptic.
+(function(){
+  var _didAdd = false;
+  function _addHandListener(){
+    if(_didAdd) return;
+    var hand = document.getElementById('g-hand');
+    if(!hand){
+      // Coba lagi 500ms kemudian kalau #g-hand belum ada
+      setTimeout(_addHandListener, 500); return;
+    }
+    hand.addEventListener('click', function(e){
+      var el = e.target;
+      // Walk up max 3 level untuk cari .card
+      for(var i=0;i<3;i++){
+        if(!el) break;
+        if(el.classList && el.classList.contains('card')){
+          sfxCardFlip();
+          if(navigator.vibrate) navigator.vibrate(18);
+          return;
+        }
+        el = el.parentElement;
+      }
+    }, true); // capture phase agar terpicu sebelum stopPropagation
+    _didAdd = true;
   }
-}, 0);
+  // Jalankan setelah DOM siap
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', _addHandListener);
+  } else {
+    setTimeout(_addHandListener, 200);
+  }
+})();
 
 // ══ 4. HAPTIC VIBRATION SAAT GILIRAN ════════════════════════════
 var _origSfxTurn = window.sfxTurnYours;
@@ -10532,9 +10616,11 @@ if(_origListenInvites && !_origListenInvites._fixedInvite){
 function _getCbClass(){
   var skin=(window.currentUserData&&window.currentUserData.cardBackSkin)||
     (function(){try{return localStorage.getItem('hoki_cardback_skin')||'classic';}catch(_){return 'classic';}}());
-  if(skin==='blue')  return 'g-card-cb-blue';
-  if(skin==='red')   return 'g-card-cb-red';
-  if(skin==='dark')  return 'g-card-cb-dark';
+  if(skin==='blue')    return 'g-card-cb-blue';
+  if(skin==='red')     return 'g-card-cb-red';
+  if(skin==='dark')    return 'g-card-cb-dark';
+  if(skin==='striped') return 'g-card-cb-striped';
+  if(skin==='batik')   return 'g-card-cb-batik';
   return '';
 }
 window._getCbClass=_getCbClass;
