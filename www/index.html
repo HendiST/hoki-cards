@@ -10217,5 +10217,345 @@ setTimeout(function(){
 })(); // end shuffle animation IIFE
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════════
+     FITUR BARU: WIN ANIMATION, SOUND REAL, SPRING CARD, HAPTIC, INVITE FIX
+     ══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+// ── Inject CSS keyframes dan card-back styles ──
+var _css = document.createElement('style');
+_css.textContent = `
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity:1; }
+  85%  { opacity:1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity:0; }
+}
+@keyframes winTextPop {
+  0%   { opacity:0; transform: translate(-50%,-50%) scale(0.2) rotate(-12deg); }
+  55%  { opacity:1; transform: translate(-50%,-50%) scale(1.18) rotate(3deg); }
+  75%  { transform: translate(-50%,-50%) scale(0.95) rotate(-1deg); }
+  90%  { transform: translate(-50%,-50%) scale(1.06) rotate(1deg); }
+  100% { transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+}
+@keyframes fireworkBurst {
+  0%   { transform: translate(var(--fx,0px),var(--fy,0px)) scale(0); opacity:1; }
+  60%  { opacity:1; }
+  100% { transform: translate(calc(var(--fx,0px)*5),calc(var(--fy,0px)*5)) scale(1); opacity:0; }
+}
+@keyframes winGlow {
+  0%,100% { box-shadow: 0 0 18px 6px rgba(255,215,0,.5), inset 0 0 12px rgba(255,215,0,.15); }
+  50%      { box-shadow: 0 0 38px 14px rgba(255,215,0,.95), inset 0 0 24px rgba(255,215,0,.35); }
+}
+@keyframes loseShake {
+  0%,100%{transform:translateX(0) scale(1);}
+  20%{transform:translateX(-5px) rotate(-1deg);}
+  40%{transform:translateX(5px) rotate(1deg);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+/* Card back skins applied to game cards */
+.g-card-cb-blue  { background:linear-gradient(148deg,#001a3a 55%,#0044a0) !important; border-color:#0088ff !important; }
+.g-card-cb-red   { background:linear-gradient(148deg,#2a0000 55%,#7a0000) !important; border-color:#ff3333 !important; }
+.g-card-cb-dark  { background:linear-gradient(148deg,#111 55%,#222) !important; border-color:#555 !important; }
+.g-card-cb-green { background:linear-gradient(148deg,#002a00 55%,#005a00) !important; border-color:#00cc44 !important; }
+`;
+document.head.appendChild(_css);
+
+// ── Audio context shortcut ──
+function _ac2(){ var a=window._ac; if(!a)try{a=window._ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} if(a&&a.state==='suspended')a.resume(); return a; }
+function _n2(d,v,f){ var a=_ac2();if(!a)return; var sz=Math.floor(a.sampleRate*d),b=a.createBuffer(1,sz,a.sampleRate),da=b.getChannelData(0); for(var i=0;i<sz;i++)da[i]=Math.random()*2-1; var s=a.createBufferSource();s.buffer=b; var fi=a.createBiquadFilter();fi.type='bandpass';fi.frequency.value=f||900;fi.Q.value=1.2; var g=a.createGain();g.gain.setValueAtTime(v||0.1,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+d); s.connect(fi);fi.connect(g);g.connect(a.destination);s.start();s.stop(a.currentTime+d); }
+function _t2(f,tp,d,v,dl){ var a=_ac2();if(!a)return; var t0=a.currentTime+(dl||0); var o=a.createOscillator(),g=a.createGain(); o.type=tp||'sine';o.frequency.value=f; g.gain.setValueAtTime(v||0.2,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+d); o.connect(g);g.connect(a.destination);o.start(t0);o.stop(t0+d); }
+
+// ══ 1. SOUND EFFECTS BARU ══════════════════════════════════════════
+
+// Suara flip/pilih kartu — singkat, crisp
+function sfxCardFlip(){
+  _n2(0.05,0.13,1400);
+  _t2(900,'square',0.04,0.06);
+}
+window.sfxCardFlip = sfxCardFlip;
+
+// Suara "blap" saat kartu diletakkan di meja — lebih tebal
+function sfxBlap(){
+  _n2(0.09,0.25,300);
+  _t2(200,'sine',0.1,0.18);
+  _t2(120,'triangle',0.12,0.12,0.02);
+}
+window.sfxBlap = sfxBlap;
+
+// Suara BOM — dramatis
+function sfxBomb(){
+  var a=_ac2();if(!a)return;
+  // Low rumble
+  _n2(0.45,0.35,80);
+  _t2(55,'sawtooth',0.35,0.30);
+  // Impact crack
+  setTimeout(function(){
+    _n2(0.12,0.38,1800);
+    _t2(180,'square',0.08,0.22);
+  },40);
+  // Tail rumble
+  setTimeout(function(){ _n2(0.3,0.18,50); },120);
+  // Haptic on bomb
+  if(navigator.vibrate) navigator.vibrate([50,30,80,30,120]);
+}
+window.sfxBomb = sfxBomb;
+
+// Override sfxPlace dengan versi lebih "blap"
+var _origSfxPlace = window.sfxPlace;
+window.sfxPlace = function(){
+  sfxBlap();
+};
+
+// ══ 2. PATCH game_state UNTUK BOMB + SOUND ══════════════════════
+// Patch socket untuk bomb sound
+if(typeof socket !== 'undefined'){
+  socket.on('game_state', function(st){
+    if(!st) return;
+    var isBombNow = st.lastAction==='place' && ['bomb4','jqka','straight5plus'].includes(st.table_type);
+    if(isBombNow) setTimeout(sfxBomb, 80);
+  });
+}
+// Patch bot/RTDB renderGame untuk bomb
+var _origRenderForBomb = (typeof renderGame==='function') ? renderGame : null;
+if(_origRenderForBomb && !_origRenderForBomb._bombPatched){
+  renderGame = function(st, firstDeal){
+    var prevType = window._lastTableType || null;
+    _origRenderForBomb(st, firstDeal);
+    if(st && st.lastAction==='place'){
+      var isBomb = ['bomb4','jqka','straight5plus'].includes(st.table_type);
+      if(isBomb && st.table_type !== prevType){
+        setTimeout(sfxBomb, 80);
+      }
+    }
+    window._lastTableType = st ? st.table_type : null;
+  };
+  renderGame._bombPatched = true;
+}
+
+// ══ 3. SOUND CARD FLIP SAAT PILIH KARTU ═════════════════════════
+setTimeout(function(){
+  var _prev = (typeof handleCardTap==='function') ? handleCardTap : null;
+  if(_prev && !_prev._flipSoundPatched){
+    handleCardTap = function(el, card, idx){
+      sfxCardFlip();
+      if(navigator.vibrate) navigator.vibrate(18);
+      _prev(el, card, idx);
+    };
+    handleCardTap._flipSoundPatched = true;
+  }
+}, 0);
+
+// ══ 4. HAPTIC VIBRATION SAAT GILIRAN ════════════════════════════
+var _origSfxTurn = window.sfxTurnYours;
+window.sfxTurnYours = function(){
+  if(_origSfxTurn) _origSfxTurn();
+  if(navigator.vibrate) navigator.vibrate([60, 40, 60]);
+};
+// Patch socket your_turn agar pakai versi baru
+if(typeof socket !== 'undefined'){
+  socket.on('your_turn', function(){ sfxTurnYours(); });
+}
+
+// ══ 5. WIN ANIMATION DRAMATIS ════════════════════════════════════
+function _launchConfetti(){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10020;overflow:hidden;';
+  document.body.appendChild(ov);
+
+  var colors=['#ff4444','#44ff88','#4488ff','#ffdd00','#ff44cc','#44ffee','#ff8800','#aaffaa','#ff88aa','#eeee44'];
+  var shapes=['rect','circle','ribbon'];
+  var N=90;
+  for(var i=0;i<N;i++){
+    (function(ii){
+      var el=document.createElement('div');
+      var col=colors[Math.floor(Math.random()*colors.length)];
+      var shape=shapes[Math.floor(Math.random()*shapes.length)];
+      var x=Math.random()*100;
+      var delay=Math.random()*2;
+      var dur=2.8+Math.random()*1.8;
+      var w=shape==='ribbon'?(3+Math.random()*3):(6+Math.random()*8);
+      var h=shape==='ribbon'?(14+Math.random()*10):(w*0.55);
+      el.style.cssText=[
+        'position:absolute',
+        'left:'+x+'%','top:-20px',
+        'width:'+w+'px','height:'+h+'px',
+        'background:'+col,
+        'border-radius:'+(shape==='circle'?'50%':shape==='ribbon'?'1px':'2px'),
+        'animation:confettiFall '+dur+'s '+delay+'s ease-in forwards',
+        'opacity:0.9'
+      ].join(';');
+      ov.appendChild(el);
+    })(i);
+  }
+  setTimeout(function(){
+    ov.style.transition='opacity .6s';
+    ov.style.opacity='0';
+    setTimeout(function(){ if(ov.parentNode)ov.parentNode.removeChild(ov); },700);
+  },5500);
+}
+
+function _launchFireworks(n){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10019;';
+  document.body.appendChild(ov);
+  var colors=['#ff4444','#ffcc00','#44ff88','#4488ff','#ff44cc','#ffffff','#ff8800'];
+  for(var burst=0;burst<(n||4);burst++){
+    (function(b){
+      var delay=b*400;
+      setTimeout(function(){
+        var cx=(20+Math.random()*60)+'%';
+        var cy=(15+Math.random()*45)+'%';
+        var nParticles=20;
+        for(var p=0;p<nParticles;p++){
+          var el=document.createElement('div');
+          var col=colors[Math.floor(Math.random()*colors.length)];
+          var angle=p*(360/nParticles);
+          var dist=60+Math.random()*80;
+          var rad=angle*Math.PI/180;
+          var fx=Math.cos(rad)*dist;
+          var fy=Math.sin(rad)*dist;
+          var sz=4+Math.random()*5;
+          el.style.cssText=[
+            'position:absolute',
+            'left:'+cx,'top:'+cy,
+            'width:'+sz+'px','height:'+sz+'px',
+            'background:'+col,'border-radius:50%',
+            '--fx:'+fx+'px','--fy:'+fy+'px',
+            'animation:fireworkBurst .9s ease-out forwards'
+          ].join(';');
+          ov.appendChild(el);
+        }
+      },delay);
+    })(burst);
+  }
+  setTimeout(function(){ if(ov.parentNode)ov.parentNode.removeChild(ov); },3500);
+}
+
+function _showWinText(text, color){
+  var el=document.createElement('div');
+  el.textContent=text;
+  el.style.cssText=[
+    'position:fixed','left:50%','top:38%',
+    'transform:translate(-50%,-50%) scale(0)',
+    'font-family:Cinzel,Georgia,serif',
+    'font-size:clamp(2.2rem,10vw,4.5rem)',
+    'font-weight:900',
+    'color:'+(color||'#ffd700'),
+    'text-shadow:0 0 30px '+(color||'#ffd700')+',0 0 60px rgba(255,215,0,.7),0 4px 8px rgba(0,0,0,.9)',
+    'letter-spacing:4px',
+    'z-index:10021',
+    'pointer-events:none',
+    'white-space:nowrap',
+    'animation:winTextPop .7s cubic-bezier(.34,1.56,.64,1) forwards'
+  ].join(';');
+  document.body.appendChild(el);
+  setTimeout(function(){
+    el.style.transition='opacity .5s';
+    el.style.opacity='0';
+    setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },600);
+  },3200);
+}
+
+function _playWinEffect(isWinner){
+  if(isWinner){
+    _launchConfetti();
+    _launchFireworks(5);
+    _showWinText('🏆 MENANG! 🏆','#ffd700');
+    if(navigator.vibrate) navigator.vibrate([80,40,80,40,120,40,200]);
+  } else {
+    _showWinText('💀 KALAH','#ff4444');
+    if(navigator.vibrate) navigator.vibrate([200,60,100]);
+    var overlay=document.getElementById('modal-over');
+    if(overlay){
+      overlay.style.animation='loseShake .5s ease';
+      setTimeout(function(){overlay.style.animation='';},500);
+    }
+  }
+}
+
+// Patch showOver
+var _origShowOverWin=(typeof showOver==='function')?showOver:null;
+if(_origShowOverWin && !_origShowOverWin._winAnimPatched){
+  showOver=function(st){
+    _origShowOverWin(st);
+    var me=(typeof myIdx==='number')?myIdx:-1;
+    var rank=(st.rankings||[]).indexOf(me);
+    var isWin=(rank===0);
+    setTimeout(function(){ _playWinEffect(isWin); }, 350);
+  };
+  showOver._winAnimPatched=true;
+}
+
+// ══ 6. FIX INVITE NOTIFICATION ══════════════════════════════════
+// Bug: invite tidak muncul saat user di lobby — fix: hanya block saat di s-game
+var _origListenInvites=(typeof _listenInvites==='function')?_listenInvites:null;
+if(_origListenInvites && !_origListenInvites._fixedInvite){
+  _listenInvites=function(){
+    if(!window.currentUser||window.currentUser.isGuest||!window.fbRtdb) return;
+    if(window._lobInviteListener){ try{window._lobInviteListener();}catch(e){} }
+
+    var ref=window.fbRtdb.ref('users/'+window.currentUser.uid+'/invites');
+    var fn=ref.on('child_added',async function(snap){
+      var inv=snap.val();
+      if(!inv||!inv.rid) return;
+      // FIXED: hanya block saat sedang di dalam game, BUKAN saat di lobby
+      if(document.getElementById('s-game')&&document.getElementById('s-game').classList.contains('on')) return;
+      // Ignore invite lebih dari 3 menit
+      if(Date.now()-(inv.ts||0)>3*60*1000){ snap.ref.remove().catch(function(){}); return; }
+      // Cek room masih ada dan belum full
+      try{
+        var roomSnap=await window.fbRtdb.ref('rooms/'+inv.rid+'/info').get();
+        if(!roomSnap.exists()){ snap.ref.remove().catch(function(){}); return; }
+        var info=roomSnap.val();
+        if(info.started){ snap.ref.remove().catch(function(){}); return; }
+        var joined=Object.keys(info.players||{}).length;
+        if(joined>=info.numPlayers){ snap.ref.remove().catch(function(){}); return; }
+      }catch(e){ return; }
+
+      window._pendingInvite={ rid:inv.rid, hostName:inv.hostName, hostAv:inv.hostAv, numPlayers:inv.numPlayers, snapRef:snap.ref };
+      if(typeof _showInviteNotif==='function') _showInviteNotif(inv);
+    });
+    window._lobInviteListener=function(){ ref.off('child_added',fn); };
+  };
+  _listenInvites._fixedInvite=true;
+
+  // Re-init listener jika sudah login
+  if(window.currentUser && !window.currentUser.isGuest){
+    try{ _listenInvites(); }catch(e){}
+  }
+}
+
+// ══ 7. CARD BACK PADA ANIMASI DEAL (warna ikut skin) ════════════
+function _getCbClass(){
+  var skin=(window.currentUserData&&window.currentUserData.cardBackSkin)||
+    (function(){try{return localStorage.getItem('hoki_cardback_skin')||'classic';}catch(_){return 'classic';}}());
+  if(skin==='blue')  return 'g-card-cb-blue';
+  if(skin==='red')   return 'g-card-cb-red';
+  if(skin==='dark')  return 'g-card-cb-dark';
+  return '';
+}
+window._getCbClass=_getCbClass;
+
+// ══ 8. SPRING CARD SELECTION (upgrade) ══════════════════════════
+// CSS sudah punya spring easing. Tambah scale kecil + shadow lebih dramatis saat select
+(function(){
+  var style=document.createElement('style');
+  style.textContent=`
+    .card { transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, border-color .15s !important; }
+    .card.selected {
+      transform: translateY(-22px) scale(1.07) !important;
+      box-shadow: 0 14px 32px rgba(255,215,0,.95), 0 0 0 2px rgba(255,215,0,.5) !important;
+      border-color: var(--gold) !important; border-width: 2px !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+})(); // end features IIFE
+</script>
+
 </body>
 </html>

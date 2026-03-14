@@ -46,10 +46,14 @@ The app runs with `node server.js`. No build step required.
 ## Sound Effects & Animations
 
 - Sound effects via Web Audio API (no external files): deal, place, pass, turn, win, lose, click
-- **Suara baru**: sfxDeckAppear (deck muncul), sfxRiffleWave (riffle shuffle), sfxSquareUp (rapikan deck), sfxCardStack (kartu ditumpuk)
+- **Suara baru**: sfxCardFlip (pilih kartu), sfxBlap (kartu ke meja), sfxBomb (dramatis + haptic), sfxDeckAppear, sfxRiffleWave, sfxSquareUp, sfxCardStack
 - **Shuffle animation**: deck muncul → split jadi 2 → 2x riffle 3D → square up → fade out (±3.6 detik)
 - **Enhanced deal animation**: kartu terbang 3D dengan rotateX/Y + perspective 900px + box-shadow depth
-- **Urutan**: shuffle dulu sebelum deal, setiap game dimulai
+- **Win animation**: confetti hujan 90 partikel + 5 firework burst + teks "🏆 MENANG!" spring pop + haptic
+- **Lose animation**: teks "💀 KALAH" + shake layar + haptic
+- **Spring card selection**: `.card` transition cubic-bezier spring + scale 1.07 + shadow gold
+- **Haptic vibration**: giliran (double-pulse), pilih kartu (18ms), bom (pattern dramatis), menang/kalah
+- **Invite fix**: notifikasi undangan sekarang muncul di semua layar (kecuali saat di dalam game)
 
 ## Deployment / GitHub
 
