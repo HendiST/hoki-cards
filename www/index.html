@@ -3580,6 +3580,7 @@ function go(id){
   document.getElementById(id).classList.add('on');
   // Bersihkan animasi pembagian kartu saat keluar dari game
   if(id!=='s-game'){
+    if(typeof _dealGen!=='undefined') _dealGen++; // batalkan semua suara & animasi pending
     var _ov=document.getElementById('deal-anim-overlay');
     if(_ov&&_ov.parentNode) _ov.parentNode.removeChild(_ov);
     var _sov=document.getElementById('shuffle-anim-overlay');
@@ -9180,6 +9181,7 @@ document.addEventListener('click', function(e){
 
 var _dealAnimRunning = false;
 var _dealTransit     = 320; // ms for card to fly from center to destination
+var _dealGen         = 0;   // generation counter — increment on exit to cancel pending sounds
 
 function playDealAnimation(numPlayers, cardsPerPlayer, onDone){
   if(_dealAnimRunning){ if(onDone) onDone(); return; }
@@ -9244,42 +9246,27 @@ window._getSeatPositions = _getSeatPositions;
 function _getSeatPositions(n){
   var positions = [];
   var myI    = (typeof myIdx === 'number') ? myIdx : 0;
+  var ovalEl = document.getElementById('oval');
   var gameEl = document.getElementById('s-game') || document.body;
   var r      = gameEl.getBoundingClientRect();
-  var cx     = r.left + r.width  / 2;
-  var cy     = r.top  + r.height / 2;
+  var or2    = ovalEl ? ovalEl.getBoundingClientRect() : r;
+  var spos   = (typeof SPOS !== 'undefined') ? (SPOS[n] || SPOS[4]) : null;
 
   for(var i = 0; i < n; i++){
-    if(i === myI){
-      // Self: use hand area center (bottom strip)
-      var handEl = document.getElementById('g-hand');
-      if(handEl){
-        var hr = handEl.getBoundingClientRect();
-        positions[i] = { x: hr.left + hr.width / 2, y: hr.top + hr.height / 2 };
-      } else {
-        positions[i] = { x: cx, y: r.bottom - 70 };
-      }
+    // Cari seat element berdasarkan data-idx (absolute player index)
+    var seatEl = document.querySelector('.seat[data-idx="'+i+'"]');
+    if(seatEl){
+      var sr = seatEl.getBoundingClientRect();
+      positions[i] = { x: sr.left + sr.width / 2, y: sr.top + sr.height / 2 };
+    } else if(spos){
+      // Fallback: hitung dari SPOS dengan visual index
+      var vi = (i - myI + n) % n;
+      var p  = spos[vi] || [50, 50];
+      positions[i] = { x: or2.left + or2.width * p[0] / 100, y: or2.top + or2.height * p[1] / 100 };
     } else {
-      // Opponent: use actual seat element (data-idx="i")
-      var seatEl = document.querySelector('.seat[data-idx="'+i+'"]');
-      if(seatEl){
-        var sr = seatEl.getBoundingClientRect();
-        positions[i] = { x: sr.left + sr.width / 2, y: sr.top + sr.height / 2 };
-      } else {
-        // Fallback: SPOS percentage inside oval
-        var ovalEl = document.getElementById('oval');
-        var or2    = ovalEl ? ovalEl.getBoundingClientRect() : r;
-        var np     = n;
-        var spos   = (typeof SPOS !== 'undefined') ? (SPOS[np] || SPOS[4]) : null;
-        if(spos){
-          var vi = (i - myI + np) % np;
-          var p  = spos[vi] || [50, 50];
-          positions[i] = { x: or2.left + or2.width * p[0] / 100, y: or2.top + or2.height * p[1] / 100 };
-        } else {
-          var angle = (Math.PI / 2) + i * (2 * Math.PI / n);
-          positions[i] = { x: cx + r.width * 0.35 * Math.cos(angle), y: cy + r.height * 0.35 * Math.sin(angle) };
-        }
-      }
+      var angle = (Math.PI / 2) + i * (2 * Math.PI / n);
+      positions[i] = { x: r.left + r.width/2 + r.width * 0.35 * Math.cos(angle),
+                       y: r.top  + r.height/2 + r.height * 0.35 * Math.sin(angle) };
     }
   }
   return positions;
@@ -10171,6 +10158,7 @@ function _doRiffleEffect(ov, deck, CW, CH, N){
 
 // ══ ENHANCED DEAL: kartu terbang 3D → numpuk di depan avatar ══
 function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
+  var myGen=++_dealGen; // tangkap generasi saat ini; jika berubah berarti sudah keluar game
   var ov=document.createElement('div');
   ov.id='deal-anim-overlay';
   ov.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:9999;perspective:900px;';
@@ -10234,11 +10222,12 @@ function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
         ].join(';');
         ov.appendChild(card);
 
-        if(typeof sfxDeal==='function') sfxDeal();
+        if(_dealGen===myGen && typeof sfxDeal==='function') sfxDeal();
 
         // Terbang ke posisi pemain, lalu TETAP tampil sebagai tumpukan
         requestAnimationFrame(function(){
           requestAnimationFrame(function(){
+            if(_dealGen!==myGen) return; // sudah keluar game
             var sOff=myStack*2; // offset tumpukan: setiap kartu sedikit geser
             var endRot=(Math.random()*6)-3;
             card.style.left=(dest.x - CW/2 - sOff*0.5)+'px';
@@ -10247,7 +10236,7 @@ function _playEnhancedDeal(numPlayers, cardsPerPlayer, onDone){
             card.style.boxShadow='0 '+(3+myStack)+'px '+(8+myStack*2)+'px rgba(0,0,0,.55)';
 
             // Suara kartu mendarat
-            if(typeof sfxCardStack==='function') setTimeout(sfxCardStack, transit*0.88);
+            if(typeof sfxCardStack==='function') setTimeout(function(){ if(_dealGen===myGen) sfxCardStack(); }, transit*0.88);
           });
         });
 
