@@ -478,71 +478,135 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .chat-msg-bubble.fading{animation:chatFadeOut .5s ease forwards;}
 
 /* Chat bar (collapsed/expanded) */
+/* ── CHATBAR: mulai sebagai FAB bulat, expand jadi panel ── */
+/* ════ CHATBAR IN-GAME ════ */
 #chatbar{
   position:fixed;
-  left:0; right:0;
-  bottom:0;
-  z-index:300;
-  background:rgba(0,15,5,.96);
-  border-top:1px solid rgba(0,200,80,.25);
+  right:14px;
+  bottom:72px;
+  z-index:400;
   pointer-events:all;
   user-select:none;
   -webkit-user-select:none;
-  cursor:grab;
-  touch-action:none;
-  border-radius:10px 10px 0 0;
-  box-shadow:0 -4px 20px rgba(0,0,0,.5);
 }
-#chatbar.dragging{cursor:grabbing;}
+/* ── Collapsed: FAB bulat ── */
+#chatbar.collapsed{
+  background:linear-gradient(135deg,#0a5c1a,#27ae60);
+  border-radius:24px;
+  height:44px;
+  min-width:110px;
+  padding:0 16px;
+  box-shadow:0 4px 16px rgba(0,0,0,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  cursor:pointer;
+  touch-action:none;
+}
+/* ── Expanded: popup kotak mengambang ── */
+#chatbar.expanded{
+  right:6px;
+  bottom:6px;
+  left:6px;
+  top:auto;
+  height:52vh;
+  background:rgba(0,16,6,.97);
+  border:1.5px solid rgba(0,200,80,.25);
+  border-radius:16px;
+  box-shadow:0 4px 32px rgba(0,0,0,.8);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+/* ── Header ── */
 #chatbar-header{
   display:flex;
   align-items:center;
-  padding:5px 10px;
+  padding:0 12px;
   gap:8px;
-  min-height:34px;
+  min-height:44px;
+  cursor:grab;
+  flex-shrink:0;
+  border-bottom:1px solid rgba(0,200,80,.12);
+  background:rgba(0,30,12,.5);
+  border-radius:16px 16px 0 0;
+  touch-action:none;
+  position:relative;
+}
+#chatbar.collapsed #chatbar-header{
+  width:100%; height:100%;
+  padding:0 16px;
+  min-height:44px;
+  background:transparent;
+  border-radius:24px;
+  justify-content:center;
+  border-bottom:none;
+  cursor:pointer;
+}
+/* Drag-handle pill */
+#chatbar.expanded #chatbar-header::before{
+  content:'';
+  position:absolute;
+  top:5px; left:50%;
+  transform:translateX(-50%);
+  width:30px; height:3px;
+  background:rgba(255,255,255,.18);
+  border-radius:3px;
 }
 #chatbar-toggle{
   flex:1;
-  font-size:.72em;
-  color:rgba(0,210,80,.75);
+  font-size:.78em;
+  color:rgba(0,220,80,.85);
+  font-weight:800;
   letter-spacing:.5px;
-  font-weight:700;
+  pointer-events:none;
+  white-space:nowrap;
+}
+#chatbar.collapsed #chatbar-toggle{
+  color:#fff;
+  font-size:.88em;
 }
 #chatbar-emoji-btns{
   display:flex;
-  gap:4px;
+  gap:3px;
+  flex-shrink:0;
 }
+#chatbar.collapsed #chatbar-emoji-btns{ display:none; }
 .emoji-react-btn{
   background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.1);
   border-radius:8px;
-  padding:3px 5px;
-  font-size:1.1em;
+  padding:4px 5px;
+  font-size:1.15em;
   cursor:pointer;
-  transition:transform .12s,background .12s;
+  transition:transform .1s,background .1s;
   line-height:1;
+  touch-action:manipulation;
 }
-.emoji-react-btn:active{transform:scale(.82);background:rgba(255,255,255,.14);}
+.emoji-react-btn:active{transform:scale(.78);background:rgba(0,200,80,.2);}
+/* ── Expand area ── */
 #chatbar-expand{
   display:none;
   flex-direction:column;
-  gap:5px;
-  padding:5px 10px 8px;
-  max-height:170px;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
 }
-#chatbar-expand.open{display:flex;}
 #chat-log{
   flex:1;
   overflow-y:auto;
   overflow-x:hidden;
-  scrollbar-width:none;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(0,200,80,.2) transparent;
   display:flex;
   flex-direction:column;
-  gap:4px;
-  max-height:120px;
-  padding:2px 4px;
+  gap:3px;
+  padding:8px 10px 4px;
+  min-height:0;
 }
-#chat-log::-webkit-scrollbar{display:none;}
+#chat-log::-webkit-scrollbar{width:3px;}
+#chat-log::-webkit-scrollbar-thumb{background:rgba(0,200,80,.2);border-radius:3px;}
 
 /* ── Bubble row wrapper ── */
 .chat-row{
@@ -621,14 +685,15 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 #chat-reply-bar{
   display:none;
   background:rgba(0,0,0,.4);
-  border-left:3px solid rgba(0,200,80,.7);
-  border-radius:4px;
-  padding:3px 8px;
-  font-size:.68em;
-  color:rgba(255,255,255,.7);
+  border-left:3px solid rgba(0,200,80,.5);
+  border-radius:0 6px 6px 0;
+  padding:4px 10px;
+  font-size:.72em;
+  color:rgba(255,255,255,.65);
   align-items:center;
   gap:6px;
   flex-shrink:0;
+  margin:0 10px 2px;
 }
 #chat-reply-bar.show{ display:flex; }
 #chat-reply-bar .rb-name{ color:#5dde7a; font-weight:700; }
@@ -647,44 +712,57 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 }
 .chat-tab-row{
   display:flex;
-  gap:4px;
+  gap:5px;
+  padding:6px 12px 4px;
+  flex-shrink:0;
 }
 .chat-tab{
-  padding:3px 10px;
-  border-radius:6px;
-  font-size:.68em;
-  font-weight:700;
+  flex:1;
+  padding:5px 8px;
+  border-radius:8px;
+  font-size:.72em;
+  font-weight:800;
   cursor:pointer;
-  border:1px solid rgba(0,200,80,.25);
-  color:rgba(0,200,80,.65);
+  border:1px solid rgba(0,200,80,.2);
+  color:rgba(0,200,80,.55);
   background:transparent;
+  text-align:center;
   transition:all .15s;
+  letter-spacing:.3px;
 }
-.chat-tab.active{background:rgba(0,200,80,.18);color:#5dde7a;border-color:rgba(0,200,80,.45);}
+.chat-tab.active{
+  background:rgba(0,200,80,.15);
+  color:#6ee88a;
+  border-color:rgba(0,200,80,.4);
+}
 .chat-input-row{
   display:flex;
-  gap:5px;
+  gap:6px;
   align-items:center;
+  padding:6px 10px 10px;
+  flex-shrink:0;
+  border-top:1px solid rgba(0,200,80,.1);
 }
 #chat-input{
   flex:1;
   background:rgba(255,255,255,.07);
-  border:1px solid rgba(0,200,80,.3);
-  border-radius:8px;
+  border:1.5px solid rgba(0,200,80,.25);
+  border-radius:10px;
   color:#d4f5d4;
   font-family:'Rajdhani',sans-serif;
-  font-size:.85em;
-  padding:6px 10px;
+  font-size:.88em;
+  padding:8px 12px;
   outline:none;
-  max-width:100%;
+  min-width:0;
 }
-#chat-input::placeholder{color:rgba(0,200,80,.35);}
+#chat-input:focus{border-color:rgba(0,200,80,.5);}
+#chat-input::placeholder{color:rgba(0,200,80,.3);}
 #chat-send-btn{
   background:linear-gradient(135deg,#0a5c1a,#1a8c3a);
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   color:#fff;
-  padding:6px 12px;
+  padding:8px 14px;
   font-size:.85em;
   font-weight:700;
   cursor:pointer;
@@ -800,15 +878,33 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 /* Emoji floating animation */
 .emoji-float{
   position:fixed;
-  font-size:2em;
   pointer-events:none;
-  z-index:999;
-  animation:emojiRise 1.5s ease-out forwards;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  animation:emojiRise 1.8s ease-out forwards;
+}
+.emoji-float .ef-icon{
+  font-size:2.2em;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));
+}
+.emoji-float .ef-name{
+  font-size:.65em;
+  font-weight:800;
+  color:#fff;
+  background:rgba(0,0,0,.55);
+  padding:1px 6px;
+  border-radius:8px;
+  white-space:nowrap;
+  letter-spacing:.3px;
 }
 @keyframes emojiRise{
-  0%{transform:translateY(0) scale(1);opacity:1;}
-  60%{opacity:1;}
-  100%{transform:translateY(-90px) scale(1.4);opacity:0;}
+  0%  {transform:translateY(0) scale(.8);opacity:0;}
+  10% {transform:translateY(-5px) scale(1.2);opacity:1;}
+  60% {opacity:1;}
+  100%{transform:translateY(-110px) scale(1);opacity:0;}
 }
 
 /* ═══ CARD ═══ */
@@ -863,6 +959,37 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 /* COUNTDOWN */
 #cd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:800;}
 #cd-overlay.on{display:flex;}
+/* Modal pilihan online/offline di localhost */
+#conn-modal{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.92);
+  display:none;align-items:center;justify-content:center;
+}
+#conn-modal.on{display:flex;}
+#conn-modal .cm-box{
+  background:linear-gradient(160deg,#0a1a0f,#0d2010);
+  border:1.5px solid rgba(255,215,0,.25);
+  border-radius:22px;
+  padding:30px 24px 26px;
+  width:min(88vw,320px);
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+#conn-modal .cm-title{
+  font-family:'Cinzel',serif;font-size:1.15em;
+  color:#FFD700;letter-spacing:2px;text-align:center;
+}
+#conn-modal .cm-sub{
+  font-size:.75em;color:rgba(255,255,255,.45);
+  text-align:center;line-height:1.6;
+}
+.cm-btn{
+  width:100%;padding:14px;border:none;border-radius:13px;
+  font-family:'Rajdhani',sans-serif;font-size:1em;font-weight:800;
+  cursor:pointer;letter-spacing:.5px;transition:.15s;
+}
+.cm-btn:active{transform:scale(.96);}
+.cm-btn-online{background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;}
+.cm-btn-offline{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.75);}
 .cd-title{font-family:'Cinzel',serif;font-size:1.1em;color:var(--gold);letter-spacing:4px;}
 .cd-n{font-family:'Cinzel',serif;font-size:7em;color:#fff;text-shadow:0 0 40px var(--gold);}
 .cd-sub{color:rgba(255,255,255,.4);font-size:.85em;letter-spacing:2px;}
@@ -1285,22 +1412,88 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 </style>
 <script>
 window.onerror=function(m,s,l,c,e){
-  var d=document.createElement('div');
-  d.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:#1a0a0a;color:#ff6666;padding:16px;font-size:12px;z-index:999999;overflow:auto;font-family:monospace;';
-  d.innerHTML='<b>ERROR</b><br>'+m+'<br>Line:'+l+'<br><pre>'+(e&&e.stack||'')+'</pre>';
-  document.body&&document.body.appendChild(d);return true;
+  // Abaikan error dari Firebase/network/socket yang tidak fatal
+  var ignore=['firebase','gstatic','firestore','firebasejs','socket.io',
+              'net::ERR','Failed to fetch','NetworkError','Load failed',
+              'Cannot access','_chatListeners',
+              'buildSeats','renderGame','rankings','active_players',
+              'hand_counts','Cannot read properties of undefined'];
+  var mStr=String(m||'');
+  var sStr=String(s||'');
+  for(var i=0;i<ignore.length;i++){
+    if(mStr.toLowerCase().indexOf(ignore[i].toLowerCase())>=0)return true;
+    if(sStr.toLowerCase().indexOf(ignore[i].toLowerCase())>=0)return true;
+  }
+  // Log ke console saja, jangan overlay yang blocking
+  console.error('[GameError]',m,'line:'+l,e&&e.stack);
+  return true;
 };
+function _esc2(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 window.addEventListener('unhandledrejection',function(e){
-  var d=document.createElement('div');
-  d.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a1a;color:#6699ff;padding:16px;font-size:12px;z-index:999999;overflow:auto;font-family:monospace;';
-  d.innerHTML='<b>PROMISE ERROR</b><br><pre>'+(e.reason&&e.reason.stack||String(e.reason))+'</pre>';
-  document.body&&document.body.appendChild(d);
+  var reason=e.reason;
+  var msg=String(reason&&reason.message||reason||'');
+  var stack=String(reason&&reason.stack||'');
+  // Abaikan error Firebase, network, socket — tidak fatal untuk mode offline
+  var ignore=['firebase','gstatic','firestore','firebasejs','socket.io',
+              'net::ERR','Failed to fetch','NetworkError','Load failed',
+              'WebChannel','transport','stream','QuotaExceeded',
+              'Could not reach Cloud','offline','Permission denied',
+              'buildSeats','renderGame','indexOf','rankings','active_players',
+              'hand_counts','Cannot read properties of undefined'];
+  for(var i=0;i<ignore.length;i++){
+    if(msg.toLowerCase().indexOf(ignore[i].toLowerCase())>=0){e.preventDefault();return;}
+    if(stack.toLowerCase().indexOf(ignore[i].toLowerCase())>=0){e.preventDefault();return;}
+  }
+  // Hanya log ke console, JANGAN tampilkan overlay untuk error game state
+  console.warn('[UnhandledPromise]',msg,stack);
 });
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script>
+// ── DETEKSI OFFLINE INSTAN — jalankan sebelum Firebase load ──
+(function(){
+  if(!navigator.onLine){
+    // Sembunyikan loginScreen langsung, tampilkan loading spinner dulu
+    // go() belum tersedia, manipulasi DOM langsung
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+      var menu = document.getElementById('s-menu');
+      if(menu) menu.classList.add('on');
+    });
+  }
+})();
+</script>
+<script>
+window._firebaseLoadFailed = false;
+window._fbScriptTotal = 4;
+window._fbScriptDone = 0;
+window._fbInitReady = false;
+// Localhost: tampilkan modal pilihan sekarang juga (sebelum Firebase load)
+(function(){
+  var h = location.hostname;
+  if(h === 'localhost' || h === '127.0.0.1' || h === ''){
+    window._isLocalhostMode = true;
+    // Tunggu DOM siap lalu tampilkan modal
+    document.addEventListener('DOMContentLoaded', function(){
+      var m = document.getElementById('conn-modal');
+      if(m) m.classList.add('on');
+    });
+  }
+})();
+function _onFbScript(ok){
+  if(!ok) window._firebaseLoadFailed = true;
+  window._fbScriptDone++;
+  var allDone = window._fbScriptDone >= window._fbScriptTotal;
+  var earlyFail = !navigator.onLine || (window._firebaseLoadFailed && window._fbScriptDone >= 1);
+  if(allDone || earlyFail){
+    window._fbInitReady = true;
+    if(typeof _startFirebaseInit === "function") _startFirebaseInit();
+  }
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" onload="_onFbScript(true)" onerror="_onFbScript(false)"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" onload="_onFbScript(true)" onerror="_onFbScript(false)"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js" onload="_onFbScript(true)" onerror="_onFbScript(false)"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" onload="_onFbScript(true)" onerror="_onFbScript(false)"></script>
 <script>
 (function(){
   function setStub(){
@@ -1384,7 +1577,7 @@ window.addEventListener('unhandledrejection',function(e){
 
     <div class="inp-wrap">
       <span class="inp-icon">👤</span>
-      <input class="inp" id="inp-name" placeholder="Nama kamu..." maxlength="12">
+      <input class="inp" id="inp-name" placeholder="Nama kamu..." maxlength="12" onblur="try{const v=this.value.trim();if(v)localStorage.setItem('hoki_guest_name',v);}catch(_){}">
     </div>
 
     <div class="menu-modes">
@@ -1626,7 +1819,13 @@ window.addEventListener('unhandledrejection',function(e){
     </button>
 
     <!-- Placeholder aturan lain (coming soon) -->
-    <button class="mode-btn" style="width:100%;max-width:320px;opacity:.45;cursor:default;" disabled>
+    <button id="btn-back-conn" onclick="document.getElementById('loginScreen').classList.remove('on');document.getElementById('conn-modal').classList.add('on');" style="display:none;width:100%;max-width:280px;padding:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;color:rgba(255,255,255,.55);font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;cursor:pointer;margin-top:4px;">
+    ← Kembali ke pilihan koneksi
+  </button>
+  <div id="offline-notice" style="display:none;width:100%;max-width:280px;background:rgba(255,150,0,.12);border:1px solid rgba(255,150,0,.35);border-radius:12px;padding:10px 14px;font-size:.75em;color:rgba(255,200,100,.85);text-align:center;line-height:1.6;">
+    📴 Tidak ada internet — login tidak tersedia.<br>Klik <strong>"Main sebagai Tamu"</strong> untuk main offline.
+  </div>
+  <button class="mode-btn" style="width:100%;max-width:320px;opacity:.45;cursor:default;" disabled>
       <span class="mode-icon">🔒</span>
       <span class="mode-text">
         <span class="mode-title">ATURAN LAIN</span>
@@ -1976,10 +2175,10 @@ window.addEventListener('unhandledrejection',function(e){
   <!-- Chat overlay messages floating left -->
   <div id="chat-overlay"></div>
 
-  <!-- Chat + emoji bar (only online/RTDB mode) -->
-  <div id="chatbar" style="display:none;">
+  <!-- Chat FAB + panel (only online/RTDB mode) -->
+  <div id="chatbar" class="collapsed" style="display:none;">
     <div id="chatbar-header">
-      <span id="chatbar-toggle" onclick="toggleChatExpand()">💬 Chat ▼</span>
+      <span id="chatbar-toggle">💬 Chat</span>
       <div id="chatbar-emoji-btns">
         <button class="emoji-react-btn" onclick="sendEmojiReact('👍')">👍</button>
         <button class="emoji-react-btn" onclick="sendEmojiReact('😂')">😂</button>
@@ -1989,7 +2188,7 @@ window.addEventListener('unhandledrejection',function(e){
         <button class="emoji-react-btn" onclick="sendEmojiReact('🖕')">🖕</button>
       </div>
     </div>
-    <div id="chatbar-expand">
+    <div id="chatbar-expand" style="display:none;">
       <div class="chat-tab-row">
         <button class="chat-tab active" id="tab-local" onclick="switchChatTab('local')">🎮 Game</button>
         <button class="chat-tab" id="tab-global" onclick="switchChatTab('global')">🌐 Global</button>
@@ -2096,6 +2295,17 @@ const SPOS={
 };
 
 let sock=null,myIdx=null,myRoom=null,isHost=false;
+// ── Chat vars (declared early to avoid TDZ errors) ──
+let _chatExpanded = false;
+let _chatTab = 'local';
+let _chatListeners = [];
+let _localMsgCache = [];
+let _globalMsgCache = [];
+let _chatOverlayTimers = {};
+let _lobbyChatOpen = false;
+let _lobbyChatListener = null;
+let _lobbyChatCache = [];
+let _chatReplyTo = null;
 let selCards=[],handOrder=[],curSt=null;
 let reorderIdx=null; // which card index is in reorder mode
 
@@ -2180,13 +2390,20 @@ function initSock(){
   sock.on('room_created',d=>{
     myIdx=d.player_idx;myRoom=d.room_id;isHost=true;
     document.getElementById('lob-code').textContent=d.room_id;
+    document.getElementById('lob-share-code').textContent=d.room_id;
     document.getElementById('lob-status').textContent=`Menunggu ${d.num_players-1} pemain lagi...`;
+    // Tampilkan host di slot pemain
+    const hostName=gname()||'Host';
+    updLobby({0:hostName},d.num_players,1);
+    document.getElementById('btn-start').style.display='none';
     go('s-lobby');
   });
   sock.on('joined_room',d=>{
     myIdx=d.player_idx;myRoom=d.room_id;isHost=false;
     document.getElementById('lob-code').textContent=d.room_id;
+    document.getElementById('lob-share-code').textContent=d.room_id;
     document.getElementById('lob-status').textContent=d.message;
+    if(d.player_names)updLobby(d.player_names,d.num_players,d.players_joined||Object.keys(d.player_names).length);
     go('s-lobby');
   });
   sock.on('player_joined',d=>{
@@ -2196,9 +2413,19 @@ function initSock(){
   });
   sock.on('player_left',d=>toast(d.message));
   sock.on('game_started',d=>{
+    if(!d.active_players||!Array.isArray(d.active_players))d.active_players=[];
+    if(!d.rankings||!Array.isArray(d.rankings))d.rankings=[];
+    if(!d.hand_counts)d.hand_counts=[];
+    if(!d.stopped_players)d.stopped_players=[];
     countdown(()=>{curSt=d;handOrder=[];go('s-game');renderGame(d,true);});
   });
-  sock.on('state_update',d=>{curSt=d;renderGame(d);if(d.game_over)showOver(d);});
+  sock.on('state_update',d=>{
+    if(!d.active_players||!Array.isArray(d.active_players))d.active_players=[];
+    if(!d.rankings||!Array.isArray(d.rankings))d.rankings=[];
+    if(!d.hand_counts)d.hand_counts=[];
+    if(!d.stopped_players)d.stopped_players=[];
+    curSt=d;renderGame(d);if(d.game_over)showOver(d);
+  });
   sock.on('error',d=>{
     toast(d.message);
     // Kartu yang dipilih tadi dikembalikan (batalkan play yang gagal)
@@ -2227,17 +2454,34 @@ function go(id){
   } else {
     _destroyChat();
     // Tampilkan untuk semua user (termasuk guest bisa baca, tapi kirim diblokir)
-    const _hasUser = !!currentUser;
+    const _hasUser = !!(currentUser && fbDb);
     _showLobbyChatBtn(_hasUser);
     if(_hasUser && !_lobbyChatListener) _startLobbyChatListener();
   }
 }
-function gname(){const n=document.getElementById('inp-name').value.trim();if(!n){toast('Masukkan nama!');return null;}return n;}
+function gname(){
+  const el=document.getElementById('inp-name');
+  let n=el?el.value.trim():'';
+  // Fallback ke nama tersimpan jika input kosong (offline/localhost)
+  if(!n && currentUserData?.name) n = currentUserData.name;
+  if(!n){
+    toast('👆 Isi nama kamu dulu!','error');
+    if(el){
+      el.focus();
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.style.outline='2px solid #ff4444';
+      el.style.boxShadow='0 0 8px #ff4444';
+      setTimeout(()=>{el.style.outline='';el.style.boxShadow='';},2000);
+    }
+    return null;
+  }
+  return n;
+}
 
 // ── NAVIGASI MODE ──
 function goBot(){if(!gname())return;go('s-bot');}
 function goMabar(){
-  if(!gname())return;
+  // Nama tidak wajib saat offline - bisa diisi di menu
   const isApk=!!(window.Capacitor&&window.Capacitor.isNative)||window.location.protocol==='capacitor:';
   if(isApk){
     // APK: tampilkan layar panduan (ada tombol buka localhost)
@@ -2262,7 +2506,8 @@ let selNum=2, selNumOnline=2;
 function setNum(n){selNum=n;[2,3,4].forEach(i=>document.getElementById('nb'+i).classList.toggle('on',i===n));}
 function setNumOnline(n){selNumOnline=n;[2,3,4].forEach(i=>document.getElementById('nbo'+i).classList.toggle('on',i===n));}
 function doCreate(){
-  const name=gname();if(!name)return;
+  const name=document.getElementById('inp-name')?.value.trim()||currentUserData?.name||'Host';if(!name)return;
+  try{localStorage.setItem('hoki_guest_name',name);}catch(_){}
   toast('Menghubungkan ke server...','info');
   initSock();
   sock.once('connect',()=>{
@@ -2276,7 +2521,9 @@ function openLocalhost(){
   window.location.href='http://localhost:3000';
 }
 function doJoinMabar(){
-  const name=gname();if(!name)return;
+  const nameRaw=document.getElementById('inp-name')?.value.trim();
+  const name=nameRaw||currentUserData?.name||'Pemain';
+  try{if(name&&name!=='Pemain')localStorage.setItem('hoki_guest_name',name);}catch(_){}
   const code=document.getElementById('inp-room-mabar').value.trim().toUpperCase();
   if(!code){toast('Masukkan kode room!');return;}
   toast('Menghubungkan ke server...','info');
@@ -2285,20 +2532,46 @@ function doJoinMabar(){
     sock.emit('join_room',{name:name,room_id:code});
   });
   sock.once('connect_error',()=>{
-    toast('Gagal terhubung ke server! Pastikan server.js berjalan.','error');
+    toast('❌ Tidak bisa terhubung ke server! Pastikan sudah terhubung ke WiFi/Hotspot host dan server.js berjalan.','error');
   });
+  // Timeout jika tidak connect dalam 8 detik
+  setTimeout(()=>{
+    if(sock&&!sock.connected){
+      toast('❌ Timeout! Cek koneksi WiFi/Hotspot ke host.','error');
+      sock.disconnect();
+    }
+  },8000);
 }
 
 
 
 function updLobby(names,total,joined){
-  const ul=document.getElementById('lob-players');ul.innerHTML='';
-  for(let i=0;i<total;i++){
-    const li=document.createElement('li');
-    li.textContent=`${AV[i%AV.length]} ${names[i]||'...'}${i===myIdx?' (Kamu)':''}`;
-    ul.appendChild(li);
+  const wrap=document.getElementById('lob-slots');
+  if(wrap){
+    wrap.innerHTML='';
+    for(let i=0;i<total;i++){
+      const slot=document.createElement('div');
+      const hasPlayer=!!names[i];
+      const isMe=i===myIdx;
+      slot.className='lob-slot'+(hasPlayer?' filled':'')+(isMe?' me':'');
+      if(hasPlayer){
+        const av=AV[i%AV.length];
+        const nm=names[i];
+        const meTag=isMe?'<span class="lob-slot-tag">Kamu</span>':'';
+        const hostTag=i===0?'<span class="lob-slot-tag">Host</span>':'';
+        slot.innerHTML='<div class="lob-slot-av">'+av+'</div>'
+          +'<div class="lob-slot-name">'+nm+'</div>'
+          +meTag+hostTag
+          +'<div class="lob-slot-dot on"></div>';
+      } else {
+        slot.innerHTML='<div class="lob-slot-av">🪑</div>'
+          +'<div class="lob-slot-empty">Menunggu pemain '+(i+1)+'...</div>'
+          +'<div class="lob-slot-dot"></div>';
+      }
+      wrap.appendChild(slot);
+    }
   }
-  document.getElementById('lob-status').textContent=`${joined}/${total} pemain bergabung`;
+  document.getElementById('lob-status').textContent=joined+'/'+total+' pemain bergabung';
 }
 
 function countdown(cb){
@@ -2314,9 +2587,9 @@ function buildSeats(st){
   const np=st.num_players,pos=SPOS[np]||SPOS[4],names=st.player_names||{};
   for(let i=0;i<np;i++){
     const vi=(i-myIdx+np)%np,p=pos[vi]||[50,50];
-    const isMe=i===myIdx,isTurn=i===st.current_player,isAct=st.active_players.includes(i);
+    const isMe=i===myIdx,isTurn=i===st.current_player,isAct=(st.active_players||[]).includes(i);
     const isStop=st.stopped_players&&st.stopped_players.includes(i);
-    const rank=st.rankings.indexOf(i);
+    const rank=(st.rankings||[]).indexOf(i);
     const seat=document.createElement('div');
     seat.className=`seat${isTurn?' is-turn':''}${isMe?' is-me':''}${!isAct?' is-out':''}${isStop?' is-stop':''}`;
     seat.style.left=p[0]+'%';seat.style.top=p[1]+'%';
@@ -2324,7 +2597,7 @@ function buildSeats(st){
     if(!isAct)badge=`<span class="sbadge out">${rank>=0?'🏆'+(rank+1):'❌'}</span>`;
     else if(isStop)badge='<span class="sbadge stop">🛑</span>';
     else if(isTurn)badge='<span class="sbadge turn">▶</span>';
-    seat.innerHTML=`<div class="av">${AV[i%AV.length]}</div><div class="sname">${names[i]||'P'+(i+1)}${isMe?' ⭐':''}</div><div class="sinfo">${isMe?'':st.hand_counts[i]+'🃏'}</div>${badge}`;
+    seat.innerHTML=`<div class="av">${AV[i%AV.length]}</div><div class="sname">${names[i]||'P'+(i+1)}${isMe?' ⭐':''}</div><div class="sinfo">${isMe?'':((st.hand_counts&&st.hand_counts[i]!=null)?st.hand_counts[i]:'?')+'🃏'}</div>${badge}`;
     oval.appendChild(seat);
   }
 }
@@ -2332,7 +2605,7 @@ function buildSeats(st){
 // ══ RENDER GAME ══
 function renderGame(st,firstDeal=false){
   selCards=[];exitReorder();
-  const isMy=st.current_player===myIdx,amAct=st.active_players.includes(myIdx);
+  const isMy=st.current_player===myIdx,amAct=(st.active_players||[]).includes(myIdx);
   const pn=st.player_names?st.player_names[st.current_player]:`P${st.current_player+1}`;
   const isOp=st.phase==='opening';
 
@@ -2857,8 +3130,8 @@ let _rtdbMyIdx=0, _rtdbUid=null, _rtdbPlayerUids={};
 let _rtdbListeners=[];
 
 function _rtdbCleanup(){
-  _rtdbListeners.forEach(fn=>fn()); _rtdbListeners=[];
-  if(_rtdbRoom&&currentUser&&fbRtdb)
+  _rtdbListeners.forEach(fn=>{ try{fn();}catch(_){} }); _rtdbListeners=[];
+  if(fbRtdb&&_rtdbRoom&&currentUser)
     fbRtdb.ref('rooms/'+_rtdbRoom+'/info/players/'+(currentUser.uid||'')).remove().catch(()=>{});
   _rtdbRoom=null; _rtdbIsHost=false; _rtdbGame=null; _rtdbMyIdx=0;
 }
@@ -2923,6 +3196,11 @@ function _clientListenState(){
     const pnSnap=await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/playerNames').get();
     const hand=handSnap.val()||[];
     const fullState={...state,hand,room_id:_rtdbRoom,player_names:pnSnap.val()||{}};
+    // Guard: pastikan field wajib tersedia sebelum render
+    if(!fullState.active_players||!Array.isArray(fullState.active_players))fullState.active_players=[];
+    if(!fullState.rankings||!Array.isArray(fullState.rankings))fullState.rankings=[];
+    if(!fullState.hand_counts)fullState.hand_counts=[];
+    if(!fullState.stopped_players)fullState.stopped_players=[];
     curSt=fullState; renderGame(fullState,false);
     if(fullState.game_over)showOver(fullState);
   });
@@ -3046,18 +3324,24 @@ function _listenLobbyOnline(rid){
   lobLoadFriendInvite();
 }
 
-function _listenStartOnline(rid,myIdx){
+function _listenStartOnline(rid,playerIdx){
   const ref=fbRtdb.ref('rooms/'+rid+'/info/started');
   const fn=ref.on('value',async snap=>{
     if(!snap.val())return;
     ref.off('value',fn);
+    myIdx = playerIdx; // ✅ set global myIdx agar kartu bisa diklik
     _clientListenState(); _clientListenError();
     const stSnap=await fbRtdb.ref('rooms/'+rid+'/state').get();
     const hSnap=await fbRtdb.ref('rooms/'+rid+'/hands/'+currentUser.uid).get();
     const pnSnap=await fbRtdb.ref('rooms/'+rid+'/info/playerNames').get();
     if(!stSnap.val())return;
     const hand=hSnap.val()||[];
-    const fullState={...stSnap.val(),hand,room_id:rid,player_names:pnSnap.val()||{}};
+    const rawSt=stSnap.val()||{};
+    if(!rawSt.active_players||!Array.isArray(rawSt.active_players))rawSt.active_players=[];
+    if(!rawSt.rankings||!Array.isArray(rawSt.rankings))rawSt.rankings=[];
+    if(!rawSt.hand_counts)rawSt.hand_counts=[];
+    if(!rawSt.stopped_players)rawSt.stopped_players=[];
+    const fullState={...rawSt,hand,room_id:rid,player_names:pnSnap.val()||{}};
     curSt=fullState; handOrder=[];
     countdown(()=>{go('s-game');renderGame(fullState,true);});
   });
@@ -3084,6 +3368,7 @@ async function doStart(){
     const pnSnap=await fbRtdb.ref('rooms/'+_rtdbRoom+'/info/playerNames').get();
     const st=_rtdbGame.toState(0);
     st.room_id=_rtdbRoom; st.player_names=pnSnap.val()||{};
+    myIdx=0; // ✅ set global myIdx untuk host
     curSt=st; handOrder=[];
     countdown(()=>{go('s-game');renderGame(st,true);});
   } else if(sock){
@@ -3096,7 +3381,7 @@ async function doStart(){
 //  OVERRIDE NAVIGASI & ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function goOnline(){
-  if(!navigator.onLine){toast('❌ Tidak ada koneksi internet!');return;}
+  if(!navigator.onLine||!fbRtdb){toast('❌ Tidak ada koneksi internet!');return;}
   if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
   go('s-online');
 }
@@ -3590,36 +3875,150 @@ let currentUser = null;
 let currentUserData = null;
 let _authMode = 'login';
 
-// Init Firebase
-try {
-  fbApp  = firebase.initializeApp(firebaseConfig);
-  fbAuth = firebase.auth();
-  // PENTING: settings() HARUS dipanggil SEBELUM operasi apapun ke Firestore
-  // Di APK Capacitor, selalu pakai long polling untuk menghindari CORS crash
-  fbDb   = firebase.firestore();
-  try {
-    fbDb.settings({ experimentalAutoDetectLongPolling: true, merge: true });
-  } catch(se){ /* settings sudah di-set, abaikan error */ }
-  fbRtdb = firebase.database();
-} catch(e){ console.error('[Firebase init]', e); }
-
-// Auth state listener
-if(fbAuth){
-  // Paksa persistence LOCAL agar token tidak hilang di Capacitor WebView
-  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-  fbAuth.onAuthStateChanged(async user => {
-    if(user){
-      // Force refresh token agar RTDB ikut ter-auth
-      try{ await user.getIdToken(true); }catch(_){}
-      await onUserLoggedIn(user);
-      go('s-menu');
-    } else {
-      go('loginScreen');
-    }
-  });
-} else {
-  go('loginScreen');
+// ── Deteksi offline / Firebase gagal load ──
+function _isOfflineMode(){
+  return !navigator.onLine || window._firebaseLoadFailed || typeof firebase === 'undefined';
 }
+function _isLocalhost(){
+  var h = window.location.hostname;
+  return h === 'localhost' || h === '127.0.0.1' || h === '';
+}
+// Dipanggil dari modal pilihan koneksi
+function _connChoose(useOnline){
+  document.getElementById('conn-modal').classList.remove('on');
+  if(useOnline){
+    // Cek apakah Firebase script berhasil load
+    if(typeof firebase === 'undefined' || window._firebaseLoadFailed){
+      // Firebase tidak bisa load — mungkin tidak ada internet
+      // Tampilkan login screen dengan pesan, user bisa coba lagi atau pilih offline
+      go('loginScreen');
+      setTimeout(()=>{
+        showAuthError('⚠️ Tidak ada internet. Refresh halaman setelah konek, atau kembali dan pilih Offline.');
+        var backBtn = document.getElementById('btn-back-conn');
+        if(backBtn) backBtn.style.display = 'block';
+      }, 300);
+      return;
+    }
+    _doFirebaseInit();
+  } else {
+    _goOfflineMode();
+  }
+}
+
+function _setOfflineUser(){
+  fbApp = fbAuth = fbDb = fbRtdb = null;
+  currentUser = { uid: 'guest_local', isGuest: true };
+  const savedName = localStorage.getItem('hoki_guest_name') || 'Tamu';
+  currentUserData = { name: savedName, username: 'guest' };
+  // Tampilkan notice offline di loginScreen
+  const notice = document.getElementById('offline-notice');
+  if(notice) notice.style.display = 'block';
+}
+
+function _goOfflineMode(){
+  console.warn('[Firebase] Offline — mode tamu otomatis');
+  fbApp = fbAuth = fbDb = fbRtdb = null;
+  currentUser = { uid: 'guest_local', isGuest: true };
+  const savedName = localStorage.getItem('hoki_guest_name') || 'Tamu';
+  currentUserData = { name: savedName, username: 'guest' };
+  go('s-menu');
+  setTimeout(()=>{
+    // Pastikan input nama aktif dan terisi
+    const inp = document.getElementById('inp-name');
+    if(inp){
+      inp.removeAttribute('disabled');
+      inp.style.pointerEvents = 'auto';
+      inp.style.opacity = '1';
+      if(!inp.value && savedName) inp.value = savedName;
+    }
+    // Pastikan semua mode-btn bisa diklik
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = '';
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+    });
+    // Badge mode online & ranked → tunjukkan terkunci
+    const onlineBtn = document.querySelector('.mb-online');
+    const rankedBtn = document.querySelector('.mb-ranked');
+    if(onlineBtn){ const b=onlineBtn.querySelector('.mode-badge'); if(b) b.textContent='🔒 OFFLINE'; }
+    if(rankedBtn){ const b=rankedBtn.querySelector('.mode-badge'); if(b) b.textContent='🔒 OFFLINE'; }
+  }, 80);
+}
+
+// Init Firebase — dipanggil setelah semua script Firebase selesai load/error
+function _startFirebaseInit(){
+  // Localhost: modal sudah ditampilkan di DOMContentLoaded, skip
+  if(_isLocalhost()){
+    var m = document.getElementById('conn-modal');
+    if(m && !m.classList.contains('on')) m.classList.add('on');
+    return;
+  }
+  // Non-localhost offline: tetap tampilkan loginScreen (jangan ke menu)
+  // _goOfflineMode tidak perlu dipanggil — loginScreen sudah tampil
+  // Hanya set currentUser sebagai guest agar mode bot tetap bisa
+  if(_isOfflineMode()){
+    _setOfflineUser();
+    return;
+  }
+  _doFirebaseInit();
+}
+
+function _doFirebaseInit(){
+  try {
+    fbApp  = firebase.initializeApp(firebaseConfig);
+    fbAuth = firebase.auth();
+    fbDb   = firebase.firestore();
+    try { fbDb.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch(se){}
+    fbRtdb = firebase.database();
+  } catch(e){
+    console.error('[Firebase init]', e);
+    _goOfflineMode();
+    return;
+  }
+  if(fbAuth){
+    fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+    fbAuth.onAuthStateChanged(async user => {
+      if(user){
+        try{ await user.getIdToken(true); }catch(_){}
+        await onUserLoggedIn(user);
+        go('s-menu');
+      } else {
+        go('loginScreen');
+      }
+    });
+  } else {
+    go('loginScreen');
+  }
+}
+
+// Fallback: kalau script Firebase sudah selesai sebelum fungsi ini didefinisikan
+if(window._fbInitReady){
+  _startFirebaseInit();
+} else {
+  // Fallback timeout 2 detik — kalau script Firebase tidak respond
+  setTimeout(()=>{
+    var modal = document.getElementById('conn-modal');
+    var modalOpen = modal && modal.classList.contains('on');
+    if(!currentUser && !modalOpen){
+      if(_isLocalhost()){
+        // Localhost: pastikan modal muncul
+        if(modal) modal.classList.add('on');
+      } else {
+        // Non-localhost: set guest tapi loginScreen tetap
+        _setOfflineUser();
+      }
+    }
+  }, 2000);
+}
+
+// ── Listener koneksi online/offline ──
+window.addEventListener('offline', ()=>{
+  toast('📴 Koneksi terputus — mode offline aktif', 'warn');
+});
+window.addEventListener('online', ()=>{
+  toast('🌐 Koneksi kembali!', 'info');
+});
 
 // Generate shortId random 4-6 digit (khusus owner bisa diset manual 1-3 digit)
 function _genShortId(){
@@ -3646,12 +4045,12 @@ async function onUserLoggedIn(user){
     }
     // Isi input nama otomatis
     const inp = document.getElementById('inp-name');
-    if(inp && !inp.value) inp.value = currentUserData.name || '';
-    // ── Profile features ──
-    if(typeof _pfSetOnline === 'function')  _pfSetOnline();
+    if(inp && !inp.value) inp.value = currentUserData?.name || '';
+    // ── Profile features (hanya kalau Firebase tersedia) ──
+    if(fbRtdb && typeof _pfSetOnline === 'function')  _pfSetOnline();
     if(typeof _pfUpdateFab === 'function')  _pfUpdateFab();
     // ── Invite listener ──
-    if(typeof _startListenInvites === 'function') _startListenInvites();
+    if(fbRtdb && typeof _startListenInvites === 'function') _startListenInvites();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -3692,6 +4091,8 @@ async function submitAuth(){
 
   if(!uname){ showAuthError('❌ Username wajib diisi!'); return; }
   if(!pw || pw.length < 6){ showAuthError('❌ Password minimal 6 karakter!'); return; }
+  // Guard: Firebase belum siap
+  if(!fbDb || !fbAuth){ showAuthError('❌ Tidak ada koneksi internet. Pilih mode Offline untuk main tanpa internet.'); return; }
 
   btn.disabled = true;
   btn.textContent = _authMode === 'login' ? 'Masuk...' : 'Mendaftar...';
@@ -3737,8 +4138,9 @@ async function submitAuth(){
 }
 
 function loginGuest(){
+  const guestName = document.getElementById('inp-name')?.value.trim() || 'Tamu';
   currentUser = { uid: 'guest_'+Date.now(), isGuest: true };
-  currentUserData = { name: 'Tamu', username: 'guest' };
+  currentUserData = { name: guestName, username: 'guest' };
   go('s-menu');
   const fab = document.getElementById('profile-fab');
   if(fab) fab.classList.remove('vis');
@@ -3755,15 +4157,7 @@ function toggleRulesSection(headEl){
 //  CHAT & EMOJI REACTION SYSTEM
 // ═══════════════════════════════════════════════════════
 
-let _chatExpanded = false;
-let _chatTab = 'local';          // 'local' | 'global'
-let _chatListeners = [];          // RTDB unsubscribe fns
-let _localMsgCache = [];          // [{id, name, text, ts}]
-let _globalMsgCache = [];         // [{id, name, text, ts}]
-let _chatOverlayTimers = {};      // pushId -> setTimeout handle
-let _lobbyChatOpen = false;
-let _lobbyChatListener = null;
-let _lobbyChatCache = [];
+// chat vars moved to top
 
 // ── Helper: is RTDB online game? ──
 function _isChatEnabled(){
@@ -3773,7 +4167,6 @@ function _isChatEnabled(){
 
 // ── Init chat saat game mulai ──
 function _initChat(){
-  // Reset state
   _chatExpanded = false;
   _chatTab = 'local';
   _localMsgCache = [];
@@ -3781,19 +4174,91 @@ function _initChat(){
   _chatOverlayTimers = {};
   clearChatReply();
 
-  const bar = document.getElementById('chatbar');
+  const bar    = document.getElementById('chatbar');
   const expand = document.getElementById('chatbar-expand');
   const toggle = document.getElementById('chatbar-toggle');
+  const header = document.getElementById('chatbar-header');
 
   if(!_isChatEnabled()){
     bar.style.display = 'none';
     return;
   }
 
-  bar.style.display = 'block';
-  expand.classList.remove('open');
-  toggle.textContent = '💬 Chat ▼';
+  // Reset ke state collapsed (tombol bulat)
+  bar.style.display = 'flex';
+  bar.className = 'collapsed';
+  expand.style.display = 'none';
+  toggle.textContent = '💬 Chat';
   document.getElementById('chat-log').innerHTML = '';
+
+  // ── Tap 1x = toggle, drag = geser FAB ──
+  if(header && !header._chatDragInit){
+    header._chatDragInit = true;
+
+    let _sx=0,_sy=0,_sr=14,_sb=14,_startH=0;
+    let _dragging=false;
+    const DRAG_THRESHOLD=10;
+
+    const onStart=(cx,cy)=>{
+      _sx=cx; _sy=cy; _dragging=false;
+      _sr=parseFloat(bar.style.right)||14;
+      _sb=parseFloat(bar.style.bottom)||72;
+      _startH=bar.offsetHeight||Math.round(window.innerHeight*0.52);
+    };
+
+    const onMove=(cx,cy)=>{
+      const dx=cx-_sx, dy=cy-_sy;
+      if(!_dragging){
+        if(Math.abs(dx)<DRAG_THRESHOLD&&Math.abs(dy)<DRAG_THRESHOLD) return;
+        _dragging=true;
+      }
+      if(_chatExpanded){
+        // Drag ke atas (dy negatif) = tambah tinggi, sampai hampir full screen
+        const H=window.innerHeight;
+        const newH=Math.max(120, Math.min(H-50, _startH-dy));
+        bar.style.height=newH+'px';
+      } else {
+        // Collapsed: geser FAB
+        const W=window.innerWidth,H=window.innerHeight;
+        const bw=bar.offsetWidth||110,bh=bar.offsetHeight||44;
+        bar.style.right=Math.max(6,Math.min(W-bw-6,_sr-dx))+'px';
+        bar.style.bottom=Math.max(6,Math.min(H-bh-6,_sb-dy))+'px';
+        bar.style.left='auto';
+      }
+    };
+
+    const onEnd=()=>{
+      if(!_dragging){ toggleChatExpand(); return; }
+      if(!_chatExpanded){
+        const rect=bar.getBoundingClientRect();
+        const W=window.innerWidth,bw=bar.offsetWidth||110;
+        const goRight=(rect.left+bw/2)>W/2;
+        bar.style.transition='right .18s,bottom .18s';
+        bar.style.right=(goRight?Math.max(6,parseFloat(bar.style.right)||14):W-bw-6)+'px';
+        setTimeout(()=>{bar.style.transition='';},200);
+      }
+      _dragging=false;
+    };
+
+    header.addEventListener('touchstart',e=>{
+      onStart(e.touches[0].clientX,e.touches[0].clientY);
+    },{passive:true});
+    header.addEventListener('touchmove',e=>{
+      onMove(e.touches[0].clientX,e.touches[0].clientY);
+      if(_dragging) e.preventDefault();
+    },{passive:false});
+    header.addEventListener('touchend',e=>{
+      onEnd();
+    },{passive:true});
+    header.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      onStart(e.clientX,e.clientY);
+      const mm=ev=>onMove(ev.clientX,ev.clientY);
+      const mu=()=>{onEnd();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};
+      document.addEventListener('mousemove',mm);
+      document.addEventListener('mouseup',mu);
+    });
+  }
 
   _listenLocalChat();
   _listenGlobalChat();
@@ -3803,10 +4268,16 @@ function _initChat(){
 function _destroyChat(){
   _chatListeners.forEach(fn => fn());
   _chatListeners = [];
-  // bersihkan overlay
   document.getElementById('chat-overlay').innerHTML = '';
-  document.getElementById('chatbar-expand').classList.remove('open');
-  document.getElementById('chatbar').style.display = 'none';
+  const bar = document.getElementById('chatbar');
+  bar.style.display = 'none';
+  bar.className = 'collapsed';
+  bar.style.right = '14px'; bar.style.bottom = '72px';
+  bar.style.left = ''; bar.style.top = ''; bar.style.height = '';
+  const expand = document.getElementById('chatbar-expand');
+  if(expand) expand.style.display = 'none';
+  const h = document.getElementById('chatbar-header');
+  if(h) h._chatDragInit = false;
   _localMsgCache = [];
   _globalMsgCache = [];
 }
@@ -3814,16 +4285,31 @@ function _destroyChat(){
 // ── Toggle expand/collapse ──
 function toggleChatExpand(){
   _chatExpanded = !_chatExpanded;
+  const bar    = document.getElementById('chatbar');
   const expand = document.getElementById('chatbar-expand');
   const toggle = document.getElementById('chatbar-toggle');
+  const emojis = document.getElementById('chatbar-emoji-btns');
   if(_chatExpanded){
-    expand.classList.add('open');
-    toggle.textContent = '💬 Chat ▲';
+    bar.className = 'expanded';
+    bar.style.right = ''; bar.style.left = ''; bar.style.bottom = '';
+    bar.style.height = Math.round(window.innerHeight * 0.52) + 'px';
+    bar.style.display = 'flex';
+    expand.style.display = 'flex';
+    if(emojis) emojis.style.display = 'flex';
+    toggle.textContent = '✕ Tutup';
     _renderChatLog();
     setTimeout(()=>{ const log=document.getElementById('chat-log'); log.scrollTop=log.scrollHeight; },50);
   } else {
-    expand.classList.remove('open');
-    toggle.textContent = '💬 Chat ▼';
+    bar.className = 'collapsed';
+    bar.style.display = 'flex';
+    bar.style.height = '';
+    bar.style.top = '';
+    bar.style.left = '';
+    bar.style.right = '14px';
+    bar.style.bottom = '72px';
+    expand.style.display = 'none';
+    if(emojis) emojis.style.display = 'none';
+    toggle.textContent = '💬 Chat';
   }
 }
 
@@ -3862,8 +4348,9 @@ function sendChat(){
   clearChatReply();
 
   if(_chatTab === 'local'){
-    fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').push(msg).catch(()=>{});
+    if(fbRtdb&&_rtdbRoom) fbRtdb.ref('rooms/'+_rtdbRoom+'/chat').push(msg).catch(()=>{});
   } else {
+    if(typeof firebase==='undefined'||!firebase.firestore||!fbDb){toast('❌ Chat global tidak tersedia offline.');return;}
     const _expireAt = new firebase.firestore.Timestamp(
       Math.floor((Date.now() + 10*60*1000) / 1000), 0
     );
@@ -3893,7 +4380,7 @@ function _listenLocalChat(){
 
 // ── Listen chat global ──
 function _listenGlobalChat(){
-  if(!fbDb) return;
+  if(!fbDb||typeof firebase==='undefined'||!firebase.firestore) return;
   const tenMinAgo = firebase.firestore.Timestamp.fromMillis(Date.now() - 10*60*1000);
   const unsub = fbDb.collection('global_chat')
     .where('expireAt', '>', tenMinAgo)
@@ -4000,7 +4487,7 @@ function _attachSwipeReply(row){
 }
 
 // ── State reply ──
-let _chatReplyTo = null; // {id, name, text}
+// _chatReplyTo moved to top
 
 function _triggerReply(row){
   // Haptic feedback jika ada
@@ -4052,7 +4539,7 @@ function sendEmojiReact(emoji){
     setTimeout(()=>r.remove().catch(()=>{}), 3000);
   }).catch(()=>{});
   // Animasi lokal langsung
-  _animateEmoji(emoji, true);
+  _animateEmoji(emoji, true, 'Kamu');
 }
 
 function _listenReactions(){
@@ -4065,7 +4552,7 @@ function _listenReactions(){
     if(d.uid === currentUser?.uid) return;
     // Hanya tampilkan jika belum kedaluwarsa (< 3 detik)
     if(Date.now() - d.ts > 3500) return;
-    _animateEmoji(d.emoji, false);
+    _animateEmoji(d.emoji, false, d.name||'?');
   });
   _chatListeners.push(()=>ref.off('child_added', fn));
 }
@@ -4096,68 +4583,30 @@ function _getTableCenter(){
   return { x: window.innerWidth/2, y: window.innerHeight/2 };
 }
 
-function _animateEmoji(emoji, fromMe){
+function _animateEmoji(emoji, fromMe, senderName){
   const el = document.createElement('div');
   el.className = 'emoji-float';
-  el.textContent = emoji;
+
+  const icon = document.createElement('div');
+  icon.className = 'ef-icon';
+  icon.textContent = emoji;
+  el.appendChild(icon);
+
+  if(senderName){
+    const nm = document.createElement('div');
+    nm.className = 'ef-name';
+    nm.textContent = senderName;
+    el.appendChild(nm);
+  }
 
   const origin = fromMe ? _getMyAvatarPos() : _getTableCenter();
-  el.style.left = (origin.x - 20) + 'px';
-  el.style.top  = (origin.y - 20) + 'px';
+  el.style.left = (origin.x - 24) + 'px';
+  el.style.top  = (origin.y - 24) + 'px';
   document.body.appendChild(el);
-  setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1600);
+  setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1900);
 }
 
-// ── Draggable chatbar ──
-(function _makeChatbarDraggable(){
-  let dragging=false, startY=0, startBottom=0, moved=false;
-  const getBar = ()=>document.getElementById('chatbar');
-
-  function onStart(e){
-    const b = getBar();
-    if(!b || b.style.display==='none') return;
-    // Jangan drag kalau tap di toggle text atau emoji btn
-    if(e.target.closest('#chatbar-toggle') || e.target.closest('#chatbar-emoji-btns')) return;
-    const t = e.touches ? e.touches[0] : e;
-    dragging = true; moved = false;
-    startY = t.clientY;
-    const style = window.getComputedStyle(b);
-    startBottom = parseInt(style.bottom)||0;
-    b.classList.add('dragging');
-    document.addEventListener('mousemove', onMove, {passive:false});
-    document.addEventListener('touchmove', onMove, {passive:false});
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchend', onEnd);
-  }
-
-  function onMove(e){
-    if(!dragging) return;
-    const t = e.touches ? e.touches[0] : e;
-    const dy = startY - t.clientY;
-    if(Math.abs(dy) > 4) moved = true;
-    if(!moved) return;
-    e.preventDefault();
-    const newBottom = Math.max(0, Math.min(window.innerHeight*0.65, startBottom + dy));
-    const b = getBar(); if(b) b.style.bottom = newBottom + 'px';
-  }
-
-  function onEnd(){
-    dragging = false;
-    const b = getBar(); if(b) b.classList.remove('dragging');
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchend', onEnd);
-  }
-
-  // Drag hanya dari area header (tapi bukan di tombol)
-  document.addEventListener('mousedown', e=>{
-    if(e.target.closest('#chatbar-header') && !e.target.closest('button') && !e.target.closest('span')) onStart(e);
-  });
-  document.addEventListener('touchstart', e=>{
-    if(e.target.closest('#chatbar-header') && !e.target.closest('button')) onStart(e);
-  }, {passive:true});
-})();
+// (old draggable removed)
 
 // ── Cleanup chat saat keluar game ──
 // Dilakukan via go() patch di bawah
@@ -4200,6 +4649,7 @@ function sendLobbyChat(){
   if(!text) return;
   inp.value = '';
   const name = (currentUserData?.name || 'Pemain').slice(0,16);
+  if(typeof firebase==='undefined'||!firebase.firestore){toast('❌ Chat tidak tersedia offline.');return;}
   const _expAt = new firebase.firestore.Timestamp(
     Math.floor((Date.now() + 10*60*1000) / 1000), 0
   );
@@ -4277,6 +4727,7 @@ function _appendLobbyChatBubble(entry){
 function _startLobbyChatListener(){
   if(!fbDb || _lobbyChatListener) return;
   if(!currentUser) return;
+  if(typeof firebase === 'undefined' || !firebase.firestore) return;
   const tenMinAgo = firebase.firestore.Timestamp.fromMillis(Date.now() - 10*60*1000);
   const unsub = fbDb.collection('global_chat')
     .where('expireAt', '>', tenMinAgo)
@@ -5116,12 +5567,14 @@ function _lobSyncShareCode(code){
 // ── Leave lobby ─────────────────────────────────────────
 function lobLeave(){
   _lobCleanup();
-  // Remove player from RTDB if joined
-  if(_rtdbRoom && currentUser && !_rtdbIsHost){
+  // Remove player from RTDB if joined (hanya kalau fbRtdb tersedia / online)
+  if(fbRtdb && _rtdbRoom && currentUser && !_rtdbIsHost){
     fbRtdb.ref('rooms/'+_rtdbRoom+'/info/players/'+currentUser.uid).remove().catch(()=>{});
-  } else if(_rtdbRoom && _rtdbIsHost){
+  } else if(fbRtdb && _rtdbRoom && _rtdbIsHost){
     fbRtdb.ref('rooms/'+_rtdbRoom).remove().catch(()=>{});
   }
+  // Kalau mode socket (mabar privat), beri tahu server
+  if(sock && sock.connected){ sock.emit('leave_room',{}); }
   _rtdbRoom=null; _rtdbIsHost=false; _rtdbMyIdx=0;
   go('s-menu');
 }
@@ -5348,6 +5801,26 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
 
 </script>
 
+<!-- Modal pilihan Online/Offline (muncul di localhost) -->
+<div id="conn-modal">
+  <div class="cm-box">
+    <div style="font-size:2.2em;">🃏</div>
+    <div class="cm-title">PILIH MODE KONEKSI</div>
+    <div class="cm-sub">
+      Kamu membuka game dari <strong style="color:#FFD700;">localhost</strong>.<br>
+      Pilih mode sesuai kondisi internet kamu.
+    </div>
+    <button class="cm-btn cm-btn-online" onclick="_connChoose(true)">
+      🌐 Online — Pakai Firebase
+      <div style="font-size:.7em;font-weight:600;opacity:.75;margin-top:2px;">Login akun, Mabar Online & Ranked</div>
+    </button>
+    <button class="cm-btn cm-btn-offline" onclick="_connChoose(false)">
+      📴 Offline — Tanpa Internet
+      <div style="font-size:.7em;font-weight:600;opacity:.6;margin-top:2px;">Bot & Mabar Privat (localhost) saja</div>
+    </button>
+  </div>
+</div>
+
 <!-- Global Chat Button (fixed, semua layar kecuali s-game) -->
 <button id="lobby-chat-btn" onclick="if(!window._chatBtnDragged)toggleLobbyChat()">💬 Chat</button>
 <div id="lobby-chat-panel">
@@ -5366,16 +5839,27 @@ window.addEventListener('online', ()=>toast('✅ Koneksi internet tersambung kem
 </div>
 
 <!-- ══════════════════ RANKED LOBBY ══════════════════════════ -->
-<div id="s-ranked" class="scr">
+<div id="s-ranked" class="scr" style="position:relative;">
+  <!-- Overlay searching -->
+  <div id="mm-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+    <div style="font-family:'Cinzel',serif;font-size:1.15em;color:#FFD700;letter-spacing:2px;">🔍 MENCARI LAWAN</div>
+    <div style="width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,215,0,.15);border-top-color:#FFD700;border-right-color:#e65100;animation:mmSpin 1.2s linear infinite;position:relative;">
+      <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8em;animation:mmSpin 1.2s linear infinite reverse;">⚔️</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="font-size:.7em;color:rgba(255,255,255,.35);letter-spacing:1px;">WAKTU TERSISA</div>
+      <div id="mm-countdown" style="font-size:2.8em;font-weight:800;color:#FFD700;font-family:'Rajdhani',sans-serif;min-width:60px;text-align:center;">30</div>
+    </div>
+    <div id="mm-search-status" style="font-size:.8em;color:rgba(255,255,255,.45);text-align:center;">Mencari pemain ranked…</div>
+    <button onclick="cancelMatchmaking()" style="background:rgba(255,50,50,.15);border:1px solid rgba(255,80,80,.3);color:rgba(255,150,150,.8);font-family:'Rajdhani',sans-serif;font-size:.88em;font-weight:700;padding:10px 28px;border-radius:10px;cursor:pointer;">
+      ✕ Batalkan
+    </button>
+  </div>
+
   <div class="panel-title" style="font-family:'Cinzel',serif;font-size:1.3em;color:#FFD700;letter-spacing:2px;">⚔️ RANKED MATCH</div>
   <div id="rnk-rank-display" style="margin:4px 0 8px;text-align:center;font-size:.85em;color:rgba(255,255,255,.5);">Memuat rank...</div>
+  <div style="font-size:.75em;color:rgba(255,255,255,.3);text-align:center;margin-bottom:6px;">4 Pemain · Jika tidak ada lawan → vs Bot</div>
   <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
-    <div style="font-size:.78em;color:rgba(255,255,255,.4);text-align:center;letter-spacing:1px;">JUMLAH PEMAIN</div>
-    <div style="display:flex;gap:8px;">
-      <button class="ranked-np-btn on" id="rnp-2" onclick="setRankedNp(2)">2 P</button>
-      <button class="ranked-np-btn"    id="rnp-3" onclick="setRankedNp(3)">3 P</button>
-      <button class="ranked-np-btn"    id="rnp-4" onclick="setRankedNp(4)">4 P</button>
-    </div>
     <button onclick="startRanked()" style="width:100%;padding:14px;background:linear-gradient(135deg,#e65100,#FFD700);border:none;border-radius:14px;font-family:'Rajdhani',sans-serif;font-size:1.1em;font-weight:800;color:#1a0800;cursor:pointer;letter-spacing:1px;">
       ⚔️ MULAI RANKED
     </button>
@@ -5472,7 +5956,7 @@ function startRanked(){
   if(!name){ toast('Isi nama dulu!','warn'); return; }
   if(!currentUser||currentUser.isGuest){ toast('Login dulu!','warn'); return; }
   _isRankedMode = true;
-  _mmStartMatchmaking(_rankedNp, name);
+  _mmStartMatchmaking(4, name); // selalu 4P
 }
 
 function _rnkRefreshUI(){
@@ -5498,18 +5982,25 @@ async function _mmStartMatchmaking(np, name){
   _mmSearchSec = MM_SEARCH_MAX;
   _mmReduceTimer = false;
 
-  toast('🔍 Mencari lawan ranked…');
+  var ov=document.getElementById('mm-overlay');
+  if(ov){ ov.style.display='flex'; }
+  var cd=document.getElementById('mm-countdown');
+  if(cd){ cd.textContent=_mmSearchSec; cd.style.color='#FFD700'; }
+
+  // Mulai countdown DULU sebelum await Firebase
+  clearInterval(_mmInterval);
+  _mmInterval = setInterval(_mmSearchTick, 1000);
 
   _mmQueueRef = fbRtdb.ref('ranked_queue/'+np+'/'+currentUser.uid);
-  await _mmQueueRef.set({
-    uid: currentUser.uid, name: name,
-    avatar: currentUserData?.avatar||'😎',
-    stars: currentUserData?.stars||0,
-    ts: Date.now(),
-  });
-  _mmQueueRef.onDisconnect().remove();
-
-  _mmInterval = setInterval(_mmSearchTick, 1000);
+  try{
+    await _mmQueueRef.set({
+      uid: currentUser.uid, name: name,
+      avatar: currentUserData?.avatar||'😎',
+      stars: currentUserData?.stars||0,
+      ts: Date.now(),
+    });
+    _mmQueueRef.onDisconnect().remove();
+  }catch(e){ console.warn('[ranked] queue set error',e); }
 
   const queueListenRef = fbRtdb.ref('ranked_queue/'+np);
   let _hostCreateCalled = false;
@@ -5531,28 +6022,50 @@ async function _mmStartMatchmaking(np, name){
 function _mmSearchTick(){
   if(_mmPhase !== 'searching'){ clearInterval(_mmInterval); return; }
   _mmSearchSec--;
-  const el = document.getElementById('mm-timer');
-  if(el){ el.textContent=_mmSearchSec; el.classList.toggle('urgent',_mmSearchSec<=5); }
+  var cd=document.getElementById('mm-countdown');
+  if(cd){ cd.textContent=_mmSearchSec; cd.style.color=_mmSearchSec<=5?'#f44336':'#FFD700'; }
   if(_mmSearchSec <= 0){ clearInterval(_mmInterval); _mmFallbackBot(); }
 }
 
 async function _mmFallbackBot(){
   if(_mmPhase !== 'searching') return;
+  clearInterval(_mmInterval);
   if(_mmQListener){ _mmQListener(); _mmQListener=null; }
-  const snap = await fbRtdb.ref('ranked_queue/'+_mmNp).get();
-  if(_mmPhase !== 'searching') return; // cek ulang setelah await
-  const entries = snap.val()||{};
+  _mmPhase = 'creating';
+
+  // Ambil pemain yang sudah ada di queue
+  var entries = {};
+  try{
+    const snap = await fbRtdb.ref('ranked_queue/'+_mmNp).get();
+    entries = snap.val()||{};
+  }catch(e){}
+
   const uids = Object.keys(entries).filter(u=>entries[u]&&entries[u].uid);
   const players = {};
-  uids.forEach((uid,i)=>{ players[uid]={...entries[uid],idx:i,isBot:false}; });
-  for(let i=uids.length;i<_mmNp;i++){
-    const botId='bot_'+i+'_'+Date.now();
-    players[botId]={uid:botId,name:'Bot '+i,avatar:'🤖',idx:i,isBot:true,stars:0};
+  // Pastikan diri sendiri masuk dulu
+  players[currentUser.uid] = {
+    uid: currentUser.uid,
+    name: _mmMyName||currentUserData?.name||'Pemain',
+    avatar: currentUserData?.avatar||'😎',
+    idx: 0, isBot: false, ready: true
+  };
+  let idx = 1;
+  for(const uid of uids){
+    if(uid === currentUser.uid) continue;
+    players[uid] = {...entries[uid], idx: idx++, isBot: false, ready: true};
   }
-  const realUids=uids.slice().sort();
-  const iAmHost=realUids.length===0||realUids[0]===currentUser.uid;
-  if(iAmHost) _mmHostCreateRoom(players, Object.keys(players), _mmNp, true);
-  else _mmWaitForRoom(_mmNp);
+  // Isi sisa slot dengan bot
+  while(Object.keys(players).length < _mmNp){
+    const botId = 'bot_'+idx+'_'+Date.now();
+    players[botId] = {uid:botId, name:'Bot '+idx, avatar:'🤖', idx:idx, isBot:true, ready:true};
+    idx++;
+  }
+
+  // Hapus entry queue
+  try{ await fbRtdb.ref('ranked_queue/'+_mmNp+'/'+currentUser.uid).remove(); }catch(_){}
+
+  const rid = 'local_'+Date.now().toString(36);
+  _mmEnterReady(rid, players, _mmNp);
 }
 
 async function _mmHostCreateRoom(entries, uids, np, withBots=false){
@@ -5630,6 +6143,8 @@ function _mmEnterReady(rid, playerMap, np){
 async function _mmLaunchGame(rid,players,np){
   if(_mmPhase==='ingame') return;
   _mmPhase='ingame';
+  var ov=document.getElementById('mm-overlay');
+  if(ov) ov.style.display='none';
   clearInterval(_mmInterval);
   if(_mmRListener){ _mmRListener(); _mmRListener=null; }
 
@@ -5669,7 +6184,9 @@ async function _mmLaunchGame(rid,players,np){
 
 async function cancelMatchmaking(){
   _mmCleanup();
-  go('s-ranked'); _rnkRefreshUI();
+  var ov=document.getElementById('mm-overlay');
+  if(ov) ov.style.display='none';
+  _rnkRefreshUI();
 }
 
 function _mmCleanup(){
@@ -5678,6 +6195,8 @@ function _mmCleanup(){
   if(_mmRListener){ try{_mmRListener();}catch(_){} _mmRListener=null; }
   if(_mmQueueRef){ _mmQueueRef.remove().catch(()=>{}); _mmQueueRef=null; }
   _mmPhase='idle'; _mmRoomId=null;
+  var ov=document.getElementById('mm-overlay');
+  if(ov) ov.style.display='none';
 }
 
 function _mmRenderSearchSlots(uids,np){
