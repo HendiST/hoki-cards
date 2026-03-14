@@ -7269,7 +7269,7 @@ async function opLoadCheatList(){
     const row = document.createElement('div');
     row.className = 'op-list-item';
     row.innerHTML = '<span class="item-id">'+uid+'</span><span class="item-name"></span>'+
-      '<button class="op-btn op-btn-red op-btn-sm" onclick="opRevokeUid(''+uid+'')">✕</button>';
+      '<button class="op-btn op-btn-red op-btn-sm" onclick="opRevokeUid(\''+uid+'\')">✕</button>';
     el.appendChild(row);
   });
 }
@@ -7374,7 +7374,7 @@ async function opRefreshMatches(){
         '<div class="op-match-id">🎮 ROOM: '+rid+'</div>'+
         '<div class="op-match-players">👥 '+players+'</div>'+
         '<div class="op-match-btns">'+
-          '<button class="op-btn op-btn-red op-btn-sm" onclick="opForceEndRoom(''+rid+'')">⛔ End</button>'+
+          '<button class="op-btn op-btn-red op-btn-sm" onclick="opForceEndRoom(\''+rid+'\')">⛔ End</button>'+
         '</div>';
       el.appendChild(div);
       count++;
