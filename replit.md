@@ -1,6 +1,6 @@
 # Hoki Cards
 
-A real-time multiplayer card game (Capsa/Big Two variant) built with Node.js and Socket.io. Players connect over a local hotspot to play against each other.
+A real-time multiplayer card game (Capsa/Big Two variant) built with Node.js and Socket.io.
 
 ## Architecture
 
@@ -36,11 +36,49 @@ The app runs with `node server.js`. No build step required.
 ## Owner Panel
 
 - **Akses Menu Rahasia** — Beri/cabut akses cheat ke player by UID; tersinkron otomatis ke Firestore
+- **Owner check** — Cek UID hardcoded + Firestore `owners` collection + localStorage `hoki_is_owner`
+- Jika panel tidak muncul, panggil `_addMeAsOwner()` di browser console satu kali
 - **Edit Player Data** — Cari player by Firebase UID, shortId, atau username; edit nama, diamond, ban/unban
 - **Live Match Monitor** — Lihat semua room (lobby & berjalan) di Firebase RTDB
 - **Give Reward** — Kirim diamond ke player by UID
 - **Global Message** — Broadcast pesan ke semua player yang sedang online, dengan pilihan durasi
 
-## Deployment
+## Sound Effects & Animations
 
-Configured as `vm` deployment (always-running) since it uses in-memory game state via WebSockets.
+- Sound effects via Web Audio API (no external files): deal, place, pass, turn, win, lose, click
+- Card deal animation: kartu terbang 1-per-1 dari tengah meja ke posisi pemain saat game dimulai
+
+## Deployment / GitHub
+
+- GitHub Actions: `.github/workflows/` — hanya build APK debug (bukan deploy ke Firebase Hosting)
+- APK artifact tersedia di tab Actions setelah setiap push ke `main`
+- Firebase Hosting BELUM dikonfigurasi (game ini pakai server Node.js, bukan static hosting)
+
+---
+
+## ATURAN WAJIB UNTUK AGENT (BACA SETIAP SESI)
+
+> Instruksi dari owner proyek. Wajib diikuti tanpa pengecualian.
+
+### 1. Alur kerja fitur
+- Setiap fitur/perbaikan yang selesai **LANGSUNG ditulis ke `www/index.html`** (atau file `www/` lain yang relevan)
+- **JANGAN pernah tulis hasil ke `attached_assets/`** — folder itu hanya untuk file yang diupload user
+- Setelah menulis ke `www/`, restart workflow lalu **ambil screenshot** untuk verifikasi visual
+
+### 2. Test setiap fitur sebelum lanjut
+- Test menggunakan akun owner: **username `henn`, password `123456`**
+- Login via mode Online (Firebase)
+- Pastikan fitur berjalan benar di browser sebelum dianggap selesai
+- Jika ada error, fix dulu — jangan lanjut ke fitur berikutnya
+
+### 3. Git push otomatis
+- Setelah **semua fitur dalam satu sesi selesai dan sudah ditest**, langsung push ke GitHub **tanpa menunggu perintah dari user**
+- Perintah push: `git push "https://HendiST:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/HendiST/hoki-cards" HEAD:main`
+- Tidak perlu minta izin user untuk push — lakukan otomatis setelah semua selesai
+
+### 4. Urutan kerja yang benar
+1. Kerjakan fitur → tulis ke `www/`
+2. Restart workflow
+3. Screenshot + test dengan akun `henn`/`123456`
+4. Jika OK → lanjut ke fitur berikutnya
+5. Setelah semua fitur selesai → git push otomatis
