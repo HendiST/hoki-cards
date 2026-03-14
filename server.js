@@ -502,7 +502,7 @@ io.on('connection',socket=>{
     console.log(`[ROOM] ${rid} by ${name} bot=${botMode}`);
   });
 
-  socket.on('join_room_game',data=>{
+  socket.on('join_room',data=>{
     const rid=(data.room_id||'').toUpperCase().trim();
     const name=data.name||'Pemain';
     if(!rooms[rid])return socket.emit('error',{message:`Room ${rid} tidak ditemukan!`});
@@ -549,6 +549,24 @@ io.on('connection',socket=>{
     broadcast(rid);
   });
 
+  socket.on('leave_room',()=>{
+    const rid=sidRoom[socket.id];if(!rid||!rooms[rid])return;
+    const r=rooms[rid];const pidx=r.players[socket.id];
+    delete r.players[socket.id];delete sidRoom[socket.id];
+    socket.leave(rid);
+    if(pidx!==undefined){
+      const name=r.playerNames[pidx]||('Pemain '+(pidx+1));
+      io.to(rid).emit('player_left',{message:name+' keluar dari lobby'});
+      // Update slot di lobby
+      const joined=Object.keys(r.players).length;
+      io.to(rid).emit('player_joined',{message:joined+'/'+r.numPlayers+' pemain',
+        players_joined:joined,num_players:r.numPlayers,player_names:r.playerNames});
+    }
+    // Hapus room kalau kosong
+    if(!Object.keys(r.players).filter(s=>!r.botIndices||true).length)delete rooms[rid];
+    console.log('[LEAVE]',socket.id,'from',rid);
+  });
+
   socket.on('get_state',()=>{
     const rid=sidRoom[socket.id];if(!rid||!rooms[rid])return;
     const r=rooms[rid];const pidx=r.players[socket.id]??0;
@@ -557,17 +575,25 @@ io.on('connection',socket=>{
 });
 
 // ── START ──
-function getIP(){
+function getAllIPs(){
+  const ips=[];
   for(const nets of Object.values(os.networkInterfaces()))
-    for(const n of nets)if(n.family==='IPv4'&&!n.internal)return n.address;
-  return'localhost';
+    for(const n of nets)if(n.family==='IPv4'&&!n.internal)ips.push(n.address);
+  return ips.length?ips:['localhost'];
 }
 httpServer.listen(PORT,'0.0.0.0',()=>{
-  const ip=getIP();
+  const ips=getAllIPs();
   console.log('\n================================');
   console.log('  🃏 HOKI CARDS SERVER AKTIF!');
   console.log('================================');
   console.log(`\n  Buka di HP ini:\n  http://localhost:${PORT}`);
-  console.log(`\n  Buka di HP teman:\n  http://${ip}:${PORT}`);
+  if(ips.length===1){
+    console.log(`\n  Buka di HP teman:\n  http://${ips[0]}:${PORT}`);
+  } else {
+    console.log('\n  Buka di HP teman (pilih salah satu):');
+    ips.forEach(ip=>console.log(`  http://${ip}:${PORT}`));
+    const hotspot=ips.find(ip=>ip.startsWith('192.168.43.'));
+    if(hotspot)console.log(`\n  ★ Hotspot aktif: http://${hotspot}:${PORT}`);
+  }
   console.log('\n================================\n');
 });
