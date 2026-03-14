@@ -2755,8 +2755,8 @@ function _onFbScript(ok){
   </div>
   <!-- Skin Kartu -->
   <div class="shop-grid" id="shop-grid-skin">
-    <div class="shop-item skin-classic" id="sitem-classic">
-      <div class="equip-sticker" id="seq-classic" style="display:none;">✓ AKTIF</div>
+    <div class="shop-item skin-classic owned equipped" id="sitem-classic">
+      <div class="equip-sticker" id="seq-classic" style="display:block;">✓ AKTIF</div>
       <div class="shop-item-preview">🂡</div>
       <div class="shop-item-info">
         <div class="shop-item-name">Classic</div>
@@ -2764,7 +2764,7 @@ function _onFbScript(ok){
       </div>
       <div class="shop-item-action">
         <span class="shop-badge-free">GRATIS</span>
-        <button class="shop-btn shop-btn-equip" id="sbtn-classic" onclick="shopEquipSkin('classic')">Pakai</button>
+        <button class="shop-btn shop-btn-equipped" id="sbtn-classic" onclick="shopEquipSkin('classic')">✓ Aktif</button>
       </div>
     </div>
     <div class="shop-item skin-dark" id="sitem-dark">
@@ -2794,8 +2794,8 @@ function _onFbScript(ok){
   </div>
   <!-- Avatar Frame -->
   <div class="shop-grid" id="shop-grid-frame" style="display:none;">
-    <div class="shop-item frame-default" id="fitem-default">
-      <div class="equip-sticker" id="feq-default" style="display:none;">✓ AKTIF</div>
+    <div class="shop-item frame-default owned equipped" id="fitem-default">
+      <div class="equip-sticker" id="feq-default" style="display:block;">✓ AKTIF</div>
       <div class="shop-item-preview">😎</div>
       <div class="shop-item-info">
         <div class="shop-item-name">Default</div>
@@ -2803,7 +2803,7 @@ function _onFbScript(ok){
       </div>
       <div class="shop-item-action">
         <span class="shop-badge-free">GRATIS</span>
-        <button class="shop-btn shop-btn-equip" id="fbtn-default" onclick="shopEquipFrame('default')">Pakai</button>
+        <button class="shop-btn shop-btn-equipped" id="fbtn-default" onclick="shopEquipFrame('default')">✓ Aktif</button>
       </div>
     </div>
     <div class="shop-item frame-silver" id="fitem-silver">
@@ -4970,6 +4970,12 @@ async function onUserLoggedIn(user){
     if(fbRtdb && typeof _startListenInvites === 'function') _startListenInvites();
     // ── Real-time friend request badge ──
     if(fbDb) _startListenFriendRequests();
+    // ── Sync cheat access dari Firestore ke localStorage ──
+    if(fbDb && typeof _syncCheatAccess === 'function') _syncCheatAccess();
+    // ── Listen global message dari Owner ──
+    if(fbRtdb && typeof _listenGlobalMessage === 'function') _listenGlobalMessage();
+    // ── Init ekonomi (diamond, shop) ──
+    if(fbDb && typeof initEconomy === 'function') initEconomy();
   } catch(e){
     console.warn('[onUserLoggedIn]', e);
   }
@@ -7540,6 +7546,18 @@ function _hasCheatAccess(){
   } catch(_){ return false; }
 }
 
+// ── Sync cheat access dari Firestore ke localStorage (dipanggil saat login) ──
+async function _syncCheatAccess(){
+  if(!currentUser||!fbDb) return;
+  try {
+    const snap = await fbDb.collection('cheat_access').doc(currentUser.uid).get();
+    if(snap.exists){
+      _opGrantCheatLocal(currentUser.uid);
+    }
+  } catch(_){}
+  if(typeof _updateSecretButtons === 'function') _updateSecretButtons();
+}
+
 // ── Patch go() untuk tampilkan tombol Owner/Cheat saat ke menu ──
 const _ownerOrigGo = (typeof go === 'function') ? go : null;
 if(_ownerOrigGo){
@@ -7634,15 +7652,36 @@ function opRevokeUid(uid){
 
 // ── 4. Edit Player Data ───────────────────────────────────────────────
 async function opLoadPlayerData(){
-  const uid = document.getElementById('op-edit-uid').value.trim();
-  if(!uid||!fbDb){ toast('UID kosong / offline','warn'); return; }
+  const input = document.getElementById('op-edit-uid').value.trim();
+  if(!input||!fbDb){ toast('UID kosong / offline','warn'); return; }
   try {
-    const snap = await fbDb.collection('users').doc(uid).get();
-    if(!snap.exists){ toast('User tidak ditemukan!','warn'); return; }
-    const d = snap.data();
+    // Coba load langsung sebagai Firebase UID
+    let snap = await fbDb.collection('users').doc(input).get();
+    let resolvedUid = input;
+    // Jika tidak ditemukan, coba cari berdasarkan shortId
+    if(!snap.exists){
+      const q = await fbDb.collection('users').where('shortId','==',input).limit(1).get();
+      if(!q.empty){
+        snap = q.docs[0];
+        resolvedUid = snap.id;
+        document.getElementById('op-edit-uid').value = resolvedUid;
+      }
+    }
+    // Jika masih tidak ditemukan, coba cari berdasarkan username
+    if(!snap.exists){
+      const q2 = await fbDb.collection('users').where('username','==',input).limit(1).get();
+      if(!q2.empty){
+        snap = q2.docs[0];
+        resolvedUid = snap.id;
+        document.getElementById('op-edit-uid').value = resolvedUid;
+      }
+    }
+    if(!snap.exists){ toast('User tidak ditemukan! Coba gunakan Firebase UID, shortId, atau username.','warn'); return; }
+    const d = snap.data ? snap.data() : snap;
     document.getElementById('op-edit-name').value = d.name||'';
     document.getElementById('op-edit-info').textContent =
-      'Nama: '+(d.name||'?')+' | 💎 '+(d.diamonds||0)+' | ⭐ '+(d.stars||0)+(d.banned?' | 🚫 BANNED':'');
+      'UID: '+resolvedUid+' | Nama: '+(d.name||'?')+' | 💎 '+(d.diamonds||0)+
+      ' | shortId: '+(d.shortId||'-')+(d.banned?' | 🚫 BANNED':'');
     document.getElementById('op-edit-result').style.display='block';
     toast('Data dimuat','ok');
   } catch(e){ toast('Error: '+e.message,'warn'); }
@@ -7707,31 +7746,51 @@ async function opUnbanPlayer(){
 // ── 5. Live Match Monitor ─────────────────────────────────────────────
 async function opRefreshMatches(){
   const el = document.getElementById('op-match-list');
-  if(!el||!fbRtdb) return;
+  if(!el) return;
+  if(!fbRtdb){
+    el.innerHTML='<div style="font-size:.75em;color:#f88;padding:4px 0;">❌ RTDB tidak tersedia. Pastikan mode Online.</div>';
+    return;
+  }
   el.innerHTML = '<div style="font-size:.75em;color:rgba(255,255,255,.3);padding:4px 0;">Memuat…</div>';
   try {
     const snap = await fbRtdb.ref('rooms').get();
-    if(!snap.exists()){ el.innerHTML='<div style="font-size:.75em;color:rgba(255,255,255,.3);padding:4px 0;">Tidak ada room aktif.</div>'; return; }
+    if(!snap.exists()||!snap.val()){
+      el.innerHTML='<div style="font-size:.75em;color:rgba(255,255,255,.3);padding:4px 0;">Tidak ada room aktif.</div>';
+      return;
+    }
     el.innerHTML = '';
     let count = 0;
     snap.forEach(child=>{
       const rid = child.key;
-      const info = child.val()?.info||{};
-      if(!info.started) return;
+      const data = child.val()||{};
+      const info = data.info||{};
+      // Tampilkan semua room (lobby & berjalan)
       const players = Object.values(info.players||{}).map(p=>p.name||'?').join(', ');
+      const playerCount = Object.keys(info.players||{}).length;
+      const maxPlayers = info.numPlayers||4;
+      const status = info.started ? '🔴 BERJALAN' : '🟡 LOBBY';
+      const statusColor = info.started ? '#f44336' : '#FF9800';
       const div = document.createElement('div');
       div.className = 'op-match-card';
       div.innerHTML =
-        '<div class="op-match-id">🎮 ROOM: '+rid+'</div>'+
-        '<div class="op-match-players">👥 '+players+'</div>'+
+        '<div class="op-match-id">🎮 ROOM: <b>'+rid+'</b> <span style="color:'+statusColor+';font-size:.75em;font-weight:800;">'+status+'</span></div>'+
+        '<div class="op-match-players">👥 ('+playerCount+'/'+maxPlayers+') '+players+'</div>'+
         '<div class="op-match-btns">'+
           '<button class="op-btn op-btn-red op-btn-sm" onclick="opForceEndRoom(\''+rid+'\')">⛔ End</button>'+
         '</div>';
       el.appendChild(div);
       count++;
     });
-    if(count===0) el.innerHTML='<div style="font-size:.75em;color:rgba(255,255,255,.3);">Tidak ada match berjalan.</div>';
-  } catch(e){ el.innerHTML='<div style="font-size:.75em;color:#f88;">Error: '+e.message+'</div>'; }
+    if(count===0) el.innerHTML='<div style="font-size:.75em;color:rgba(255,255,255,.3);">Tidak ada room aktif.</div>';
+    else {
+      const info2 = document.createElement('div');
+      info2.style.cssText='font-size:.68em;color:rgba(255,255,255,.3);margin-top:6px;';
+      info2.textContent='Total: '+count+' room • Auto-refresh: klik tombol Refresh';
+      el.appendChild(info2);
+    }
+  } catch(e){
+    el.innerHTML='<div style="font-size:.75em;color:#f88;">❌ Error: '+e.message+'<br>Periksa Firebase RTDB rules.</div>';
+  }
 }
 
 async function opForceEndRoom(rid){
@@ -7771,34 +7830,47 @@ async function opGiveReward(){
 // ── 7. Global Message ─────────────────────────────────────────────────
 async function opSendGlobalMsg(){
   const msg = document.getElementById('op-gm-text').value.trim();
+  const dur = parseInt(document.getElementById('op-gm-dur')?.value||'10000');
   if(!msg){ toast('Tulis pesan dulu!','warn'); return; }
-  if(!fbRtdb){ _showGlobalMsg(msg); return; }
-  await fbRtdb.ref('global_message').set({ text:msg, ts:Date.now(), from: currentUser.uid }).catch(()=>{});
+  if(!fbRtdb){ _showGlobalMsg(msg, dur); return; }
+  // Tulis ke RTDB agar semua player menerima
+  await fbRtdb.ref('global_message').set({
+    text: msg,
+    ts: Date.now(),
+    dur: dur,
+    from: currentUser.uid
+  }).catch(e=>toast('Gagal kirim: '+e.message,'warn'));
   document.getElementById('op-gm-text').value='';
-  toast('📢 Pesan terkirim','ok');
+  toast('📢 Pesan terkirim ke semua player!','ok');
 }
 
-function _showGlobalMsg(text){
+function _showGlobalMsg(text, dur){
   const el = document.getElementById('global-msg-popup');
   const tx = document.getElementById('gm-text');
   if(!el||!tx) return;
   tx.textContent = text;
   el.classList.add('on');
   clearTimeout(el._gmTimer);
-  el._gmTimer = setTimeout(()=>el.classList.remove('on'), 5000);
+  // Jika dur = 0, pesan tetap sampai ditutup manual
+  if(!dur || dur <= 0) return;
+  el._gmTimer = setTimeout(()=>el.classList.remove('on'), dur);
 }
 
-// Listen to global_message from RTDB
+// Listen to global_message dari RTDB — dipanggil saat login
+let _gmLastTs = 0;
 function _listenGlobalMessage(){
   if(!fbRtdb) return;
   fbRtdb.ref('global_message').on('value', snap=>{
     const d = snap.val();
     if(!d||!d.text) return;
-    // Jangan tampilkan pesan lama (>5 menit)
-    if(Date.now() - (d.ts||0) > 5*60*1000) return;
-    // Jangan tampilkan ke Owner sendiri (sudah kirim)
-    if(d.from === currentUser?.uid) return;
-    _showGlobalMsg(d.text);
+    // Jangan tampilkan pesan lama (>10 menit sejak dikirim)
+    if(Date.now() - (d.ts||0) > 10*60*1000) return;
+    // Jangan tampilkan dua kali pesan yang sama
+    if(d.ts === _gmLastTs) return;
+    _gmLastTs = d.ts;
+    // Owner tidak perlu terima pesannya sendiri
+    if(d.from && currentUser && d.from === currentUser.uid) return;
+    _showGlobalMsg(d.text, d.dur||10000);
   });
 }
 
