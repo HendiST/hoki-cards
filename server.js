@@ -572,6 +572,15 @@ io.on('connection',socket=>{
     const r=rooms[rid];const pidx=r.players[socket.id]??0;
     socket.emit('state_update',getState(rid,pidx));
   });
+
+  socket.on('cheat_scan',(data)=>{
+    const rid=sidRoom[socket.id];if(!rid||!rooms[rid])return;
+    const r=rooms[rid];if(!r.game)return;
+    const pidx=data?.pidx;
+    if(pidx==null)return;
+    const hand=(r.game.hands[pidx]||[]).map(c=>cDict(c.suit,c.value));
+    socket.emit('cheat_scan_result',{pidx,hand});
+  });
 });
 
 // ── START ──

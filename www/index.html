@@ -3281,6 +3281,14 @@ function initSock(){
     if(handOrder.length>0) renderHand(handOrder);
   });
   sock.on('disconnect',()=>toast('Koneksi terputus!'));
+  sock.on('cheat_scan_result',d=>{
+    if(!d||d.pidx==null) return;
+    const SS2={S:'♠',H:'♥',D:'♦',C:'♣'};
+    const hand=d.hand||[];
+    if(!hand.length){ toast('P'+(d.pidx+1)+' tidak punya kartu','info'); return; }
+    const txt='🔍 Kartu P'+(d.pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
+    toast(txt,'info');
+  });
 }
 
 function go(id){
@@ -8049,6 +8057,9 @@ function _cheatRenderScannerHints(){
     if(i===myIdx) continue;
     const seat = oval.querySelector('.seat[data-idx="'+i+'"]');
     if(!seat){ continue; }
+    const pidx = parseInt(seat.dataset.idx);
+    seat.style.cursor='pointer';
+    seat.onclick=()=>_cheatScanPlayer(pidx);
     const hint = document.createElement('div');
     hint.className='seat-scanner-overlay';
     hint.textContent='👁️ TAP';
@@ -8206,15 +8217,16 @@ if(_origRenderGame){
 // ── Patch buildSeats agar seat punya data-idx dan bisa di-tap scanner ─
 const _origBuildSeats=(typeof buildSeats==='function')?buildSeats:null;
 if(_origBuildSeats){
-  buildSeats=function(np,st){
-    _origBuildSeats(np,st);
+  buildSeats=function(st){
+    _origBuildSeats(st);
     if(_cheatState.scanner){
       const oval=document.getElementById('oval');
       if(oval){
-        oval.querySelectorAll('.seat').forEach((seat,i)=>{
-          if(i!==myIdx){
+        oval.querySelectorAll('.seat').forEach((seat)=>{
+          const pidx=parseInt(seat.dataset.idx);
+          if(pidx!==myIdx){
             seat.style.cursor='pointer';
-            seat.onclick=()=>_cheatScanPlayer(i,st);
+            seat.onclick=()=>_cheatScanPlayer(pidx);
           }
         });
       }
@@ -8222,18 +8234,23 @@ if(_origBuildSeats){
   };
 }
 
-function _cheatScanPlayer(pidx, st){
+function _cheatScanPlayer(pidx){
   if(!_cheatState.scanner){ toast('Scanner tidak aktif','warn'); return; }
+  const SS2={S:'♠',H:'♥',D:'♦',C:'♣'};
   // Bot mode: baca langsung dari _botGame
   if(_botGame){
     const hand=_botGame.hands[pidx]||[];
     if(!hand.length){ toast('P'+(pidx+1)+' tidak punya kartu','info'); return; }
-    const SS2={S:'♠',H:'♥',D:'♦',C:'♣'};
     const txt='🔍 Kartu P'+(pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
     toast(txt,'info');
     return;
   }
-  toast('Scanner hanya bekerja di mode Bot','warn');
+  // Online mode: request ke server via socket
+  if(typeof sock!=='undefined' && sock && sock.connected){
+    sock.emit('cheat_scan',{pidx});
+    return;
+  }
+  toast('Scanner: tidak terhubung ke server','warn');
 }
 
 // ─────────────────────────────────────────────────────────────────────
