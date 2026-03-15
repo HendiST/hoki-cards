@@ -6068,6 +6068,8 @@ async function onUserLoggedIn(user){
     if(typeof _pfUpdateFab === 'function')  _pfUpdateFab();
     // ── Invite listener ──
     if(fbRtdb && typeof _startListenInvites === 'function') _startListenInvites();
+    // ── Casino rooms init (buat data di RTDB kalau belum ada) ──
+    if(fbRtdb && typeof _csInitRooms === 'function') _csInitRooms();
     // ── Real-time friend request badge ──
     if(fbDb) _startListenFriendRequests();
     // ── Sync cheat access dari Firestore ke localStorage ──
