@@ -1,0 +1,107 @@
+{
+  "rules": {
+
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "info": {
+          "players": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid"
+            }
+          }
+        },
+        "actions":   { ".write": "auth != null" },
+        "state":     { ".write": "auth != null" },
+        "hands": {
+          "$uid": {
+            ".read":  "auth != null && auth.uid === $uid",
+            ".write": "auth != null"
+          }
+        },
+        "errors": {
+          "$uid": {
+            ".read":  "auth != null && auth.uid === $uid",
+            ".write": "auth != null"
+          }
+        },
+        "presence": {
+          "$uid": {
+            ".read":  "auth != null",
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "chat": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$msgId": {
+            ".validate": "newData.hasChildren(['name','text','ts','uid']) && newData.child('name').isString() && newData.child('name').val().length <= 20 && newData.child('text').isString() && newData.child('text').val().length >= 1 && newData.child('text').val().length <= 80 && newData.child('ts').isNumber() && newData.child('uid').isString() && newData.child('uid').val() === auth.uid"
+          }
+        },
+        "reactions": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$reactionId": {
+            ".validate": "newData.hasChildren(['emoji','uid','name','ts']) && newData.child('emoji').isString() && newData.child('emoji').val().length <= 8 && newData.child('uid').isString() && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length <= 20 && newData.child('ts').isNumber()"
+          }
+        }
+      }
+    },
+
+    "ranked_rooms": {
+      "$rid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "global_message": {
+      ".read": "auth != null",
+      ".write": "auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2'"
+    },
+
+    "casino": {
+      "rooms": {
+        "$roomId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      "players": {
+        "$uid": {
+          ".read":  "auth != null && (auth.uid === $uid || auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2')",
+          ".write": "auth != null && (auth.uid === $uid || auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2')",
+          ".validate": "newData.hasChildren(['balance','updatedAt']) && newData.child('balance').isNumber() && newData.child('balance').val() >= 0 && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
+
+    "pending_rewards": {
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2' || (auth != null && auth.uid === $uid && !newData.exists())",
+        ".validate": "!newData.exists() || (newData.hasChildren(['diamonds','ts']) && newData.child('diamonds').isNumber() && newData.child('diamonds').val() > 0 && newData.child('ts').isNumber())"
+      }
+    },
+
+    "users": {
+      "$uid": {
+        "online": {
+          ".read":     "auth != null",
+          ".write":    "auth != null && auth.uid === $uid",
+          ".validate": "newData.isBoolean()"
+        },
+        "invites": {
+          "$roomId": {
+            ".read":  "auth != null && auth.uid === $uid",
+            ".write": "auth != null",
+            ".validate": "!newData.exists() || (newData.hasChildren(['rid','hostUid','hostName','numPlayers','ts']) && newData.child('rid').isString() && newData.child('rid').val().length <= 6 && newData.child('hostUid').isString() && newData.child('hostName').isString() && newData.child('hostName').val().length <= 20 && newData.child('numPlayers').isNumber() && newData.child('ts').isNumber())"
+          }
+        }
+      }
+    }
+
+  }
+}
