@@ -1724,6 +1724,23 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 }
 .dr-claim-btn:active{transform:scale(.96);}
 
+/* ── Profile Daily Reward Card ── */
+#pf-daily-card{background:linear-gradient(145deg,#081520,#051018);border:1.5px solid rgba(0,200,255,.25);border-radius:14px;padding:14px 12px 12px;}
+.pf-daily-title{font-family:'Cinzel',serif;font-size:.85em;color:#a8f0ff;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.pf-daily-streak{font-size:.7em;color:#7fffb0;font-family:'Rajdhani',sans-serif;font-weight:700;}
+.pf-daily-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;}
+.pf-daily-day{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:5px 5px;min-width:37px;flex:1;max-width:48px;}
+.pf-daily-day.done{background:rgba(0,200,255,.1);border-color:rgba(0,200,255,.35);color:#a8f0ff;}
+.pf-daily-day.today{background:linear-gradient(135deg,#0a4060,#0fa0d0);border-color:#a8f0ff;box-shadow:0 0 12px rgba(0,200,255,.45);transform:scale(1.08);}
+.pf-daily-day .pdd-n{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:.78em;color:rgba(255,255,255,.7);}
+.pf-daily-day.today .pdd-n,.pf-daily-day.done .pdd-n{color:#fff;}
+.pf-daily-day .pdd-d{font-size:.6em;color:#f1c40f;font-weight:700;}
+.pf-daily-day .pdd-m{font-size:.55em;color:#7fffb0;font-weight:700;}
+.pf-daily-day.done .pdd-d,.pf-daily-day.done .pdd-m{opacity:.6;}
+.pf-daily-claim{width:100%;padding:10px;background:linear-gradient(135deg,#0a6a90,#0fc0f0);border:none;border-radius:10px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:.95em;font-weight:800;cursor:pointer;letter-spacing:.3px;}
+.pf-daily-claim:active{transform:scale(.96);}
+.pf-daily-claimed{text-align:center;font-size:.75em;color:rgba(255,255,255,.4);padding:6px 0 0;font-family:'Rajdhani',sans-serif;}
+
 /* ── Shop Screen ── */
 #s-shop{
   background:radial-gradient(ellipse at 50% 18%,#071520,#030a12);
@@ -2402,6 +2419,15 @@ function _onFbScript(ok){
           </div>
         </div>
       </div>
+      <!-- Hadiah Harian -->
+      <div id="pf-daily-card" class="pf-card">
+        <div class="pf-daily-title">
+          🎁 HADIAH HARIAN
+          <span class="pf-daily-streak" id="pf-daily-streak-lbl">HARI KE-1</span>
+        </div>
+        <div class="pf-daily-row" id="pf-daily-row"></div>
+        <div id="pf-daily-action"></div>
+      </div>
       <!-- Logout -->
       <div class="pf-card" style="padding:0;overflow:hidden;">
         <button onclick="doLogout()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c0392b,#e74c3c);border:none;border-radius:12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:1.05em;font-weight:800;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px;">
@@ -3074,7 +3100,8 @@ function _onFbScript(ok){
     <div class="dr-sub" id="dr-streak-lbl">STREAK HARI KE-1</div>
     <div class="dr-streak" id="dr-streak-row"></div>
     <div class="dr-reward-big" id="dr-reward-amt">+50 💎</div>
-    <div class="dr-reward-lbl">Diamond untuk kamu hari ini!</div>
+    <div class="dr-reward-big" id="dr-reward-money" style="font-size:1.6em;color:#7fffb0;text-shadow:0 0 20px rgba(0,255,100,.5);margin-top:-10px;">+Rp 50K</div>
+    <div class="dr-reward-lbl">Diamond + Uang Kasino untuk kamu hari ini!</div>
     <button class="dr-claim-btn" onclick="claimDailyReward()">🎉 Ambil Hadiah!</button>
   </div>
 </div>
@@ -6763,6 +6790,19 @@ async function onUserLoggedIn(user){
     if(fbRtdb && typeof _csInitRooms === 'function') _csInitRooms();
     // ── Load casino balance persisten ──
     if(fbRtdb && typeof _csLoadCasinoBal === 'function') _csLoadCasinoBal();
+    // ── Real-time pending casino gifts listener (uang kasino dari owner) ──
+    if(fbRtdb && user && !user.isGuest){
+      fbRtdb.ref('pending_casino_gifts/'+user.uid).on('value', async snap=>{
+        const d=snap.val();
+        if(!d||!d.amount||!d.ts) return;
+        if(Date.now()-d.ts > 10*60*1000) { await fbRtdb.ref('pending_casino_gifts/'+user.uid).remove().catch(()=>{}); return; }
+        const amt=d.amount;
+        const sign=amt>=0?'+':'';
+        const amtStr=amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt;
+        if(typeof toast==='function') toast('💵 Kamu menerima '+sign+'Rp '+amtStr+' uang kasino dari owner!','ok');
+        await fbRtdb.ref('pending_casino_gifts/'+user.uid).remove().catch(()=>{});
+      });
+    }
     // ── Real-time pending rewards listener (diamonds dari owner) ──
     if(fbRtdb && user && !user.isGuest){
       fbRtdb.ref('pending_rewards/'+user.uid).on('value', async snap=>{
@@ -7751,8 +7791,43 @@ async function pfLoadMyProfile(){
     document.getElementById('pf-s-win').textContent   = d.wins  || 0;
     document.getElementById('pf-s-lose').textContent  = d.losses|| 0;
     document.getElementById('pf-s-wr').textContent    = wr + '%';
+    // Daily reward card
+    pfRenderDailyCard(d);
   } catch(e){ console.warn('[pfLoadMyProfile]', e); }
 }
+
+function pfRenderDailyCard(d){
+  d = d || (window.currentUserData||{});
+  const streak  = Math.max(1, d.loginStreak||1);
+  const pending = !!d.pendingDailyReward;
+  const today   = new Date().toISOString().slice(0,10);
+  const alreadyClaimed = (d.lastLoginDate===today && !pending);
+  const lbl = document.getElementById('pf-daily-streak-lbl');
+  if(lbl) lbl.textContent = 'HARI KE-'+streak+(streak===7?' 🔥':'');
+  const row = document.getElementById('pf-daily-row');
+  if(row){
+    row.innerHTML='';
+    const DR=[50,50,50,50,50,100,150];
+    for(let i=1;i<=7;i++){
+      const div=document.createElement('div');
+      const isToday=i===streak, isDone=i<streak;
+      div.className='pf-daily-day'+(isDone?' done':'')+(isToday?' today':'');
+      div.innerHTML='<div class="pdd-n">'+i+'</div><div class="pdd-d">'+DR[i-1]+'💎</div><div class="pdd-m">+50K</div>';
+      row.appendChild(div);
+    }
+  }
+  const act = document.getElementById('pf-daily-action');
+  if(act){
+    if(pending){
+      act.innerHTML='<button class="pf-daily-claim" onclick="claimDailyReward()">🎉 Klaim Sekarang!</button>';
+    } else if(alreadyClaimed){
+      act.innerHTML='<div class="pf-daily-claimed">✅ Sudah diklaim hari ini — kembali besok!</div>';
+    } else {
+      act.innerHTML='<div class="pf-daily-claimed">Login lagi besok untuk hadiah berikutnya.</div>';
+    }
+  }
+}
+window.pfRenderDailyCard = pfRenderDailyCard;
 
 // ── Avatar menu (emoji or photo) ──
 function pfAvatarMenu(){
@@ -9714,6 +9789,8 @@ async function opGiveCasinoMoney(){
       Object.entries(seats).forEach(([sid,s])=>{if(s&&s.playerUID===uid)found=sid;});
       if(found){targetSeatRef=fbRtdb.ref('casino/rooms/'+rId+'/seats/'+found);foundRoom=rId;break;}
     }
+    const sign=amt>=0?'+':'';
+    const amtStr=amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt;
     if(targetSeatRef){
       // Pemain ditemukan di meja — update langsung
       await targetSeatRef.transaction(cur=>{
@@ -9723,21 +9800,23 @@ async function opGiveCasinoMoney(){
       });
       const afterSnap=await targetSeatRef.once('value');
       const newBal=afterSnap.val()?.playerMoney||0;
-      const sign=amt>=0?'+':'';
-      toast('💵 '+sign+(amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt)+' Rp → '+uid+' di '+foundRoom,'ok');
+      toast('💵 '+sign+amtStr+' Rp → '+uid+' di '+foundRoom,'ok');
       if(infoEl)infoEl.textContent='✅ Saldo di meja: Rp '+(newBal>=1000000?(newBal/1000000).toFixed(2)+'JT':newBal.toLocaleString('id'));
     } else {
       // Tidak di meja mana pun — update saldo persisten
       if(infoEl)infoEl.textContent='⚠️ Tidak ada di meja. Update saldo persisten...';
       await fbRtdb.ref('casino/players/'+uid).transaction(cur=>{
-        if(!cur)return{balance:Math.max(0,CASINO_START_MONEY+amt),updatedAt:Date.now()};
-        return{...cur,balance:Math.max(0,(cur.balance||CASINO_START_MONEY)+amt),updatedAt:Date.now()};
+        if(!cur)return{balance:Math.max(0,amt>0?amt:0),updatedAt:Date.now()};
+        return{balance:Math.max(0,(cur.balance||0)+amt),updatedAt:Date.now()};
       });
       const afterSnap=await fbRtdb.ref('casino/players/'+uid+'/balance').once('value');
       const newBal=afterSnap.val()||0;
-      const sign=amt>=0?'+':'';
-      toast('💵 '+sign+(amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt)+' Rp → saldo persisten '+uid,'ok');
+      toast('💵 '+sign+amtStr+' Rp → saldo persisten '+uid,'ok');
       if(infoEl)infoEl.textContent='✅ Saldo persisten: Rp '+(newBal>=1000000?(newBal/1000000).toFixed(2)+'JT':newBal.toLocaleString('id'));
+    }
+    // Kirim notifikasi real-time ke penerima
+    if(amt!==0){
+      await fbRtdb.ref('pending_casino_gifts/'+uid).set({amount:amt,ts:Date.now(),from:_csMyUID||'owner'}).catch(()=>{});
     }
     document.getElementById('op-casino-uid').value='';
     document.getElementById('op-casino-money-amt').value='';
@@ -10270,8 +10349,9 @@ if(typeof go==='function' && !go._ownerPatched){
 'use strict';
 
 // ── Konstanta ──
-var DAILY_REWARDS = [50, 50, 50, 50, 50, 100, 150];
-var WIN_DIAMONDS  = [30, 15, 5, 0];
+var DAILY_REWARDS       = [50, 50, 50, 50, 50, 100, 150];
+var DAILY_CASINO_REWARD = 50000;
+var WIN_DIAMONDS        = [30, 15, 5, 0];
 var _ecoLoaded    = false;
 
 // ══ DIAMOND HUD ══════════════════════════════════════════════════════
@@ -10347,12 +10427,15 @@ function _showDailyRewardModal(streak){
       var div=document.createElement('div');
       var isToday=i===streak, isDone=i<streak;
       div.className='dr-day'+(isDone?' done':'')+(isToday?' today':'');
-      div.innerHTML='<div class="dr-day-n">'+i+'</div><div class="dr-day-amt">'+(i===6?'100':i===7?'150':'50')+'💎</div>';
+      var diamonds=i===6?'100':i===7?'150':'50';
+      div.innerHTML='<div class="dr-day-n">'+i+'</div><div class="dr-day-amt">'+diamonds+'💎</div><div style="font-size:.5em;color:#7fffb0;font-weight:700;">+50K</div>';
       row.appendChild(div);
     }
   }
   var amtEl=document.getElementById('dr-reward-amt');
   if(amtEl) amtEl.textContent='+'+amt+' 💎';
+  var monEl=document.getElementById('dr-reward-money');
+  if(monEl) monEl.textContent='+Rp 50.000';
   modal.classList.add('on');
 }
 
@@ -10362,13 +10445,23 @@ async function claimDailyReward(){
   if(!window.currentUser||window.currentUser.isGuest||!window.fbDb) return;
   var streak=(window.currentUserData&&window.currentUserData.loginStreak)||1;
   var amt=DAILY_REWARDS[(streak-1)%7];
+  var casinoAmt=DAILY_CASINO_REWARD;
   try {
     var inc=firebase.firestore.FieldValue.increment;
     await window.fbDb.collection('users').doc(window.currentUser.uid).update({ diamonds:inc(amt), pendingDailyReward:false });
     if(window.currentUserData){ window.currentUserData.diamonds=(window.currentUserData.diamonds||0)+amt; window.currentUserData.pendingDailyReward=false; }
     _updateDiamondHUD();
     setTimeout(function(){ _animateDiamondGain(amt); },300);
-    if(typeof toast==='function') toast('🎁 Hadiah harian: +'+amt+' 💎 diterima!','ok');
+    // Tambah uang kasino ke saldo persisten via RTDB (listener otomatis update HUD)
+    if(window.fbRtdb&&window.currentUser&&!window.currentUser.isGuest){
+      var uid=window.currentUser.uid;
+      window.fbRtdb.ref('casino/players/'+uid).transaction(function(cur){
+        if(!cur)return{balance:casinoAmt,updatedAt:Date.now()};
+        return{balance:(cur.balance||0)+casinoAmt,updatedAt:Date.now()};
+      });
+    }
+    if(typeof toast==='function') toast('🎁 Hadiah harian: +'+amt+' 💎 + Rp 50.000 diterima!','ok');
+    if(typeof pfRenderDailyCard==='function') pfRenderDailyCard();
   } catch(e){ if(typeof toast==='function') toast('Gagal klaim hadiah','warn'); }
 }
 window.claimDailyReward = claimDailyReward;

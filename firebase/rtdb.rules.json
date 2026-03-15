@@ -86,6 +86,14 @@
       }
     },
 
+    "pending_casino_gifts": {
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2' || (auth != null && auth.uid === $uid && !newData.exists())",
+        ".validate": "!newData.exists() || (newData.hasChildren(['amount','ts']) && newData.child('amount').isNumber() && newData.child('ts').isNumber())"
+      }
+    },
+
     "users": {
       "$uid": {
         "online": {

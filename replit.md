@@ -33,6 +33,14 @@ The app runs with `node server.js`. No build step required.
 - **Toko** — Beli skin kartu (Classic gratis, Dark Neon 💎100, Gold Luxury 💎300) dan avatar frame
 - Shop item Classic & Default tampil langsung sebagai owned+equipped
 
+## Daily Login Reward
+
+- `DAILY_REWARDS = [50,50,50,50,50,100,150]` diamonds (hari 1–5: 50💎, hari 6: 100💎, hari 7: 150💎)
+- `DAILY_CASINO_REWARD = 50000` (Rp 50.000 untuk semua hari)
+- Setiap klaim: +diamonds via Firestore increment + +Rp 50.000 via RTDB transaction di `casino/players/uid`
+- **Modal** tampil otomatis saat login pertama hari itu; menampilkan kedua reward
+- **Profil** — Kartu `#pf-daily-card` di tab Profil menampilkan kalender 7 hari + tombol Klaim jika ada reward belum diklaim
+
 ## Owner Panel
 
 - **Akses Menu Rahasia** — Beri/cabut akses cheat ke player by UID; tersinkron otomatis ke Firestore
@@ -56,6 +64,13 @@ The app runs with `node server.js`. No build step required.
 - **`#cs-money-hud`** — HUD hijau di header kasino, tampil saat pemain duduk, menampilkan saldo Rp saat ini
 - Update otomatis setiap `renderCasino()` dipanggil via `st.myMoney`
 - Disembunyikan saat mode penonton (tidak duduk)
+
+## Give Uang Kasino (Owner Panel) — Real-time Notification
+
+- `opGiveCasinoMoney()` setelah update RTDB juga menulis ke `pending_casino_gifts/uid`
+- Client punya listener di `pending_casino_gifts/uid` → tampil toast saat terima uang kasino
+- Jika tidak di meja, saldo persisten di `casino/players/uid/balance` diupdate via transaction (tanpa `...cur` spread yang bisa gagal validasi)
+- RTDB rules baru: `pending_casino_gifts/$uid`
 
 ## Kasino Online System
 
