@@ -1948,16 +1948,16 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
 .cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
 .cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
-.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 3px;flex-shrink:0;}
-.cs-dealer-row{display:flex;flex-direction:column;align-items:center;margin-bottom:4px;}
-.cs-dealer-badge{background:linear-gradient(135deg,#2c1050,#18082a);border:1px solid rgba(180,100,255,.45);color:#c080ff;padding:3px 12px;border-radius:12px;font-size:.7em;font-weight:700;font-family:'Oswald',sans-serif;letter-spacing:1px;}
+.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding-top:min(10vw,52px);flex-shrink:0;overflow:visible;}
+.cs-dealer-row{display:none;}
+.cs-dealer-badge{display:none;}
 .cs-deck-wrap{width:40px;height:5px;margin-top:2px;}
-.cs-oval{position:relative;width:min(94vw,360px);height:188px;background:radial-gradient(ellipse at 50% 50%,#1e6030,#0c3818);border:3px solid rgba(255,255,255,.1);border-radius:50%;box-shadow:0 4px 20px rgba(0,150,60,.2),inset 0 2px 6px rgba(0,0,0,.5);flex-shrink:0;}
-.cs-seat{position:absolute;cursor:pointer;z-index:10;}
-.cs-s1{left:1%;top:50%;transform:translateY(-50%);}
-.cs-s2{top:3%;left:50%;transform:translateX(-50%);}
-.cs-s3{right:1%;top:50%;transform:translateY(-50%);}
-.cs-s4{bottom:3%;left:50%;transform:translateX(-50%);}
+.cs-oval{position:relative;width:min(90vw,440px);height:min(54vw,265px);background-image:url('/meja.png');background-size:100% 100%;background-repeat:no-repeat;border-radius:0;border:none;box-shadow:none;flex-shrink:0;overflow:visible;}
+.cs-seat{position:absolute;cursor:pointer;z-index:10;transform:translate(-50%,-50%);}
+.cs-s1{left:4%;top:50%;}
+.cs-s2{left:20%;top:100%;}
+.cs-s3{left:96%;top:50%;}
+.cs-s4{left:80%;top:100%;}
 .cs-si{background:rgba(0,0,0,.72);border:1.5px dashed rgba(255,255,255,.15);border-radius:8px;padding:5px 6px;min-width:72px;max-width:86px;text-align:center;transition:border-color .2s,background .2s;}
 .cs-si:hover{border-color:rgba(255,215,0,.5);}
 .cs-empty{border-style:dashed!important;border-color:rgba(255,255,255,.12)!important;}
@@ -1972,7 +1972,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-pot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
 .cs-pot-money{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:90px;}
 .cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
-.cs-tbl-cards{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
+.cs-tbl-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
 .cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
 .cs-ctrl{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;}
 .cs-panel{display:flex;flex-direction:column;gap:7px;padding:10px;}
@@ -2727,18 +2727,16 @@ function _onFbScript(ok){
   </div>
   <!-- Dealer + Oval -->
   <div class="cs-tabwrap">
-    <div class="cs-dealer-row">
-      <div class="cs-dealer-badge">🎴 DEALER</div>
-      <div id="cs-deck" class="cs-deck-wrap"></div>
-    </div>
     <div class="cs-oval" id="cs-oval">
-      <!-- Seat 2 — top center -->
-      <div class="cs-seat cs-s2" id="cs-seat-2" onclick="doTakeSeat(2)"><div class="cs-si cs-empty" id="cs-si-2"></div></div>
-      <!-- Seat 1 — left -->
+      <img src="/wanita.png" alt="Dealer" class="dealer-img" />
+      <div id="cs-deck" class="cs-deck-wrap" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:8;"></div>
+      <!-- Seat 1 — kiri tengah -->
       <div class="cs-seat cs-s1" id="cs-seat-1" onclick="doTakeSeat(1)"><div class="cs-si cs-empty" id="cs-si-1"></div></div>
-      <!-- Seat 3 — right -->
+      <!-- Seat 2 — bawah kiri -->
+      <div class="cs-seat cs-s2" id="cs-seat-2" onclick="doTakeSeat(2)"><div class="cs-si cs-empty" id="cs-si-2"></div></div>
+      <!-- Seat 3 — kanan tengah -->
       <div class="cs-seat cs-s3" id="cs-seat-3" onclick="doTakeSeat(3)"><div class="cs-si cs-empty" id="cs-si-3"></div></div>
-      <!-- Seat 4 — bottom center -->
+      <!-- Seat 4 — bawah kanan -->
       <div class="cs-seat cs-s4" id="cs-seat-4" onclick="doTakeSeat(4)"><div class="cs-si cs-empty" id="cs-si-4"></div></div>
       <!-- Pot -->
       <div class="cs-pot" id="cs-pot">
