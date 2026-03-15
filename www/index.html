@@ -1927,22 +1927,23 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .pot-wrap{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;z-index:5;min-width:140px;}
 .pot-stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:160px;}
 .pot-total-lbl{font-family:'Rajdhani',sans-serif;font-size:.68em;font-weight:800;color:rgba(255,215,0,.9);letter-spacing:1px;background:rgba(0,0,0,.55);border:1px solid rgba(255,215,0,.2);border-radius:6px;padding:2px 8px;text-align:center;white-space:nowrap;}
-/* Gepok uang (1 JT bundle) */
-.gepok{width:30px;height:18px;border-radius:3px;background:linear-gradient(180deg,#27ae60 0%,#1a8c44 55%,#136b32 100%);border:1.5px solid rgba(0,0,0,.55);box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.gepok::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;transform:translateY(-50%);background:rgba(196,30,30,.75);z-index:1;}
-.gepok-lbl{position:relative;z-index:2;font-size:5.5px;font-weight:900;color:rgba(255,255,255,.95);font-family:'Oswald',sans-serif;letter-spacing:.1px;}
-/* Lembaran uang */
-.lembar{border-radius:2px;border:1px solid rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;color:rgba(255,255,255,.95);box-shadow:0 1px 3px rgba(0,0,0,.4);letter-spacing:.2px;}
-.lembar-500k{width:34px;height:15px;font-size:5.5px;background:linear-gradient(180deg,#2980b9,#1a5f85);border-color:rgba(0,0,50,.5);}
-.lembar-100k{width:30px;height:13px;font-size:5px;background:linear-gradient(180deg,#c0392b,#8e1e15);}
-.lembar-50k{width:26px;height:12px;font-size:4.5px;background:linear-gradient(180deg,#8e44ad,#5d2a73);}
-/* Animate money into pot */
+/* Round Pot Chips */
+.cs-pot-chip{position:relative;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:5px;font-weight:900;color:rgba(255,255,255,.95);border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 5px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18);}
+.cs-pot-chip::before{content:'';position:absolute;inset:3px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.25);pointer-events:none;}
+.cs-pot-chip-lbl{position:relative;z-index:2;font-size:5px;font-weight:900;text-align:center;line-height:1;}
+.cs-pot-chip-5m {background:radial-gradient(circle at 40% 35%,#ffe066,#c0900a);}
+.cs-pot-chip-1m {background:radial-gradient(circle at 40% 35%,#f0a050,#d35400);}
+.cs-pot-chip-500k{background:radial-gradient(circle at 40% 35%,#6ab0f5,#1565c0);}
+.cs-pot-chip-100k{background:radial-gradient(circle at 40% 35%,#e87070,#c0392b);}
+.cs-pot-chip-50k {background:radial-gradient(circle at 40% 35%,#bf7de0,#8e44ad);}
+.cs-pot-chip-25k {background:radial-gradient(circle at 40% 35%,#70e070,#27ae60);}
+.cs-pot-chip-10k {background:radial-gradient(circle at 40% 35%,#b0b8c0,#7f8c8d);}
+.cs-pot-chip-5k  {background:radial-gradient(circle at 40% 35%,#f0956a,#a04000);}
+@keyframes chipPop{0%{transform:scale(0) rotate(-20deg);opacity:0;}65%{transform:scale(1.18) rotate(5deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.chip-anim{animation:chipPop .38s cubic-bezier(.22,1,.36,1) both;}
+/* Legacy money animation (kept for other uses) */
 @keyframes moneyPop{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.15) rotate(3deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
 .money-anim{animation:moneyPop .4s cubic-bezier(.22,1,.36,1) both;}
-/* Additional bill denominations */
-.lembar-20k{width:24px;height:11px;font-size:4px;background:linear-gradient(180deg,#27ae60,#1a8644);border-color:rgba(0,50,0,.5);}
-.lembar-10k{width:22px;height:10px;font-size:3.8px;background:linear-gradient(180deg,#7f8c8d,#5d6d7e);}
-.lembar-5k{width:20px;height:9px;font-size:3.5px;background:linear-gradient(180deg,#d35400,#a04000);}
 /* ═══════════ CASINO ONLINE SYSTEM ═══════════ */
 .cs-hdr{display:flex;align-items:center;padding:7px 10px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:8px;}
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
@@ -2775,8 +2776,8 @@ function _onFbScript(ok){
     <div id="cs-spec" class="cs-panel">
       <div style="color:#888;font-size:.78em;text-align:center;padding:6px 0;">👁 Mode Penonton — klik kursi kosong untuk duduk</div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px;">
-        <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
-        <button class="cs-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
+        <button class="cs-btn cs-bot-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;display:none;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
+        <button class="cs-btn cs-bot-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;display:none;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
       </div>
     </div>
     <!-- Bet panel -->
@@ -2803,8 +2804,8 @@ function _onFbScript(ok){
         <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Keluar Kursi</button>
       </div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;">
-        <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;font-size:.72em;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
-        <button class="cs-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;font-size:.72em;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
+        <button class="cs-btn cs-bot-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;font-size:.72em;display:none;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
+        <button class="cs-btn cs-bot-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;font-size:.72em;display:none;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
       </div>
     </div>
     <!-- Game panel (Capsa berlangsung) -->
@@ -4953,7 +4954,87 @@ const CG=(function(){
     skipTurn(pidx){if(this.phase==='opening')return this.playOpening(pidx,[]);if(pidx!==this.currentPlayer)return[false,'Bukan giliran kamu!'];this.skippedThisRound.add(pidx);this.message=`Pemain ${pidx+1} skip`;const others=this.activePlayers.filter(p=>p!==this.lastPlayerPlayed);if(this.lastPlayerPlayed!=null&&others.every(p=>this.skippedThisRound.has(p))){this.tableCards=[];this.tableType=null;this.skippedThisRound=new Set();this.message+=` | 🔄 Meja bersih!`;this.currentPlayer=this.lastPlayerPlayed;}else{this._nextPlayer();}return[true,this.message];}
     _nextPlayer(){if(!this.activePlayers.length)return;let next=(this.currentPlayer+1)%this.numPlayers;let tries=0;while(!this.activePlayers.includes(next)&&tries<this.numPlayers){next=(next+1)%this.numPlayers;tries++;}this.currentPlayer=next;}
   }
-  function botTurn(gs,pidx){if(!gs||gs.gameOver)return null;const hand=gs.hands[pidx];if(!hand||!hand.length)return null;const non3=hand.filter(c=>c.value!=='3');if(gs.phase==='opening'){const threes=hand.filter(c=>c.value==='3');if(pidx===gs.openerIdx){const t3s=threes.find(c=>c.suit==='S');return{action:'play',cards:t3s?[t3s]:[]};}return{action:'play',cards:threes.length&&Math.random()>0.4?[threes[0]]:[]};}if(gs.tableCards.length){const tt=gs.tableType;if(tt==='single'){const cands=non3.filter(c=>canBeat([c],gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);if(cands.length)return{action:'play',cards:[cands[0]]};}else if(tt==='double'){const pairs=[];for(let i=0;i<non3.length-1;i++)for(let j=i+1;j<non3.length;j++)if(non3[i].value===non3[j].value)pairs.push([non3[i],non3[j]]);const vp=pairs.filter(p=>canBeat(p,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);if(vp.length)return{action:'play',cards:vp[0]};}else if(tt==='triple'){const vals={};non3.forEach(c=>{vals[c.value]=vals[c.value]||[];vals[c.value].push(c);});const trips=Object.values(vals).filter(g=>g.length>=3).map(g=>g.slice(0,3));const vt=trips.filter(t=>canBeat(t,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);if(vt.length)return{action:'play',cards:vt[0]};}return{action:'skip'};}if(non3.length){const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];return{action:'play',cards:[c]};}if(hand.length)return{action:'skip'};return null;}
+  function botTurn(gs,pidx){
+    if(!gs||gs.gameOver)return null;
+    const hand=gs.hands[pidx];if(!hand||!hand.length)return null;
+    const non3=hand.filter(c=>c.value!=='3');
+    // Opponent min card count (excluding self)
+    const minOppCards=Math.min(...gs.activePlayers.filter(p=>p!==pidx).map(p=>gs.hands[p]?.length||99));
+    const oppNearWin=minOppCards<=3;// opponent about to win
+    // Opening phase
+    if(gs.phase==='opening'){
+      const threes=hand.filter(c=>c.value==='3');
+      if(pidx===gs.openerIdx){const t3s=threes.find(c=>c.suit==='S');return{action:'play',cards:t3s?[t3s]:[]};}
+      return{action:'play',cards:threes.length&&Math.random()>0.4?[threes[0]]:[]};
+    }
+    // Helper: get all combos from hand
+    function getPairs(h){const p=[];for(let i=0;i<h.length-1;i++)for(let j=i+1;j<h.length;j++)if(h[i].value===h[j].value)p.push([h[i],h[j]]);return p;}
+    function getTrips(h){const m={};h.forEach(c=>{m[c.value]=m[c.value]||[];m[c.value].push(c);});return Object.values(m).filter(g=>g.length>=3).map(g=>g.slice(0,3));}
+    function getBombs(h){
+      const m={};h.forEach(c=>{m[c.value]=m[c.value]||[];m[c.value].push(c);});
+      const b4=Object.values(m).filter(g=>g.length>=4).map(g=>g.slice(0,4));
+      const jqka=h.filter(c=>['J','Q','K','A'].includes(c.value));
+      const jqkaBombs=[];
+      const suits=['S','H','D','C'];
+      for(const s of suits){const f=jqka.filter(c=>c.suit===s);if(f.length>=4)jqkaBombs.push(f.slice(0,4));}
+      const allSorted=[...h].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);
+      const straights=[];
+      for(let len=5;len<=allSorted.length;len++){
+        for(let st=0;st<=allSorted.length-len;st++){
+          const sl=allSorted.slice(st,st+len);
+          let seq=true;const vs=sl.map(c=>VAL_IDX[c.value]);
+          for(let i=1;i<vs.length;i++)if(vs[i]!==vs[i-1]+1){seq=false;break;}
+          if(seq)straights.push(sl);
+        }
+      }
+      return[...b4,...jqkaBombs,...straights];
+    }
+    // If opponent near win, try to bomb them
+    if(oppNearWin){
+      const bombs=getBombs(non3);
+      if(bombs.length){
+        const bb=bombs.find(b=>canBeat(b,gs.tableCards,gs.tableType));
+        if(bb)return{action:'play',cards:bb};
+      }
+    }
+    if(gs.tableCards.length){
+      const tt=gs.tableType;
+      if(tt==='single'){
+        const cands=non3.filter(c=>canBeat([c],gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);
+        // Don't use high cards (A,2) unless opponent near win or few choices
+        const safe=cands.filter(c=>!['A','2'].includes(c.value));
+        const chosen=(!oppNearWin&&safe.length)?safe[0]:cands[0];
+        if(chosen)return{action:'play',cards:[chosen]};
+      } else if(tt==='double'){
+        const vp=getPairs(non3).filter(p=>canBeat(p,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);
+        const safe=vp.filter(p=>!['A','2'].includes(p[0].value));
+        const chosen=(!oppNearWin&&safe.length)?safe[0]:vp[0];
+        if(chosen)return{action:'play',cards:chosen};
+      } else if(tt==='triple'){
+        const vt=getTrips(non3).filter(t=>canBeat(t,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);
+        if(vt.length)return{action:'play',cards:vt[0]};
+      } else if(isBomb(tt)){
+        // Must beat bomb with stronger bomb
+        const bombs=getBombs(non3);
+        const bb=bombs.find(b=>canBeat(b,gs.tableCards,tt));
+        if(bb)return{action:'play',cards:bb};
+      }
+      return{action:'skip'};
+    }
+    // Free play - prefer to clear smallest cards / pairs / trips first
+    if(non3.length){
+      // Prefer pairs/trips to clear efficiently
+      const trips=getTrips(non3);if(trips.length)return{action:'play',cards:trips[0]};
+      const pairs=getPairs(non3);
+      const safePairs=pairs.filter(p=>!['A','2'].includes(p[0].value));
+      if(safePairs.length)return{action:'play',cards:safePairs[0]};
+      // Play lowest single card
+      const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];
+      return{action:'play',cards:[c]};
+    }
+    if(hand.length)return{action:'skip'};
+    return null;
+  }
   return{GameState,canBeat,dealCards,cDict,cDisp,cVal,VAL_IDX,botTurn,getPlayType,isBomb};
 })();
 
@@ -5088,6 +5169,35 @@ function _csListenRoom(roomID){
     if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
     // Host: trigger bots saat PLAYING
     if(_csIsHost&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
+    // Auto-claim host jika host pergi (dan saya sedang duduk)
+    if(!r.hostUID&&_csMyUID&&!_csIsHost){
+      const seatsArr=Object.values(r.seats||{});
+      const iAmSeated=seatsArr.some(s=>s.playerUID===_csMyUID&&s.seatStatus!=='EMPTY');
+      if(iAmSeated){
+        const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
+        hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(res=>{
+          if(res.committed){
+            _csIsHost=true;hostRef.onDisconnect().set(null);
+            // Rebuild local game jika sedang PLAYING
+            if(r.gameStatus==='PLAYING'&&r.game&&!r.game.gameOver){
+              _csLocalGame=_csRebuildGame(r);
+              _csBotSeats=new Set();
+              Object.values(r.seats||{}).forEach(s=>{if(s.isBot&&s.seatStatus==='PLAYING'){const pidx=r.seatToPlayer?.[s.seatID];if(pidx!=null)_csBotSeats.add(Number(pidx));}});
+            }
+            toast('Kamu jadi host!','info');
+          }
+        });
+      }
+    }
+    // Deteksi PLAYING tapi semua kursi kosong → reset paksa
+    if(r.gameStatus==='PLAYING'&&_csMyUID){
+      const seatedCount=Object.values(r.seats||{}).filter(s=>s.seatStatus!=='EMPTY').length;
+      if(seatedCount===0){
+        fbRtdb.ref('casino/rooms/'+_csMyRoom).update({gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null});
+      }
+    }
+    // Tampilkan/sembunyikan tombol bot berdasarkan status host
+    document.querySelectorAll('.cs-bot-btn').forEach(b=>b.style.display=_csIsHost?'':'none');
   });
 }
 function _csBuildState(r){
@@ -5320,10 +5430,19 @@ async function _csMaybeTriggerBot(r){
   }
   if(gs.phase==='opening'){
     let acted=false;
-    // Auto-skip opening for players whose seats are empty
+    // Auto-play/skip opening for players whose seats are empty or left
     for(const pidx of gs.activePlayers){
       if(gs.openingDone.has(pidx))continue;
-      if(_isSeatEmpty(pidx)&&!_csBotSeats.has(pidx)){gs.playOpening(pidx,[]);acted=true;}
+      if(_isSeatEmpty(pidx)&&!_csBotSeats.has(pidx)){
+        // Jika ini opener dan punya 3♠, auto-mainkan 3♠
+        if(pidx===gs.openerIdx){
+          const t3s=gs.hands[pidx]?.find(c=>c.suit==='S'&&c.value==='3');
+          gs.playOpening(pidx,t3s?[t3s]:[]);
+        } else {
+          gs.playOpening(pidx,[]);
+        }
+        acted=true;
+      }
     }
     for(const bp of _csBotSeats){if(gs.openingDone.has(bp)||!gs.activePlayers.includes(bp))continue;const mv=CG.botTurn(gs,bp);if(!mv)continue;if(mv.action==='play')gs.playOpening(bp,mv.cards);else gs.playOpening(bp,[]);acted=true;}
     if(acted){await _csFlushGame(r,r.seatToPlayer,r.playerToSeat,null);if(gs.gameOver)await _csGameOver(r);}
@@ -5388,6 +5507,7 @@ async function doCasinoSkip(){
 }
 async function doAddCasinoBot(){
   if(!_csMyRoom||!fbRtdb||!_csState)return;
+  if(!_csIsHost){toast('Hanya host yang bisa menambah bot!');return;}
   const empty=(_csState.seats||[]).find(s=>s.seatStatus==='EMPTY');
   if(!empty){toast('Tidak ada kursi kosong!');return;}
   const names=['Andi','Budi','Cici','Doni'];const bn='🤖 Bot '+names[Math.floor(Math.random()*names.length)];
@@ -5414,7 +5534,16 @@ async function _csGameOver(r){
     const snap2=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
     const r2=snap2.val();if(!r2)return;
     const sUpd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null};
-    Object.values(r2.seats||{}).forEach(s=>{if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND'){sUpd['seats/'+s.seatID+'/seatStatus']='SITTING';sUpd['seats/'+s.seatID+'/playerBet']=0;sUpd['seats/'+s.seatID+'/cardCount']=0;}});
+    Object.values(r2.seats||{}).forEach(s=>{
+      if(s.isBot&&(s.seatStatus==='PLAYING'||s.seatStatus==='SITTING'||s.seatStatus==='WAITING_NEXT_ROUND')){
+        // Bot keluar setelah ronde selesai
+        sUpd['seats/'+s.seatID+'/seatStatus']='EMPTY';sUpd['seats/'+s.seatID+'/playerName']=null;
+        sUpd['seats/'+s.seatID+'/playerUID']=null;sUpd['seats/'+s.seatID+'/isBot']=false;
+        sUpd['seats/'+s.seatID+'/playerBet']=0;sUpd['seats/'+s.seatID+'/cardCount']=0;
+      } else if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND'){
+        sUpd['seats/'+s.seatID+'/seatStatus']='SITTING';sUpd['seats/'+s.seatID+'/playerBet']=0;sUpd['seats/'+s.seatID+'/cardCount']=0;
+      }
+    });
     await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(sUpd);
     _csLocalGame=null;_csBotSeats=new Set();
     const ep=document.getElementById('cs-end-panel');if(ep)ep.style.display='none';
@@ -5569,27 +5698,31 @@ function renderCasinoPot(totalPot){
   const lbl=document.getElementById('cs-pot-lbl');
   if(!c)return;
   if(totalPot<=0){c.innerHTML='';if(lbl)lbl.textContent='';return;}
-  let rem=totalPot;
-  const gep=Math.floor(rem/1000000);rem%=1000000;
-  const b100=Math.floor(rem/100000);rem%=100000;
-  const b50=Math.floor(rem/50000);rem%=50000;
-  const b20=Math.floor(rem/20000);rem%=20000;
-  const b10=Math.floor(rem/10000);rem%=10000;
-  const b5=Math.floor(rem/5000);
-  const MAX=20;let obj=0;
+  // Represent pot as round stacked chips (max 6 chips shown)
+  const DENOMS=[
+    {val:5000000,cls:'cs-pot-chip-5m',label:'5JT'},
+    {val:1000000,cls:'cs-pot-chip-1m',label:'1JT'},
+    {val:500000,cls:'cs-pot-chip-500k',label:'500K'},
+    {val:100000,cls:'cs-pot-chip-100k',label:'100K'},
+    {val:50000,cls:'cs-pot-chip-50k',label:'50K'},
+    {val:25000,cls:'cs-pot-chip-25k',label:'25K'},
+    {val:10000,cls:'cs-pot-chip-10k',label:'10K'},
+    {val:5000,cls:'cs-pot-chip-5k',label:'5K'},
+  ];
   c.innerHTML='';
-  function addItems(count,cls,lbl_){
-    const show=Math.min(count,MAX-obj);
-    for(let i=0;i<show;i++){const el=document.createElement('div');el.className=cls+' money-anim';if(lbl_){const l=document.createElement('span');l.className='gepok-lbl';l.textContent=lbl_;el.appendChild(l);}c.appendChild(el);}
-    if(count>show&&show>0){const last=c.lastElementChild;if(last){const ll=last.querySelector('.gepok-lbl');if(ll)ll.textContent='×'+count;}}
-    obj+=show;
+  let rem=totalPot;let shown=0;
+  for(const d of DENOMS){
+    if(rem<=0||shown>=5)break;
+    const cnt=Math.floor(rem/d.val);if(!cnt)continue;
+    rem-=cnt*d.val;
+    const el=document.createElement('div');
+    el.className='cs-pot-chip '+d.cls+' chip-anim';
+    el.style.animationDelay=(shown*0.06)+'s';
+    const lbl2=document.createElement('span');
+    lbl2.className='cs-pot-chip-lbl';
+    lbl2.textContent=cnt>1?'×'+cnt:d.label;
+    el.appendChild(lbl2);c.appendChild(el);shown++;
   }
-  addItems(gep,'gepok','');
-  if(obj<MAX)addItems(b100,'lembar lembar-100k','');
-  if(obj<MAX)addItems(b50,'lembar lembar-50k','');
-  if(obj<MAX)addItems(b20,'lembar lembar-20k','');
-  if(obj<MAX)addItems(b10,'lembar lembar-10k','');
-  if(obj<MAX)addItems(b5,'lembar lembar-5k','');
   if(lbl)lbl.textContent='POT: Rp '+csRp(totalPot);
 }
 function renderCasinoHand(cards){
@@ -5601,6 +5734,16 @@ function renderCasinoHand(cards){
   (cards||[]).forEach((c)=>{
     const el=makeCardEl(c,false,false,0);
     el.dataset.suit=c.suit;el.dataset.value=c.value;
+    // Track touch start to distinguish tap from horizontal scroll
+    let _ts={x:0,y:0,t:0};
+    el.addEventListener('touchstart',e=>{
+      const t=e.touches[0];_ts={x:t.clientX,y:t.clientY,t:Date.now()};
+    },{passive:true});
+    el.addEventListener('touchend',e=>{
+      const t=e.changedTouches[0];
+      const dx=Math.abs(t.clientX-_ts.x),dy=Math.abs(t.clientY-_ts.y),dt=Date.now()-_ts.t;
+      if(dx<10&&dy<10&&dt<300){e.preventDefault();el.classList.toggle('selected');}
+    },{passive:false});
     el.addEventListener('click',function(){this.classList.toggle('selected');});
     h.appendChild(el);
   });
