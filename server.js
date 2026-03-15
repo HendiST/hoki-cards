@@ -378,6 +378,7 @@ const httpServer=http.createServer((req,res)=>{
 
 const io=new Server(httpServer,{cors:{origin:'*'}});
 const rooms={};const sidRoom={};
+const pendingDisconnects={}; // {oldSocketId:{rid,pidx,timer}}
 
 function genId(){
   const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -666,7 +667,29 @@ io.on('connection',socket=>{
     if(rid&&rooms[rid]){
       const r=rooms[rid];const pidx=r.players[socket.id];
       delete r.players[socket.id];delete sidRoom[socket.id];
-      io.to(rid).emit('player_left',{message:`Pemain ${r.playerNames[pidx]||pidx+1} keluar!`});
+      if(r.started&&pidx!==undefined){
+        const name=r.playerNames[pidx]||('Pemain '+(pidx+1));
+        io.to(rid).emit('player_left',{message:`⚠️ ${name} terputus koneksi! Menunggu 10 detik...`});
+        if(!r.pendingDisconnects)r.pendingDisconnects={};
+        r.pendingDisconnects[pidx]=socket.id;
+        const timer=setTimeout(()=>{
+          if(!rooms[rid])return;
+          const r2=rooms[rid];
+          if(!r2.pendingDisconnects||r2.pendingDisconnects[pidx]!==socket.id)return;
+          delete r2.pendingDisconnects[pidx];
+          delete pendingDisconnects[socket.id];
+          io.to(rid).emit('player_left',{message:`❌ ${name} keluar dari game (koneksi putus)`});
+          if(!r2.game.gameOver&&!r2.botIndices.includes(pidx)){
+            r2.botIndices.push(pidx);
+            if(!r2.botMode&&!r2.botThinkRunning){r2.botThinkRunning=true;botThink(rid).finally(()=>{if(rooms[rid])rooms[rid].botThinkRunning=false;});}
+          }
+          broadcast(rid);
+        },10000);
+        pendingDisconnects[socket.id]={rid,pidx,timer};
+      } else {
+        if(pidx!==undefined)io.to(rid).emit('player_left',{message:`Pemain ${r.playerNames[pidx]||pidx+1} keluar!`});
+        if(!Object.keys(r.players).length&&!r.started)delete rooms[rid];
+      }
     }
     const cRid=casinoSidRoom[socket.id];
     if(cRid&&casinoRooms[cRid]){
@@ -719,6 +742,23 @@ io.on('connection',socket=>{
     const name=data.name||'Pemain';
     if(!rooms[rid])return socket.emit('error',{message:`Room ${rid} tidak ditemukan!`});
     const r=rooms[rid];
+    // Allow reconnect if game in progress and player has a pending disconnect slot
+    if(r.started&&r.pendingDisconnects){
+      for(const[pidxStr,oldSid] of Object.entries(r.pendingDisconnects)){
+        const pidx=parseInt(pidxStr);
+        if(r.playerNames[pidx]===name){
+          if(pendingDisconnects[oldSid]){clearTimeout(pendingDisconnects[oldSid].timer);delete pendingDisconnects[oldSid];}
+          delete r.pendingDisconnects[pidx];
+          // Remove from botIndices if it was added
+          const bi=r.botIndices.indexOf(pidx);if(bi!==-1)r.botIndices.splice(bi,1);
+          r.players[socket.id]=pidx;sidRoom[socket.id]=rid;socket.join(rid);
+          socket.emit('game_started',getState(rid,pidx));
+          io.to(rid).emit('player_joined',{message:`✅ ${name} kembali ke game!`,players_joined:Object.keys(r.players).length,num_players:r.numPlayers,player_names:r.playerNames});
+          console.log(`[REJOIN] ${name} → ${rid} P${pidx+1}`);
+          return;
+        }
+      }
+    }
     if(r.started)return socket.emit('error',{message:'Game sudah dimulai!'});
     if(Object.keys(r.players).length>=r.numPlayers)return socket.emit('error',{message:'Room sudah penuh!'});
     const used=new Set(Object.values(r.players));

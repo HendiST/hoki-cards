@@ -415,13 +415,14 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
   overflow-x:scroll;
   overflow-y:visible;
   -webkit-overflow-scrolling:touch;
-  touch-action:pan-x;  /* horizontal scroll only */
+  touch-action:pan-x;
   scrollbar-width:none;
-  padding:4px 8px 8px;
+  padding:28px 8px 8px;
 }
 .hand-scroll::-webkit-scrollbar{display:none;}
 .hand-inner{
   display:flex;
+  flex-wrap:nowrap;
   gap:6px;
   align-items:flex-end;
   width:max-content;
@@ -1924,7 +1925,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .bet-chip:active{transform:scale(.92);}
 .bet-section-lbl{font-size:.82em;color:#aaa;margin-top:6px;}
 /* Pot display */
-.pot-wrap{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;z-index:5;min-width:140px;}
+.pot-wrap{position:absolute;bottom:8px;right:8px;display:flex;flex-direction:row;align-items:center;gap:3px;pointer-events:none;z-index:5;}
 .pot-stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:160px;}
 .pot-total-lbl{font-family:'Rajdhani',sans-serif;font-size:.68em;font-weight:800;color:rgba(255,215,0,.9);letter-spacing:1px;background:rgba(0,0,0,.55);border:1px solid rgba(255,215,0,.2);border-radius:6px;padding:2px 8px;text-align:center;white-space:nowrap;}
 /* Round Pot Chips */
@@ -3877,60 +3878,32 @@ function renderPot(totalPot){
   if(!wrap) return;
   wrap.innerHTML='';
   if(!totalPot||totalPot<=0) return;
-  const stacks=document.createElement('div');
-  stacks.className='pot-stacks';
-  let rem=totalPot, obj=0;
-  const MAX=12;
-  // Gepok (1JT each)
-  const gepoks=Math.floor(rem/1000000);
-  rem-=gepoks*1000000;
-  const showGepoks=Math.min(gepoks,MAX-obj);
-  for(let i=0;i<showGepoks;i++){
-    const g=document.createElement('div');
-    g.className='gepok money-anim';
-    g.style.animationDelay=(obj*50)+'ms';
-    const lbl=document.createElement('span');
-    lbl.className='gepok-lbl';
-    lbl.textContent='1JT';
-    g.appendChild(lbl);
-    stacks.appendChild(g);
-    obj++;
+  const DENOMS=[
+    {val:5000000,cls:'cs-pot-chip-5m',label:'5JT'},
+    {val:1000000,cls:'cs-pot-chip-1m',label:'1JT'},
+    {val:500000,cls:'cs-pot-chip-500k',label:'500K'},
+    {val:100000,cls:'cs-pot-chip-100k',label:'100K'},
+    {val:50000,cls:'cs-pot-chip-50k',label:'50K'},
+    {val:25000,cls:'cs-pot-chip-25k',label:'25K'},
+    {val:10000,cls:'cs-pot-chip-10k',label:'10K'},
+    {val:5000,cls:'cs-pot-chip-5k',label:'5K'},
+  ];
+  let rem=totalPot, shown=0;
+  for(const d of DENOMS){
+    if(rem<=0||shown>=3)break;
+    const cnt=Math.floor(rem/d.val);if(!cnt)continue;
+    rem-=cnt*d.val;
+    const el=document.createElement('div');
+    el.className='cs-pot-chip '+d.cls+' chip-anim';
+    el.style.animationDelay=(shown*0.06)+'s';
+    const lbl2=document.createElement('span');
+    lbl2.className='cs-pot-chip-lbl';
+    lbl2.textContent=cnt>1?'×'+cnt:d.label;
+    el.appendChild(lbl2);wrap.appendChild(el);shown++;
   }
-  if(gepoks>showGepoks){
-    const last=stacks.lastElementChild;
-    if(last){const l=last.querySelector('.gepok-lbl');if(l)l.textContent='×'+gepoks+'JT';}
-  }
-  // 500K bills
-  const b500=Math.floor(rem/500000); rem-=b500*500000;
-  for(let i=0;i<Math.min(b500,MAX-obj);i++){
-    const b=document.createElement('div');
-    b.className='lembar lembar-500k money-anim';
-    b.textContent='500K';
-    b.style.animationDelay=(obj*50)+'ms';
-    stacks.appendChild(b); obj++;
-  }
-  // 100K bills
-  const b100=Math.floor(rem/100000); rem-=b100*100000;
-  for(let i=0;i<Math.min(b100,MAX-obj);i++){
-    const b=document.createElement('div');
-    b.className='lembar lembar-100k money-anim';
-    b.textContent='100K';
-    b.style.animationDelay=(obj*50)+'ms';
-    stacks.appendChild(b); obj++;
-  }
-  // 50K bills
-  const b50=Math.floor(rem/50000);
-  for(let i=0;i<Math.min(b50,MAX-obj);i++){
-    const b=document.createElement('div');
-    b.className='lembar lembar-50k money-anim';
-    b.textContent='50K';
-    b.style.animationDelay=(obj*50)+'ms';
-    stacks.appendChild(b); obj++;
-  }
-  wrap.appendChild(stacks);
   const lbl=document.createElement('div');
   lbl.className='pot-total-lbl';
-  lbl.textContent='💰 POT: '+_fmtRp(totalPot);
+  lbl.textContent=_fmtRp(totalPot);
   wrap.appendChild(lbl);
 }
 
@@ -5643,7 +5616,13 @@ function renderCasino(st){
     ab.style.display=showActbar?'flex':'none';
     ab.style.opacity=actbarOpacity;
   }
-  // Game panel content
+  // Always render table cards (visible to seated players AND spectators)
+  if(isPlaying&&st.game){
+    renderCasinoTableCards(st.game.table_cards||[]);
+  } else {
+    renderCasinoTableCards([]);
+  }
+  // Game panel content (hand + turn label — only for seated players)
   if(isSitting&&isPlaying&&st.game){
     const g=st.game;const myPidx=g.my_player_idx;
     const isOp=g.phase==='opening';
@@ -5660,10 +5639,7 @@ function renderCasino(st){
       }
     }
     if(g.hand&&g.hand.length>0)renderCasinoHand(g.hand);
-    renderCasinoTableCards(g.table_cards||[]);
     if(g.game_over&&gameP)gameP.style.display='none';
-  }else{
-    renderCasinoTableCards([]);
   }
 }
 function renderCasinoSeat(seatID,seat,st){
