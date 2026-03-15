@@ -5488,26 +5488,53 @@ function doTakeSeat(seatID){
   });
 }
 function doCasinoLeaveSeat(){_csLeaveSeat(false);}
-function _csLeaveSeat(force){
+async function _csLeaveSeat(force){
   if(!_csMyRoom||!fbRtdb||!_csState)return;
   const mySeat=_csState.mySeatID;if(mySeat==null)return;
-  // Simpan saldo sebelum pergi
   const mySeatData=(_csState.seats||[]).find(s=>s.seatID===mySeat);
   const isPlayingNow=_csState.gameStatus==='PLAYING';
   let savedMoney=mySeatData?.playerMoney??_csPersistBal??CASINO_START_MONEY;
-  // Denda 2x bet jika keluar saat game berlangsung (bukan force/reset)
+  let penaltyAmt=0;
   if(isPlayingNow&&!force){
-    const myBet=mySeatData?.playerBet||0;
-    savedMoney=Math.max(0,savedMoney-myBet);
-    toast('⚠️ Keluar saat game: denda 2x taruhan (Rp '+csRpFull(myBet)+')','warn');
+    penaltyAmt=mySeatData?.playerBet||0;
+    savedMoney=Math.max(0,savedMoney-penaltyAmt);
+    toast('⚠️ Keluar saat game: kena denda Rp '+csRpFull(penaltyAmt)+' (masuk pot)','warn');
   }
   _csSaveCasinoBal(savedMoney);
   const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+mySeat);
   seatRef.onDisconnect().cancel();
   seatRef.update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false,playerAvatar:null,playerMoney:savedMoney});
+  // Denda masuk ke pot
+  if(penaltyAmt>0){
+    fbRtdb.ref('casino/rooms/'+_csMyRoom+'/totalPot').transaction(cur=>(cur||0)+penaltyAmt);
+  }
   _csStopBetTimer();
-  // Jika game sedang berlangsung dan saya host, tetap jadi host (spectator-host)
-  // agar bot dan giliran tetap dikelola. Host baru dilepas setelah game selesai.
+  // Keluarkan pidx pemain dari activePlayers game segera agar bot bisa main sampai selesai
+  if(isPlayingNow&&_csLocalGame){
+    const stp=_csState.seatToPlayer||{};
+    const myPidx=stp[mySeat]!=null?Number(stp[mySeat]):null;
+    if(myPidx!=null&&_csLocalGame.activePlayers.includes(myPidx)){
+      _csLocalGame.activePlayers=_csLocalGame.activePlayers.filter(p=>p!==myPidx);
+      _csLocalGame.stoppedPlayers.add(myPidx);
+      if(_csLocalGame.activePlayers.length<=1){
+        if(_csLocalGame.activePlayers.length===1){
+          const loser=_csLocalGame.activePlayers[0];
+          _csLocalGame.activePlayers=[];
+          _csLocalGame.gameOver=true;
+          _csLocalGame.message=`💀 Pemain ${loser+1} kalah!`;
+        } else {
+          _csLocalGame.gameOver=true;
+        }
+      }
+      const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+      if(snap.exists()){
+        const rv=snap.val();
+        await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
+        if(_csLocalGame.gameOver)await _csGameOver(rv);
+        else _csMaybeTriggerBot(rv);
+      }
+    }
+  }
   if(_csIsHost&&!isPlayingNow){
     _csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
     const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
