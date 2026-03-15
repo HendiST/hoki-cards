@@ -1974,7 +1974,13 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
 .cs-tbl-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
 .cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
-.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:48vh;}
+.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+/* Chip betting */
+.cs-chips-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:4px 0;}
+.cs-chip{border:2px solid transparent;border-radius:22px;padding:6px 10px;font-weight:800;font-size:.72em;cursor:pointer;font-family:'Oswald',sans-serif;transition:all .15s;letter-spacing:.3px;color:#fff;}
+.cs-chip:active{transform:scale(.9);}
+.cs-chip-sel{border-color:#ffd700!important;box-shadow:0 0 10px rgba(255,215,0,.5)!important;transform:scale(1.08);}
+.cs-bet-amt{text-align:center;font-size:1.15em;font-weight:800;color:#ffd700;font-family:'Oswald',sans-serif;letter-spacing:1px;padding:4px 0;}
 .cs-panel{display:flex;flex-direction:column;gap:7px;padding:10px;}
 .cs-bet-info{color:#aaa;font-size:.78em;text-align:center;}
 .cs-inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;padding:8px 10px;border-radius:8px;font-size:.85em;width:150px;text-align:center;}
@@ -2760,28 +2766,28 @@ function _onFbScript(ok){
       </div>
     </div>
     <!-- Bet panel -->
-    <div id="cs-bet-panel" class="cs-panel" style="display:none;flex-direction:column;gap:8px;">
+    <div id="cs-bet-panel" class="cs-panel" style="display:none;flex-direction:column;gap:6px;">
       <div id="cs-bet-info" class="cs-bet-info">💰 Pasang taruhan untuk memulai:</div>
-      <div style="display:flex;gap:7px;align-items:center;justify-content:center;">
-        <input type="text" inputmode="numeric" id="cs-bet-inp" class="cs-inp" placeholder="Min Rp 5.000" oninput="csFormatBet(this)">
-        <button class="cs-btn cs-gold" onclick="doCasinoBet()">Pasang</button>
+      <div class="cs-bet-amt" id="cs-bet-display">Rp 0</div>
+      <div class="cs-chips-row">
+        <button class="cs-chip" data-amt="5000" style="background:#c0392b;" onclick="csSelectChip(5000)">5K</button>
+        <button class="cs-chip" data-amt="10000" style="background:#7f8c8d;" onclick="csSelectChip(10000)">10K</button>
+        <button class="cs-chip" data-amt="25000" style="background:#8e44ad;" onclick="csSelectChip(25000)">25K</button>
+        <button class="cs-chip" data-amt="50000" style="background:#27ae60;" onclick="csSelectChip(50000)">50K</button>
+        <button class="cs-chip" data-amt="100000" style="background:#e74c3c;" onclick="csSelectChip(100000)">100K</button>
+        <button class="cs-chip" data-amt="250000" style="background:#2c3e50;border-color:rgba(200,200,200,.3);" onclick="csSelectChip(250000)">250K</button>
+        <button class="cs-chip" data-amt="500000" style="background:#2980b9;" onclick="csSelectChip(500000)">500K</button>
+        <button class="cs-chip" data-amt="1000000" style="background:#e67e22;" onclick="csSelectChip(1000000)">1JT</button>
+        <button class="cs-chip" data-amt="2500000" style="background:#922b21;border:2px solid #ffd700;color:#ffd700;" onclick="csSelectChip(2500000)">2.5JT</button>
+        <button class="cs-chip" data-amt="5000000" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;" onclick="csSelectChip(5000000)">5JT</button>
       </div>
-      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+      <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+        <button class="cs-btn" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#aaa;" onclick="csResetBet()">🗑 Hapus</button>
+        <button class="cs-btn cs-gold" onclick="doCasinoBet()">✓ Pasang</button>
         <button id="cs-call-btn" class="cs-btn cs-blue" onclick="doCasinoCall()" style="display:none;">CALL Rp 0</button>
-        <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Tinggalkan Kursi</button>
+        <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Keluar</button>
       </div>
-      <div class="cs-quick-bets">
-        <button onclick="csQBet(5000)">5K</button>
-        <button onclick="csQBet(10000)">10K</button>
-        <button onclick="csQBet(20000)">20K</button>
-        <button onclick="csQBet(50000)">50K</button>
-        <button onclick="csQBet(100000)">100K</button>
-        <button onclick="csQBet(500000)">500K</button>
-        <button onclick="csQBet(1000000)">1JT</button>
-        <button onclick="csQBet(5000000)">5JT</button>
-        <button onclick="csQBet(10000000)">10JT</button>
-      </div>
-      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);padding-top:7px;">
+      <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;">
         <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;font-size:.72em;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
         <button class="cs-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;font-size:.72em;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
       </div>
@@ -4936,7 +4942,22 @@ const CG=(function(){
 })();
 
 // ── Casino Firebase state ──
-const CASINO_MIN_BET=5000,CASINO_MAX_BET=10000000,CASINO_START_MONEY=5000000;
+const CASINO_MIN_BET=5000,CASINO_MAX_BET=5000000,CASINO_START_MONEY=5000000;
+var _csSelectedBet=0;
+function csSelectChip(amount){
+  _csSelectedBet=amount;
+  const disp=document.getElementById('cs-bet-display');
+  if(disp)disp.textContent='Rp '+(amount>=1000000?(amount/1000000).toFixed(1).replace('.0','')+'JT':amount>=1000?(amount/1000).toFixed(0)+'K':amount);
+  document.querySelectorAll('.cs-chip').forEach(b=>b.classList.remove('cs-chip-sel'));
+  const sel=document.querySelector('.cs-chip[data-amt="'+amount+'"]');
+  if(sel)sel.classList.add('cs-chip-sel');
+}
+function csResetBet(){
+  _csSelectedBet=0;
+  const disp=document.getElementById('cs-bet-display');
+  if(disp)disp.textContent='Rp 0';
+  document.querySelectorAll('.cs-chip').forEach(b=>b.classList.remove('cs-chip-sel'));
+}
 let _csState=null,_csMyRoom=null,_csMyUID=null,_csMyName=null;
 let _csRoomRef=null,_csRoomOff=null,_csRoomsRef=null,_csRoomsOff=null;
 let _csIsHost=false,_csLocalGame=null,_csBotSeats=new Set();
@@ -5076,9 +5097,23 @@ function _csRebuildGame(r){
   return gs;
 }
 function leaveCasino(){
+  if(_csMyRoom&&fbRtdb&&_csState){
+    // Remove all bots from the table
+    (_csState.seats||[]).forEach(s=>{
+      if((s.playerUID||'').startsWith('bot_')||s.isBot){
+        fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+s.seatID).update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false,playerMoney:CASINO_START_MONEY});
+      }
+    });
+    // If game is PLAYING, force reset so table doesn't stay stuck
+    if(_csState.gameStatus==='PLAYING'){
+      const resetUpd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null};
+      fbRtdb.ref('casino/rooms/'+_csMyRoom).update(resetUpd);
+    }
+  }
   _csLeaveSeat(true);
   if(_csRoomOff){_csRoomOff();_csRoomOff=null;}
   _csMyRoom=null;_csState=null;_csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
+  csResetBet();
   go('s-casino-rooms');
 }
 function doTakeSeat(seatID){
@@ -5115,9 +5150,9 @@ function csFormatBet(inp){let v=inp.value.replace(/\D/g,'');if(v===''){inp.value
 function csGetBetValue(){const inp=document.getElementById('cs-bet-inp');if(!inp)return 0;return parseInt(inp.value.replace(/\./g,'')||'0')||0;}
 function csQBet(amount){const inp=document.getElementById('cs-bet-inp');if(inp)inp.value=amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 function doCasinoBet(){
-  const amt=csGetBetValue();
-  if(!amt||amt<CASINO_MIN_BET){toast('Taruhan minimal Rp 5.000');return;}
-  if(amt>CASINO_MAX_BET){toast('Max taruhan Rp 10.000.000');return;}
+  const amt=_csSelectedBet||0;
+  if(!amt||amt<CASINO_MIN_BET){toast('Pilih nominal chip dulu!');return;}
+  if(amt>CASINO_MAX_BET){toast('Max taruhan Rp 5JT!');return;}
   if(!_csMyRoom||!_csState?.mySeatID||!fbRtdb)return;
   if(amt>(_csState.myMoney||CASINO_START_MONEY)){toast('Uang tidak cukup!');return;}
   const seatID=_csState.mySeatID;
@@ -5413,9 +5448,12 @@ function renderCasinoPot(totalPot){
 }
 function renderCasinoHand(cards){
   const h=document.getElementById('cs-hand');if(!h)return;
+  const newSig=(cards||[]).map(c=>c.value+c.suit).join(',');
+  if(h.dataset.sig===newSig)return;
+  h.dataset.sig=newSig;
   h.innerHTML='';
-  (cards||[]).forEach((c,i)=>{
-    const el=makeCardEl(c,false,false,i*30);
+  (cards||[]).forEach((c)=>{
+    const el=makeCardEl(c,false,false,0);
     el.dataset.suit=c.suit;el.dataset.value=c.value;
     el.addEventListener('click',function(){this.classList.toggle('selected');});
     h.appendChild(el);
