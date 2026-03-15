@@ -5030,7 +5030,9 @@ function _csListenRoom(roomID){
     }
     _csState=_csBuildState(r);
     if(document.getElementById('s-casino')?.classList.contains('on'))renderCasino(_csState);
-    // Host: trigger bots
+    // Host: auto-bet bot & cek start saat WAITING (hanya kalau ada highestBet)
+    if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
+    // Host: trigger bots saat PLAYING
     if(_csIsHost&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
   });
 }
@@ -5132,12 +5134,24 @@ function doCasinoCall(){
 }
 function _csCheckReady(){
   if(!_csIsHost||!_csMyRoom||!fbRtdb)return;
-  fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value').then(snap=>{
-    if(!snap.exists())return;const r=snap.val();
-    if(r.gameStatus!=='WAITING')return;
-    const sitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING');
-    if(sitting.length<2||!r.highestBet)return;
-    if(sitting.every(s=>s.playerBet===r.highestBet))_csStartGame(r);
+  // Bot otomatis call ke highestBet, lalu cek apakah semua sudah siap
+  fbRtdb.ref('casino/rooms/'+_csMyRoom).transaction(r=>{
+    if(!r||r.gameStatus!=='WAITING'||!r.highestBet)return;
+    const seats=r.seats||{};let changed=false;
+    Object.values(seats).forEach(s=>{
+      if(s.seatStatus==='SITTING'&&s.isBot&&(s.playerBet||0)!==r.highestBet){
+        s.playerBet=r.highestBet;changed=true;
+      }
+    });
+    return changed?r:undefined;
+  }).then(()=>{
+    fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value').then(snap=>{
+      if(!snap.exists())return;const r=snap.val();
+      if(r.gameStatus!=='WAITING')return;
+      const sitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING');
+      if(sitting.length<2||!r.highestBet)return;
+      if(sitting.every(s=>s.playerBet===r.highestBet))_csStartGame(r);
+    });
   });
 }
 async function _csStartGame(r){
