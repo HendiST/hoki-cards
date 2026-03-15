@@ -1,0 +1,44 @@
+name: Cleanup Old APK Artifacts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install gh -y
+
+      - name: Login GitHub CLI
+        run: |
+          echo "${{ secrets.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 }}" | gh auth login --with-token
+
+      - name: Delete old APK artifacts keep latest 2
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Mencari artifact APK..."
+
+          artifacts=$(gh api repos/$REPO/actions/artifacts --paginate \
+          --jq '.artifacts[] | select(.name | test("apk"; "i")) | "\(.id) \(.created_at) \(.name)"' \
+          | sort -k2 -r)
+
+          keep=2
+          count=0
+
+          echo "$artifacts" | while read id date name; do
+            count=$((count+1))
+
+            if [ $count -le $keep ]; then
+              echo "Skip APK terbaru: $name"
+            else
+              echo "Menghapus APK lama: $name"
+              gh api -X DELETE repos/$REPO/actions/artifacts/$id
+            fi
+          done
