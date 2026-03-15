@@ -78,6 +78,26 @@ The app runs with `node server.js`. No build step required.
 - **Haptic vibration**: giliran (double-pulse), pilih kartu (18ms), bom (pattern dramatis), menang/kalah
 - **Invite fix**: notifikasi undangan sekarang muncul di semua layar (kecuali saat di dalam game)
 
+## Firebase Security Rules
+
+- **File referensi rules**: `attached_assets/firestore&rtdb_1773532114636.json` — satu file berisi dua bagian:
+  - **Bagian 1 (atas)**: Firestore Rules → tempel di Firebase Console → Firestore Database → Rules
+  - **Bagian 2 (bawah, setelah garis `===`)**: RTDB Rules (JSON) → tempel di Firebase Console → Realtime Database → Rules
+- **Cara update rules**: Edit file tersebut langsung (tambah/ubah section yang perlu), jangan buat file baru
+- **RTDB paths yang sudah diatur**:
+  - `rooms/$roomId` — multiplayer online (read/write: auth)
+  - `casino/rooms/$roomId` — kasino permanen (read/write: auth) ← ditambahkan untuk fix kasino
+  - `global_message` — broadcast owner (read: auth, write: owner UID saja)
+  - `users/$uid/online` — status online (write: uid sendiri)
+  - `users/$uid/invites` — undangan room (read: uid sendiri, write: auth)
+
+## Kasino Online — Arsitektur Data
+
+- **5 meja permanen** selalu tampil di lobby dari hardcode `_CS_DEFAULT_ROOMS` (tidak bergantung RTDB)
+- Data live (siapa duduk, taruhan, status game) di-overlay dari `casino/rooms/` di Firebase RTDB
+- `_csInitRooms()` dipanggil saat login (`onUserLoggedIn`) dan saat lobby dibuka jika RTDB kosong
+- Jika RTDB error/rules blokir → lobby tetap tampil 5 meja dengan status default (WAITING)
+
 ## Deployment / GitHub
 
 - GitHub Actions: `.github/workflows/` — hanya build APK debug (bukan deploy ke Firebase Hosting)
