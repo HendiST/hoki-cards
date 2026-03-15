@@ -3747,24 +3747,6 @@ function initSock(){
     const txt='🔍 Kartu P'+(d.pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
     toast(txt,'info');
   });
-  // Casino listeners
-  sock.on('casino_rooms',rooms=>renderCasinoRooms(rooms));
-  sock.on('casino_state',st=>{if(st){_csState=st;if(document.getElementById('s-casino')?.classList.contains('on'))renderCasino(st);}});
-  sock.on('casino_shuffle',data=>showCasinoShuffle(data?.numPlayers||2));
-  sock.on('casino_deal',()=>hideCasinoShuffle());
-  sock.on('casino_round_end',data=>{
-    hideCasinoShuffle();
-    const ep=document.getElementById('cs-end-panel');
-    const em=document.getElementById('cs-end-msg');
-    if(em)em.textContent=data?.message||'Ronde selesai!';
-    if(ep)ep.style.display='flex';
-    toast(data?.message||'Ronde selesai!','success');
-  });
-  sock.on('casino_error',data=>toast(data?.msg||'Error!'));
-  sock.on('casino_bot_added',data=>{
-    if(data?.name)toast('🤖 '+data.name+' ditambahkan!','success');
-    else toast('Bot dihapus dari meja.');
-  });
 }
 
 function go(id){
@@ -4913,30 +4895,85 @@ async function doStart(){
 function goOnline(){go('s-menu');}// legacy stub
 
 // ═══════════════════════════════════════════════════════════════
-//  KASINO ONLINE SYSTEM
+//  KASINO ONLINE SYSTEM — Firebase RTDB
 // ═══════════════════════════════════════════════════════════════
-let _csState=null,_csMyRoom=null;
 
-function goKasino(){
-  go('s-casino-rooms');
-  if(!sock||!sock.connected){
-    initSock();
-    sock.once('connect',()=>sock.emit('casino_get_rooms'));
-  } else {
-    sock.emit('casino_get_rooms');
+// ── Game engine (ported from server.js) ──
+const CG=(function(){
+  const SUITS=['S','H','D','C'];
+  const SUIT_SYM={S:'♠',H:'♥',D:'♦',C:'♣'};
+  const SUIT_COL={S:'black',H:'red',D:'red',C:'black'};
+  const VALUES=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+  const VAL_IDX=Object.fromEntries(VALUES.map((v,i)=>[v,i]));
+  const LETTER_VALS=['J','Q','K','A'];
+  const NUMBER_VALS=['4','5','6','7','8','9','10'];
+  function cDisp(s,v){return v+SUIT_SYM[s];}
+  function cDict(s,v){return{suit:s,value:v,display:cDisp(s,v),color:SUIT_COL[s]};}
+  function cVal(c){return VAL_IDX[c.value];}
+  function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+  function dealCards(n){const deck=[];for(const s of SUITS)for(const v of VALUES)deck.push({suit:s,value:v});shuffle(deck);const hands=Array.from({length:n},()=>[]);deck.forEach((c,i)=>hands[i%n].push(c));return hands;}
+  function removeCard(hand,card){const i=hand.findIndex(c=>c.suit===card.suit&&c.value===card.value);if(i!==-1)hand.splice(i,1);return hand;}
+  function sameSuit(cards){return new Set(cards.map(c=>c.suit)).size===1;}
+  function validStraight(cards){if(cards.length<3)return false;const allNum=cards.every(c=>NUMBER_VALS.includes(c.value));const allLet=cards.every(c=>LETTER_VALS.includes(c.value));if(!allNum&&!allLet)return false;const v=cards.map(c=>VAL_IDX[c.value]).sort((a,b)=>a-b);for(let i=1;i<v.length;i++)if(v[i]!==v[i-1]+1)return false;return true;}
+  function isJQKA(cards){if(cards.length!==4)return false;const v=cards.map(c=>c.value).sort();return v[0]==='A'&&v[1]==='J'&&v[2]==='K'&&v[3]==='Q';}
+  function getPlayType(cards){const n=cards.length;if(n===0)return['none',0];if(n===1)return['single',cVal(cards[0])];if(n===2){const[a,b]=cards;if(a.value===b.value)return['double',Math.max(cVal(a),cVal(b))];}if(n===3){const[a,b,c]=cards;if(a.value===b.value&&b.value===c.value)return['triple',cVal(a)];}if(n===4){const vals=new Set(cards.map(c=>c.value));if(vals.size===1)return['bomb4',cVal(cards[0])];if(isJQKA(cards)&&sameSuit(cards))return['jqka',1000];if(validStraight(cards))return['straight4',Math.max(...cards.map(cVal))];}if(n>=5&&validStraight(cards))return['straight5plus',Math.max(...cards.map(cVal))];return['invalid',0];}
+  function isAllTwos(cards){return cards.length>0&&cards.every(c=>c.value==='2');}
+  function isBomb(pt){return['bomb4','jqka','straight5plus'].includes(pt);}
+  function canBeat(play,table,ttype){if(!table||!table.length)return true;const[pt,pv]=getPlayType(play);if(pt==='invalid'||pt==='none')return false;const[,tv]=getPlayType(table);if(isBomb(pt)&&!isBomb(ttype))return true;if(ttype==='single'&&isAllTwos(table))return isBomb(pt);if(pt!==ttype&&!isBomb(pt))return false;return pv>tv;}
+  function effHand(hand){return hand.filter(c=>c.value!=='3');}
+  function checkLose(hand){const eff=effHand(hand);if(eff.length===0)return[false,''];if(eff.every(c=>c.value==='2'))return[true,'Semua sisa kartu adalah 2!'];return[false,''];}
+  function checkPlayedLose(played,handBefore){const newHand=[...handBefore];for(const c of played){const i=newHand.findIndex(x=>x.suit===c.suit&&x.value===c.value);if(i!==-1)newHand.splice(i,1);}const twos=newHand.filter(c=>c.value==='2');if(newHand.length>0&&twos.length===newHand.length&&played.some(c=>c.value!=='2'))return[true,'Sisa kartu semua 2!'];return[false,''];}
+  class GameState{
+    constructor(n){this.numPlayers=n;this.hands=[];this.currentPlayer=0;this.tableCards=[];this.tableType=null;this.rankings=[];this.activePlayers=[];this.stoppedPlayers=new Set();this.skippedThisRound=new Set();this.lastPlayerPlayed=null;this.started=false;this.gameOver=false;this.message='';this.phase='opening';this.openingDone=new Set();this.openerIdx=0;this.decoyCards=[];this.openingTable=[];}
+    startGame(){this.hands=dealCards(this.numPlayers);this.rankings=[];this.stoppedPlayers=new Set();this.skippedThisRound=new Set();this.activePlayers=Array.from({length:this.numPlayers},(_,i)=>i);this.tableCards=[];this.tableType=null;this.lastPlayerPlayed=null;this.started=true;this.gameOver=false;this.phase='opening';this.openingDone=new Set();this.decoyCards=[];this.openingTable=[];for(let i=0;i<this.hands.length;i++){const twos=this.hands[i].filter(c=>c.value==='2');if(twos.length===4){this.activePlayers=this.activePlayers.filter(p=>p!==i);this.message=`💀 Pemain ${i+1} langsung KALAH! Dapat semua 4 kartu 2!`;if(this.activePlayers.length===1){const winner=this.activePlayers[0];this.rankings.push(winner);this.activePlayers=[];this.gameOver=true;this.message+=` | 🏆 Pemain ${winner+1} Menang!`;return;}}}for(let i=0;i<this.hands.length;i++){for(const c of this.hands[i]){if(c.value==='3'&&c.suit==='S'){this.currentPlayer=i;this.openerIdx=i;this.message=`🃏 Ronde pembukaan! Pemain ${i+1} wajib keluarkan 3♠!`;return;}}}}
+    playOpening(pidx,sel){if(this.openingDone.has(pidx))return[false,'Kamu sudah aksi di ronde pembukaan!'];if(!this.activePlayers.includes(pidx))return[false,'Kamu tidak aktif!'];let msg='';if(sel.length>0){for(const c of sel){if(c.value!=='3')return[false,'Hanya boleh keluarkan kartu 3!'];if(!this.hands[pidx].find(h=>h.suit===c.suit&&h.value===c.value))return[false,'Kartu tidak ada!'];}if(pidx===this.openerIdx&&!sel.find(c=>c.suit==='S'&&c.value==='3'))return[false,'Kamu pegang 3♠, wajib keluarkan 3♠!'];for(const c of sel){removeCard(this.hands[pidx],c);this.openingTable.push(c);}msg=`Pemain ${pidx+1} buang ${sel.map(c=>cDisp(c.suit,c.value)).join(', ')} (pengecoh)`;}else{if(pidx===this.openerIdx&&this.hands[pidx].find(c=>c.suit==='S'&&c.value==='3'))return[false,'Kamu pegang 3♠, wajib keluarkan 3♠ sebelum skip!'];msg=`Pemain ${pidx+1} simpan kartu 3 (skip)`;}this.openingDone.add(pidx);if(this.openingDone.size>=this.activePlayers.length){this.phase='normal';this.currentPlayer=this.openerIdx;this.tableCards=[];this.tableType=null;this.skippedThisRound=new Set();this.lastPlayerPlayed=null;this.openingTable=[];msg+=` | ✅ Ronde pembukaan selesai!`;}else{msg+=` | Menunggu ${this.activePlayers.length-this.openingDone.size} pemain lagi...`;}this.message=msg;return[true,msg];}
+    playCards(pidx,sel){if(this.phase==='opening')return this.playOpening(pidx,sel);if(pidx!==this.currentPlayer)return[false,'Bukan giliran kamu!'];if(!sel||!sel.length)return[false,'Pilih kartu dulu!'];if(sel.length===1&&sel[0].value==='3'){const c3=sel[0];removeCard(this.hands[pidx],c3);this.decoyCards=[c3];const[il,lm]=checkLose(this.hands[pidx]);if(il){this.activePlayers=this.activePlayers.filter(p=>p!==pidx);this.stoppedPlayers.add(pidx);this.message=`💀 Pemain ${pidx+1} KALAH! ${lm}`;if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];this.gameOver=true;this.message+=` | 🏆 Pemain ${w+1} Menang!`;}return[true,this.message];}this.message=`Pemain ${pidx+1} buang ${cDisp(c3.suit,c3.value)} (pengecoh)`;return[true,this.message];}for(const c of sel){if(!this.hands[pidx].find(h=>h.suit===c.suit&&h.value===c.value))return[false,'Kartu tidak ada!'];}const[playType]=getPlayType(sel);if(playType==='invalid')return[false,'Kombinasi tidak valid!'];if(!canBeat(sel,this.tableCards,this.tableType))return[false,'Tidak bisa mengalahkan kartu di meja!'];const[pl,plm]=checkPlayedLose(sel,this.hands[pidx]);if(pl){this.activePlayers=this.activePlayers.filter(p=>p!==pidx);this.stoppedPlayers.add(pidx);for(const c of sel)removeCard(this.hands[pidx],c);this.message=`💀 Pemain ${pidx+1} KALAH! ${plm}`;if(this.activePlayers.length===1){const w=this.activePlayers[0];this.rankings.push(w);this.activePlayers=[];this.gameOver=true;this.message+=` | 🏆 Pemain ${w+1} Menang!`;}return[true,this.message];}for(const c of sel)removeCard(this.hands[pidx],c);this.tableCards=sel.map(c=>cDict(c.suit,c.value));this.tableType=playType;this.lastPlayerPlayed=pidx;this.skippedThisRound=new Set();if(this.hands[pidx].length===0){this.activePlayers=this.activePlayers.filter(p=>p!==pidx);this.stoppedPlayers.add(pidx);this.rankings.push(pidx);this.message=`🏆 Pemain ${pidx+1} habis kartu!`;if(this.activePlayers.length<=1){if(this.activePlayers.length===1)this.rankings.push(this.activePlayers[0]);this.gameOver=true;this.activePlayers=[];this.message+=` | 🏁 Permainan selesai!`;return[true,this.message];}this._nextPlayer();return[true,this.message];}this.message=`Pemain ${pidx+1} mainkan ${sel.map(c=>cDisp(c.suit,c.value)).join(', ')}`;this._nextPlayer();return[true,this.message];}
+    skipTurn(pidx){if(this.phase==='opening')return this.playOpening(pidx,[]);if(pidx!==this.currentPlayer)return[false,'Bukan giliran kamu!'];this.skippedThisRound.add(pidx);this.message=`Pemain ${pidx+1} skip`;const others=this.activePlayers.filter(p=>p!==this.lastPlayerPlayed);if(this.lastPlayerPlayed!=null&&others.every(p=>this.skippedThisRound.has(p))){this.tableCards=[];this.tableType=null;this.skippedThisRound=new Set();this.message+=` | 🔄 Meja bersih!`;this.currentPlayer=this.lastPlayerPlayed;}else{this._nextPlayer();}return[true,this.message];}
+    _nextPlayer(){if(!this.activePlayers.length)return;let next=(this.currentPlayer+1)%this.numPlayers;let tries=0;while(!this.activePlayers.includes(next)&&tries<this.numPlayers){next=(next+1)%this.numPlayers;tries++;}this.currentPlayer=next;}
+  }
+  function botTurn(gs,pidx){if(!gs||gs.gameOver)return null;const hand=gs.hands[pidx];if(!hand||!hand.length)return null;const non3=hand.filter(c=>c.value!=='3');if(gs.phase==='opening'){const threes=hand.filter(c=>c.value==='3');if(pidx===gs.openerIdx){const t3s=threes.find(c=>c.suit==='S');return{action:'play',cards:t3s?[t3s]:[]};}return{action:'play',cards:threes.length&&Math.random()>0.4?[threes[0]]:[]};}if(gs.tableCards.length){const tt=gs.tableType;if(tt==='single'){const cands=non3.filter(c=>canBeat([c],gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);if(cands.length)return{action:'play',cards:[cands[0]]};}else if(tt==='double'){const pairs=[];for(let i=0;i<non3.length-1;i++)for(let j=i+1;j<non3.length;j++)if(non3[i].value===non3[j].value)pairs.push([non3[i],non3[j]]);const vp=pairs.filter(p=>canBeat(p,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);if(vp.length)return{action:'play',cards:vp[0]};}else if(tt==='triple'){const vals={};non3.forEach(c=>{vals[c.value]=vals[c.value]||[];vals[c.value].push(c);});const trips=Object.values(vals).filter(g=>g.length>=3).map(g=>g.slice(0,3));const vt=trips.filter(t=>canBeat(t,gs.tableCards,tt)).sort((a,b)=>VAL_IDX[a[0].value]-VAL_IDX[b[0].value]);if(vt.length)return{action:'play',cards:vt[0]};}return{action:'skip'};}if(non3.length){const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];return{action:'play',cards:[c]};}if(hand.length)return{action:'skip'};return null;}
+  return{GameState,canBeat,dealCards,cDict,cDisp,cVal,VAL_IDX,botTurn,getPlayType,isBomb};
+})();
+
+// ── Casino Firebase state ──
+const CASINO_MIN_BET=5000,CASINO_MAX_BET=10000000,CASINO_START_MONEY=5000000;
+let _csState=null,_csMyRoom=null,_csMyUID=null,_csMyName=null;
+let _csRoomRef=null,_csRoomOff=null,_csRoomsRef=null,_csRoomsOff=null;
+let _csIsHost=false,_csLocalGame=null,_csBotSeats=new Set();
+
+async function _csInitRooms(){
+  if(!fbRtdb)return;
+  for(let i=1;i<=5;i++){
+    const rid='CASINO_'+i;
+    const snap=await fbRtdb.ref('casino/rooms/'+rid).once('value');
+    if(!snap.exists()){
+      const seats={};
+      for(let s=1;s<=4;s++)seats[s]={seatID:s,seatStatus:'EMPTY',playerName:null,playerUID:null,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
+      await fbRtdb.ref('casino/rooms/'+rid).set({roomID:rid,roomName:'Meja '+i,maxPlayers:4,gameStatus:'WAITING',highestBet:0,totalPot:0,hostUID:null,seats,seatToPlayer:{},playerToSeat:{},game:null,hands:null});
+    }
   }
 }
-function cRefreshRooms(){
-  if(!sock||!sock.connected){
-    initSock();
-    sock.once('connect',()=>sock.emit('casino_get_rooms'));
-  } else {
-    sock.emit('casino_get_rooms');
-  }
+
+function goKasino(){go('s-casino-rooms');_csListenRooms();}
+function cRefreshRooms(){_csListenRooms();}
+
+function _csListenRooms(){
+  if(!fbRtdb)return;
+  if(_csRoomsOff)_csRoomsOff();
+  _csRoomsRef=fbRtdb.ref('casino/rooms');
+  _csRoomsOff=()=>_csRoomsRef.off();
+  _csRoomsRef.on('value',snap=>{
+    if(!snap.exists()){renderCasinoRooms([]);return;}
+    const rooms=[];
+    snap.forEach(child=>{const r=child.val();if(!r)return;const seats=r.seats?Object.values(r.seats):[];rooms.push({roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatedCount:seats.filter(s=>s.seatStatus!=='EMPTY').length});});
+    renderCasinoRooms(rooms);
+  });
 }
+
 function renderCasinoRooms(rooms){
   const list=document.getElementById('casino-room-list');if(!list)return;
   list.innerHTML='';
+  if(!rooms||!rooms.length){list.innerHTML='<div style="color:#888;text-align:center;padding:30px;">Memuat meja...</div>';return;}
   (rooms||[]).forEach(r=>{
     const seated=r.seatedCount||0;
     const potStr=r.totalPot>0?`💰 Pot: Rp ${csRp(r.totalPot)}`:'';
@@ -4949,61 +4986,249 @@ function renderCasinoRooms(rooms){
   });
 }
 function joinCasinoRoom(roomID){
-  if(!sock||!sock.connected)initSock();
   _csMyRoom=roomID;
-  sock.emit('casino_join',{roomID});
+  _csMyUID=currentUser?.uid||('guest_'+Math.random().toString(36).slice(2,8));
+  _csMyName=gname()||currentUser?.displayName||'Pemain';
   go('s-casino');
+  _csListenRoom(roomID);
+}
+function _csListenRoom(roomID){
+  if(!fbRtdb)return;
+  if(_csRoomOff){_csRoomOff();_csRoomOff=null;}
+  _csRoomRef=fbRtdb.ref('casino/rooms/'+roomID);
+  _csRoomOff=()=>_csRoomRef.off();
+  _csRoomRef.on('value',snap=>{
+    if(!snap.exists())return;
+    const r=snap.val();
+    // Shuffle animation
+    if(r.shuffleAnim&&!_csState?.shuffleAnim)showCasinoShuffle(r.shuffleAnim.numPlayers||2);
+    else if(!r.shuffleAnim&&_csState?.shuffleAnim)hideCasinoShuffle();
+    // Round end
+    if(r.gameStatus==='ROUND_END'&&_csState?.gameStatus!=='ROUND_END'){
+      hideCasinoShuffle();
+      const ep=document.getElementById('cs-end-panel');const em=document.getElementById('cs-end-msg');
+      if(em)em.textContent=r.roundEndMsg||'Ronde selesai!';
+      if(ep)ep.style.display='flex';
+      toast(r.roundEndMsg||'Ronde selesai!','success');
+    }
+    _csState=_csBuildState(r);
+    if(document.getElementById('s-casino')?.classList.contains('on'))renderCasino(_csState);
+    // Host: trigger bots
+    if(_csIsHost&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
+  });
+}
+function _csBuildState(r){
+  const uid=_csMyUID;
+  const seats=r.seats?Object.values(r.seats).sort((a,b)=>a.seatID-b.seatID):[];
+  const mySeat=seats.find(s=>s.playerUID===uid&&s.seatStatus!=='EMPTY');
+  const seatToPlayer=r.seatToPlayer||{};
+  const playerToSeat=r.playerToSeat||{};
+  const myPidx=mySeat??(seatToPlayer[mySeat?.seatID]??null);
+  const myPidxNum=mySeat!=null?(seatToPlayer[mySeat.seatID]??null):null;
+  const hands=r.hands||{};
+  const myCards=myPidxNum!=null?(hands[myPidxNum]||[]):[];
+  const st={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatToPlayer,playerToSeat,seats:seats.map(s=>({seatID:s.seatID,playerName:s.playerName,playerMoney:s.playerMoney,playerBet:s.playerBet,seatStatus:s.seatStatus,cardCount:s.cardCount||0})),mySeatID:mySeat?.seatID??null,myCards,myMoney:mySeat?.playerMoney??CASINO_START_MONEY,myBet:mySeat?.playerBet??0,shuffleAnim:r.shuffleAnim||null};
+  if(r.game&&r.gameStatus==='PLAYING'){
+    const g=r.game;
+    st.game={current_player:g.currentPlayer,table_cards:g.tableCards||[],table_type:g.tableType||'',rankings:g.rankings||[],active_players:g.activePlayers||[],stopped_players:g.stoppedPlayers||[],game_over:g.gameOver||false,message:g.message||'',phase:g.phase||'opening',opener_idx:g.openerIdx||0,opening_done:g.openingDone||[],decoy_cards:g.decoyCards||[],opening_table:g.openingTable||[],hand_counts:g.handCounts||[],hand:myCards,my_player_idx:myPidxNum};
+  }
+  return st;
+}
+function _csRebuildGame(r){
+  if(!r||!r.game||r.gameStatus!=='PLAYING')return null;
+  const g=r.game;const n=Object.keys(r.playerToSeat||{}).length||2;
+  const gs=new CG.GameState(n);
+  gs.phase=g.phase;gs.currentPlayer=g.currentPlayer;gs.openerIdx=g.openerIdx;
+  gs.tableCards=(g.tableCards||[]).map(c=>({suit:c.suit,value:c.value}));
+  gs.tableType=g.tableType||null;gs.activePlayers=g.activePlayers||[];
+  gs.stoppedPlayers=new Set(g.stoppedPlayers||[]);gs.openingDone=new Set(g.openingDone||[]);
+  gs.skippedThisRound=new Set(g.skippedThisRound||[]);gs.lastPlayerPlayed=g.lastPlayerPlayed??null;
+  gs.gameOver=g.gameOver||false;gs.message=g.message||'';gs.rankings=g.rankings||[];
+  gs.decoyCards=(g.decoyCards||[]).map(c=>({suit:c.suit,value:c.value}));
+  gs.openingTable=(g.openingTable||[]).map(c=>({suit:c.suit,value:c.value}));
+  const hands=r.hands||{};gs.hands=[];
+  for(let i=0;i<n;i++)gs.hands.push((hands[i]||[]).map(c=>({suit:c.suit,value:c.value})));
+  return gs;
 }
 function leaveCasino(){
-  if(sock&&_csMyRoom)sock.emit('casino_leave');
-  _csMyRoom=null;_csState=null;
+  _csLeaveSeat(true);
+  if(_csRoomOff){_csRoomOff();_csRoomOff=null;}
+  _csMyRoom=null;_csState=null;_csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
   go('s-casino-rooms');
-  if(sock)sock.emit('casino_get_rooms');
 }
 function doTakeSeat(seatID){
-  if(!_csState)return;
+  if(!_csState||!_csMyRoom||!fbRtdb)return;
   if(_csState.mySeatID!=null){toast('Kamu sudah duduk di kursi '+_csState.mySeatID+'!');return;}
   const seat=(_csState.seats||[]).find(s=>s.seatID===seatID);
   if(!seat||seat.seatStatus!=='EMPTY'){toast('Kursi sudah terisi!');return;}
-  const name=gname()||currentUser?.displayName||'Pemain';
-  sock.emit('casino_take_seat',{seatID,playerName:name});
+  const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+seatID);
+  seatRef.transaction(cur=>{
+    if(!cur||cur.seatStatus!=='EMPTY')return;
+    return{...cur,seatStatus:'SITTING',playerName:_csMyName,playerUID:_csMyUID,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
+  }).then(res=>{
+    if(!res.committed){toast('Kursi sudah diambil!');return;}
+    seatRef.onDisconnect().update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});
+    const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
+    hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(r=>{if(r.committed){_csIsHost=true;hostRef.onDisconnect().set(null);}});
+  });
 }
-function doCasinoLeaveSeat(){sock.emit('casino_leave_seat');}
-function csFormatBet(inp){
-  let v=inp.value.replace(/\D/g,'');
-  if(v===''){inp.value='';return;}
-  inp.value=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+function doCasinoLeaveSeat(){_csLeaveSeat(false);}
+function _csLeaveSeat(force){
+  if(!_csMyRoom||!fbRtdb||!_csState)return;
+  const mySeat=_csState.mySeatID;if(mySeat==null)return;
+  if(!force&&_csState.gameStatus==='PLAYING'){toast('Tidak bisa keluar saat game berlangsung!');return;}
+  const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+mySeat);
+  seatRef.onDisconnect().cancel();
+  seatRef.update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});
+  if(_csIsHost){
+    _csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
+    const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
+    hostRef.onDisconnect().cancel();hostRef.set(null);
+  }
 }
-function csGetBetValue(){
-  const inp=document.getElementById('cs-bet-inp');
-  if(!inp)return 0;
-  return parseInt(inp.value.replace(/\./g,'')||'0')||0;
-}
-function csQBet(amount){
-  const inp=document.getElementById('cs-bet-inp');
-  if(inp)inp.value=amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-}
-function doAddCasinoBot(){if(sock)sock.emit('casino_add_bot');}
-function doRemoveCasinoBots(){if(sock)sock.emit('casino_remove_bots');}
+function csFormatBet(inp){let v=inp.value.replace(/\D/g,'');if(v===''){inp.value='';return;}inp.value=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function csGetBetValue(){const inp=document.getElementById('cs-bet-inp');if(!inp)return 0;return parseInt(inp.value.replace(/\./g,'')||'0')||0;}
+function csQBet(amount){const inp=document.getElementById('cs-bet-inp');if(inp)inp.value=amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 function doCasinoBet(){
   const amt=csGetBetValue();
-  if(!amt||amt<5000){toast('Taruhan minimal Rp 5.000');return;}
-  sock.emit('casino_place_bet',{amount:amt});
+  if(!amt||amt<CASINO_MIN_BET){toast('Taruhan minimal Rp 5.000');return;}
+  if(amt>CASINO_MAX_BET){toast('Max taruhan Rp 10.000.000');return;}
+  if(!_csMyRoom||!_csState?.mySeatID||!fbRtdb)return;
+  if(amt>(_csState.myMoney||CASINO_START_MONEY)){toast('Uang tidak cukup!');return;}
+  const seatID=_csState.mySeatID;
+  fbRtdb.ref('casino/rooms/'+_csMyRoom).transaction(r=>{
+    if(!r||r.gameStatus!=='WAITING')return;
+    const seat=r.seats?.[seatID];if(!seat||seat.seatStatus!=='SITTING')return;
+    seat.playerBet=amt;if(amt>(r.highestBet||0))r.highestBet=amt;return r;
+  }).then(()=>{if(_csIsHost)_csCheckReady();});
 }
-function doCasinoCall(){sock.emit('casino_call');}
-function doCasinoPlay(){
+function doCasinoCall(){
+  if(!_csMyRoom||!_csState?.mySeatID||!fbRtdb)return;
+  const hb=_csState.highestBet||0;if(hb<=0){toast('Belum ada taruhan!');return;}
+  if(hb>(_csState.myMoney||CASINO_START_MONEY)){toast('Uang tidak cukup!');return;}
+  const seatID=_csState.mySeatID;
+  fbRtdb.ref('casino/rooms/'+_csMyRoom).transaction(r=>{
+    if(!r||r.gameStatus!=='WAITING')return;
+    const seat=r.seats?.[seatID];if(!seat||seat.seatStatus!=='SITTING')return;
+    seat.playerBet=r.highestBet;return r;
+  }).then(()=>{if(_csIsHost)_csCheckReady();});
+}
+function _csCheckReady(){
+  if(!_csIsHost||!_csMyRoom||!fbRtdb)return;
+  fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value').then(snap=>{
+    if(!snap.exists())return;const r=snap.val();
+    if(r.gameStatus!=='WAITING')return;
+    const sitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING');
+    if(sitting.length<2||!r.highestBet)return;
+    if(sitting.every(s=>s.playerBet===r.highestBet))_csStartGame(r);
+  });
+}
+async function _csStartGame(r){
+  if(!_csIsHost||!_csMyRoom||!fbRtdb)return;
+  const sitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING');
+  if(sitting.length<2)return;
+  const totalPot=sitting.reduce((s,x)=>s+x.playerBet,0);
+  const seatToPlayer={};const playerToSeat={};
+  sitting.forEach((seat,pidx)=>{seatToPlayer[seat.seatID]=pidx;playerToSeat[pidx]=seat.seatID;});
+  const updates={gameStatus:'PLAYING',totalPot,seatToPlayer,playerToSeat,shuffleAnim:{ts:Date.now(),numPlayers:sitting.length}};
+  sitting.forEach(seat=>{updates['seats/'+seat.seatID+'/seatStatus']='PLAYING';updates['seats/'+seat.seatID+'/playerMoney']=seat.playerMoney-seat.playerBet;});
+  Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING'&&!sitting.find(x=>x.seatID===s.seatID)).forEach(s=>{updates['seats/'+s.seatID+'/seatStatus']='WAITING_NEXT_ROUND';});
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(updates);
+  _csLocalGame=new CG.GameState(sitting.length);_csLocalGame.startGame();
+  _csBotSeats=new Set();sitting.forEach((seat,pidx)=>{if(seat.isBot)_csBotSeats.add(pidx);});
+  await new Promise(res=>setTimeout(res,2800));
+  await _csFlushGame(r,seatToPlayer,playerToSeat,sitting);
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom+'/shuffleAnim').remove();
+}
+async function _csFlushGame(r,seatToPlayer,playerToSeat,sitting){
+  if(!_csLocalGame||!_csMyRoom||!fbRtdb)return;
+  const gs=_csLocalGame;
+  const gameData={phase:gs.phase,currentPlayer:gs.currentPlayer,openerIdx:gs.openerIdx,tableCards:gs.tableCards,tableType:gs.tableType,activePlayers:[...gs.activePlayers],stoppedPlayers:[...gs.stoppedPlayers],openingDone:[...gs.openingDone],skippedThisRound:[...gs.skippedThisRound],lastPlayerPlayed:gs.lastPlayerPlayed??null,gameOver:gs.gameOver,message:gs.message,rankings:gs.rankings,decoyCards:gs.decoyCards,openingTable:gs.openingTable,handCounts:gs.hands.map(h=>h.length)};
+  const hands={};gs.hands.forEach((hand,pidx)=>{hands[pidx]=hand.map(c=>CG.cDict(c.suit,c.value));});
+  const seatUpd={};const seatArr=sitting||[];seatArr.forEach((seat,pidx)=>{seatUpd['seats/'+seat.seatID+'/cardCount']=gs.hands[pidx]?.length||0;});
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom).update({...seatUpd,game:gameData,hands});
+}
+async function _csMaybeTriggerBot(r){
+  if(!_csIsHost||!_csLocalGame||_csLocalGame.gameOver)return;
+  const gs=_csLocalGame;
+  if(gs.phase==='opening'){
+    let acted=false;
+    for(const bp of _csBotSeats){if(gs.openingDone.has(bp)||!gs.activePlayers.includes(bp))continue;const mv=CG.botTurn(gs,bp);if(!mv)continue;if(mv.action==='play')gs.playOpening(bp,mv.cards);else gs.playOpening(bp,[]);acted=true;}
+    if(acted){await _csFlushGame(r,r.seatToPlayer,r.playerToSeat,null);if(gs.gameOver)await _csGameOver(r);}
+  } else if(_csBotSeats.has(gs.currentPlayer)){
+    setTimeout(async()=>{
+      if(!_csLocalGame||_csLocalGame.gameOver)return;
+      const cp=_csLocalGame.currentPlayer;if(!_csBotSeats.has(cp))return;
+      const mv=CG.botTurn(_csLocalGame,cp);if(!mv)return;
+      await new Promise(res=>setTimeout(res,900));
+      if(!_csLocalGame)return;
+      if(mv.action==='play'&&mv.cards.length)_csLocalGame.playCards(cp,mv.cards);else _csLocalGame.skipTurn(cp);
+      const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+      if(!snap.exists())return;const rv=snap.val();
+      await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
+      if(_csLocalGame.gameOver)await _csGameOver(rv);
+    },200);
+  }
+}
+async function _csMakeMove(applyFn){
+  if(!_csState?.game||!_csMyRoom||!fbRtdb)return;
+  const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+  if(!snap.exists())return;const r=snap.val();
+  const gs=_csRebuildGame(r);if(!gs)return;
+  const[ok,msg]=applyFn(gs);
+  if(!ok){toast(msg);return;}
+  _csLocalGame=gs;
+  await _csFlushGame(r,r.seatToPlayer,r.playerToSeat,null);
+  if(gs.gameOver){if(_csIsHost)await _csGameOver(r);}
+  else if(_csIsHost&&_csBotSeats.has(gs.currentPlayer))_csMaybeTriggerBot(r);
+}
+async function doCasinoPlay(){
   if(!_csState?.game)return;
   const g=_csState.game;
   if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
   const sel=[...document.querySelectorAll('#cs-hand .card.selected')].map(el=>({suit:el.dataset.suit,value:el.dataset.value}));
   if(!sel.length){toast('Pilih kartu dulu!');return;}
-  sock.emit('casino_play_cards',{cards:sel});
+  _csMakeMove(gs=>gs.playCards(g.my_player_idx,sel));
 }
-function doCasinoSkip(){
+async function doCasinoSkip(){
   if(!_csState?.game)return;
   const g=_csState.game;
   if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
-  sock.emit('casino_skip_turn');
+  _csMakeMove(gs=>gs.skipTurn(g.my_player_idx));
+}
+async function doAddCasinoBot(){
+  if(!_csMyRoom||!fbRtdb||!_csState)return;
+  const empty=(_csState.seats||[]).find(s=>s.seatStatus==='EMPTY');
+  if(!empty){toast('Tidak ada kursi kosong!');return;}
+  const names=['Andi','Budi','Cici','Doni'];const bn='🤖 Bot '+names[Math.floor(Math.random()*names.length)];
+  const ref=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+empty.seatID);
+  ref.transaction(cur=>{if(!cur||cur.seatStatus!=='EMPTY')return;return{...cur,seatStatus:'SITTING',playerName:bn,playerUID:'bot_'+empty.seatID,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:true,cardCount:0};}).then(res=>{
+    if(res.committed){toast(bn+' bergabung!','success');if(_csIsHost)_csCheckReady();}
+  });
+}
+function doRemoveCasinoBots(){
+  if(!_csMyRoom||!fbRtdb||!_csState)return;
+  (_csState.seats||[]).forEach(s=>{if((s.playerUID||'').startsWith('bot_')||s.playerName?.includes('🤖')){fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+s.seatID).update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});}});
+}
+async function _csGameOver(r){
+  if(!_csIsHost||!_csMyRoom||!fbRtdb||!_csLocalGame)return;
+  const gs=_csLocalGame;const rnk=gs.rankings;
+  const playerToSeat=r.playerToSeat||{};let winnerName='?',winnerSeatID=null,winnerMoney=0;
+  if(rnk.length>0){const wPidx=rnk[0];const wSeatID=playerToSeat[wPidx];if(wSeatID!=null){winnerSeatID=wSeatID;const ws=r.seats?.[wSeatID];if(ws){winnerName=ws.playerName||'?';winnerMoney=(ws.playerMoney||0)+(r.totalPot||0);}}}
+  const msg=`🏆 ${winnerName} menang pot Rp ${(r.totalPot||0).toLocaleString('id-ID')}!`;
+  const upd={gameStatus:'ROUND_END',roundEndMsg:msg,roundEndWinner:winnerSeatID};
+  if(winnerSeatID)upd['seats/'+winnerSeatID+'/playerMoney']=winnerMoney;
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(upd);
+  setTimeout(async()=>{
+    if(!_csMyRoom||!fbRtdb)return;
+    const snap2=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+    const r2=snap2.val();if(!r2)return;
+    const sUpd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null};
+    Object.values(r2.seats||{}).forEach(s=>{if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND'){sUpd['seats/'+s.seatID+'/seatStatus']='SITTING';sUpd['seats/'+s.seatID+'/playerBet']=0;sUpd['seats/'+s.seatID+'/cardCount']=0;}});
+    await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(sUpd);
+    _csLocalGame=null;_csBotSeats=new Set();
+    const ep=document.getElementById('cs-end-panel');if(ep)ep.style.display='none';
+  },6000);
 }
 function csRp(v){
   if(v==null)return'?';
