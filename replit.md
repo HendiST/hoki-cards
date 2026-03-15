@@ -67,10 +67,12 @@ The app runs with `node server.js`. No build step required.
 
 ## Give Uang Kasino (Owner Panel) — Real-time Notification
 
-- `opGiveCasinoMoney()` setelah update RTDB juga menulis ke `pending_casino_gifts/uid`
-- Client punya listener di `pending_casino_gifts/uid` → tampil toast saat terima uang kasino
-- Jika tidak di meja, saldo persisten di `casino/players/uid/balance` diupdate via transaction (tanpa `...cur` spread yang bisa gagal validasi)
-- RTDB rules baru: `pending_casino_gifts/$uid`
+**Arsitektur (final):**
+- Jika pemain **sedang di meja**: owner langsung update `casino/rooms/$rid/seats/$sid` via transaction (path terbuka untuk semua auth user)
+- Jika pemain **tidak di meja**: owner hanya menulis ke `pending_casino_gifts/uid` — SI PEMAIN SENDIRI yang update saldonya saat menerima notifikasi (karena `auth.uid === $uid` selalu diizinkan untuk write ke `casino/players/uid`)
+- `pending_casino_gifts` listener: hapus notifikasi → jalankan transaction `casino/players/uid` (oleh pemain sendiri) → update HUD → tampil toast
+- Input UID di owner panel juga support username/shortId (bukan hanya UID penuh Firebase)
+- RTDB rules: `pending_casino_gifts/$uid` — hanya owner yang bisa tulis, pemain bisa hapus (setelah diklaim)
 
 ## Kasino Online System
 

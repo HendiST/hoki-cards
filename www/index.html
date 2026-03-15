@@ -6795,12 +6795,20 @@ async function onUserLoggedIn(user){
       fbRtdb.ref('pending_casino_gifts/'+user.uid).on('value', async snap=>{
         const d=snap.val();
         if(!d||!d.amount||!d.ts) return;
-        if(Date.now()-d.ts > 10*60*1000) { await fbRtdb.ref('pending_casino_gifts/'+user.uid).remove().catch(()=>{}); return; }
+        if(Date.now()-d.ts > 10*60*1000){ await fbRtdb.ref('pending_casino_gifts/'+user.uid).remove().catch(()=>{}); return; }
         const amt=d.amount;
         const sign=amt>=0?'+':'';
         const amtStr=amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt;
-        if(typeof toast==='function') toast('💵 Kamu menerima '+sign+'Rp '+amtStr+' uang kasino dari owner!','ok');
+        // Hapus notifikasi dari RTDB dulu (supaya tidak loop)
         await fbRtdb.ref('pending_casino_gifts/'+user.uid).remove().catch(()=>{});
+        // Pemain update saldo SENDIRI (auth.uid === $uid → selalu diizinkan)
+        try{
+          await fbRtdb.ref('casino/players/'+user.uid).transaction(cur=>{
+            if(!cur) return{balance:Math.max(0,amt),updatedAt:Date.now()};
+            return{balance:Math.max(0,(cur.balance||0)+amt),updatedAt:Date.now()};
+          });
+        }catch(e2){}
+        if(typeof toast==='function') toast('💵 Kamu menerima '+sign+'Rp '+amtStr+' uang kasino dari owner!','ok');
       });
     }
     // ── Real-time pending rewards listener (diamonds dari owner) ──
@@ -9773,13 +9781,30 @@ async function opGiveReward(){
 
 // ── 6b. Give Uang Kasino ───────────────────────────────────────────────
 async function opGiveCasinoMoney(){
-  const uid     = document.getElementById('op-casino-uid').value.trim();
+  let uid       = document.getElementById('op-casino-uid').value.trim();
   const amt     = parseInt(document.getElementById('op-casino-money-amt').value)||0;
   const infoEl  = document.getElementById('op-casino-money-info');
   if(!uid||!amt||!fbRtdb){ toast('Isi UID dan jumlah!','warn'); return; }
-  if(infoEl) infoEl.textContent = '⏳ Mencari pemain di semua meja...';
+  if(infoEl) infoEl.textContent = '⏳ Mencari pemain...';
   try {
-    // Cari di semua 5 meja kasino
+    // Lookup UID by username/shortId jika bukan UID penuh Firebase (≥20 karakter)
+    if(fbDb && uid.length < 20){
+      try{
+        const q=await fbDb.collection('users').where('username','==',uid).limit(1).get();
+        if(!q.empty){ uid=q.docs[0].id; }
+        else{
+          const q2=await fbDb.collection('users').where('username2','==',uid.toLowerCase()).limit(1).get();
+          if(!q2.empty) uid=q2.docs[0].id;
+          else{
+            const q3=await fbDb.collection('users').where('shortId','==',uid).limit(1).get();
+            if(!q3.empty) uid=q3.docs[0].id;
+          }
+        }
+      }catch(e2){}
+    }
+    const sign=amt>=0?'+':'';
+    const amtStr=amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt;
+    // Cari pemain di semua 5 meja kasino
     let targetSeatRef=null,foundRoom=null;
     for(let i=1;i<=5;i++){
       const rId='CASINO_'+i;
@@ -9789,10 +9814,8 @@ async function opGiveCasinoMoney(){
       Object.entries(seats).forEach(([sid,s])=>{if(s&&s.playerUID===uid)found=sid;});
       if(found){targetSeatRef=fbRtdb.ref('casino/rooms/'+rId+'/seats/'+found);foundRoom=rId;break;}
     }
-    const sign=amt>=0?'+':'';
-    const amtStr=amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt;
     if(targetSeatRef){
-      // Pemain ditemukan di meja — update langsung
+      // Pemain sedang di meja — update seat langsung (casino/rooms terbuka untuk semua auth user)
       await targetSeatRef.transaction(cur=>{
         if(!cur)return cur;
         cur.playerMoney=Math.max(0,(cur.playerMoney||0)+amt);
@@ -9803,25 +9826,16 @@ async function opGiveCasinoMoney(){
       toast('💵 '+sign+amtStr+' Rp → '+uid+' di '+foundRoom,'ok');
       if(infoEl)infoEl.textContent='✅ Saldo di meja: Rp '+(newBal>=1000000?(newBal/1000000).toFixed(2)+'JT':newBal.toLocaleString('id'));
     } else {
-      // Tidak di meja mana pun — update saldo persisten
-      if(infoEl)infoEl.textContent='⚠️ Tidak ada di meja. Update saldo persisten...';
-      await fbRtdb.ref('casino/players/'+uid).transaction(cur=>{
-        if(!cur)return{balance:Math.max(0,amt>0?amt:0),updatedAt:Date.now()};
-        return{balance:Math.max(0,(cur.balance||0)+amt),updatedAt:Date.now()};
-      });
-      const afterSnap=await fbRtdb.ref('casino/players/'+uid+'/balance').once('value');
-      const newBal=afterSnap.val()||0;
-      toast('💵 '+sign+amtStr+' Rp → saldo persisten '+uid,'ok');
-      if(infoEl)infoEl.textContent='✅ Saldo persisten: Rp '+(newBal>=1000000?(newBal/1000000).toFixed(2)+'JT':newBal.toLocaleString('id'));
-    }
-    // Kirim notifikasi real-time ke penerima
-    if(amt!==0){
-      await fbRtdb.ref('pending_casino_gifts/'+uid).set({amount:amt,ts:Date.now(),from:_csMyUID||'owner'}).catch(()=>{});
+      // Pemain tidak di meja — kirim via pending_casino_gifts agar PEMAIN SENDIRI update saldonya
+      if(infoEl)infoEl.textContent='⚠️ Tidak ada di meja. Mengirim via notifikasi...';
+      await fbRtdb.ref('pending_casino_gifts/'+uid).set({amount:amt,ts:Date.now(),from:_csMyUID||'owner'});
+      toast('💵 '+sign+amtStr+' Rp → notifikasi dikirim ke '+uid,'ok');
+      if(infoEl)infoEl.textContent='✅ Notifikasi terkirim. Saldo akan update saat pemain online.';
     }
     document.getElementById('op-casino-uid').value='';
     document.getElementById('op-casino-money-amt').value='';
   } catch(e){
-    toast(e.message,'warn');
+    toast('Error: '+e.message,'warn');
     if(infoEl)infoEl.textContent='❌ Error: '+e.message;
   }
 }
