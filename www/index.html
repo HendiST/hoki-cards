@@ -1946,7 +1946,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 @keyframes moneyPop{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.15) rotate(3deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
 .money-anim{animation:moneyPop .4s cubic-bezier(.22,1,.36,1) both;}
 /* ═══════════ CASINO ONLINE SYSTEM ═══════════ */
-.cs-hdr{display:flex;align-items:center;padding:7px 10px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:8px;}
+.cs-hdr{display:flex;align-items:center;padding:7px 10px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:8px;width:100%;box-sizing:border-box;}
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
 .cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
 .cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
@@ -2013,8 +2013,8 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-pot-money{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:90px;}
 .cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
 .cs-tbl-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
-.cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
-.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:48vh;}
+.cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;width:100%;box-sizing:border-box;}
+.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:48vh;width:100%;min-width:0;}
 /* Chip betting — round casino chips */
 .cs-chips-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 4px;}
 .cs-chip{
