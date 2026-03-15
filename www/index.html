@@ -1939,6 +1939,66 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 /* Animate money into pot */
 @keyframes moneyPop{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.15) rotate(3deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
 .money-anim{animation:moneyPop .4s cubic-bezier(.22,1,.36,1) both;}
+/* Additional bill denominations */
+.lembar-20k{width:24px;height:11px;font-size:4px;background:linear-gradient(180deg,#27ae60,#1a8644);border-color:rgba(0,50,0,.5);}
+.lembar-10k{width:22px;height:10px;font-size:3.8px;background:linear-gradient(180deg,#7f8c8d,#5d6d7e);}
+.lembar-5k{width:20px;height:9px;font-size:3.5px;background:linear-gradient(180deg,#d35400,#a04000);}
+/* ═══════════ CASINO ONLINE SYSTEM ═══════════ */
+.cs-hdr{display:flex;align-items:center;padding:7px 10px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:8px;}
+.cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
+.cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
+.cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
+.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 3px;flex-shrink:0;}
+.cs-dealer-row{display:flex;flex-direction:column;align-items:center;margin-bottom:4px;}
+.cs-dealer-badge{background:linear-gradient(135deg,#2c1050,#18082a);border:1px solid rgba(180,100,255,.45);color:#c080ff;padding:3px 12px;border-radius:12px;font-size:.7em;font-weight:700;font-family:'Oswald',sans-serif;letter-spacing:1px;}
+.cs-deck-wrap{width:40px;height:5px;margin-top:2px;}
+.cs-oval{position:relative;width:min(94vw,360px);height:188px;background:radial-gradient(ellipse at 50% 50%,#1e6030,#0c3818);border:3px solid rgba(255,255,255,.1);border-radius:50%;box-shadow:0 4px 20px rgba(0,150,60,.2),inset 0 2px 6px rgba(0,0,0,.5);flex-shrink:0;}
+.cs-seat{position:absolute;cursor:pointer;z-index:10;}
+.cs-s1{left:1%;top:50%;transform:translateY(-50%);}
+.cs-s2{top:3%;left:50%;transform:translateX(-50%);}
+.cs-s3{right:1%;top:50%;transform:translateY(-50%);}
+.cs-s4{bottom:3%;left:50%;transform:translateX(-50%);}
+.cs-si{background:rgba(0,0,0,.72);border:1.5px dashed rgba(255,255,255,.15);border-radius:8px;padding:5px 6px;min-width:72px;max-width:86px;text-align:center;transition:border-color .2s,background .2s;}
+.cs-si:hover{border-color:rgba(255,215,0,.5);}
+.cs-empty{border-style:dashed!important;border-color:rgba(255,255,255,.12)!important;}
+.cs-sitting{border-color:rgba(255,215,0,.55)!important;border-style:solid!important;background:rgba(0,0,0,.8)!important;}
+.cs-playing{border-color:rgba(80,220,80,.65)!important;border-style:solid!important;background:rgba(0,25,0,.85)!important;}
+.cs-waiting_next_round{border-color:rgba(200,150,50,.4)!important;border-style:solid!important;opacity:.75;}
+.cs-mine{border-color:rgba(100,200,100,.75)!important;box-shadow:inset 0 0 8px rgba(100,200,100,.12)!important;}
+.cs-active-turn{border-color:#64ff64!important;box-shadow:0 0 11px rgba(100,255,100,.75)!important;animation:csGlow .85s infinite alternate!important;}
+@keyframes csGlow{from{box-shadow:0 0 5px rgba(100,255,100,.3);}to{box-shadow:0 0 14px rgba(100,255,100,.85);}}
+.cs-sn{font-size:.63em;font-weight:700;color:#e8e8e8;font-family:'Oswald',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px;}
+.cs-sm{font-size:.55em;color:#aaa;}.cs-sbet{font-size:.58em;color:#ffd700;}.cs-scards{font-size:.54em;color:#90c0ff;}.cs-shint{font-size:.52em;color:rgba(255,255,255,.28);font-style:italic;}
+.cs-pot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+.cs-pot-money{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:90px;}
+.cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
+.cs-tbl-cards{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
+.cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
+.cs-ctrl{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;}
+.cs-panel{display:flex;flex-direction:column;gap:7px;padding:10px;}
+.cs-bet-info{color:#aaa;font-size:.78em;text-align:center;}
+.cs-inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;padding:8px 10px;border-radius:8px;font-size:.85em;width:150px;text-align:center;}
+.cs-btn{border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:.78em;cursor:pointer;font-family:'Oswald',sans-serif;white-space:nowrap;}
+.cs-gold{background:linear-gradient(135deg,#b89000,#e8b800);color:#1a0a00;}
+.cs-blue{background:linear-gradient(135deg,#1456c0,#1a6cd6);color:#fff;}
+.cs-red{background:linear-gradient(135deg,#b02020,#d42424);color:#fff;}
+.cs-quick-bets{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+.cs-quick-bets button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#ccc;border-radius:6px;padding:4px 7px;font-size:.7em;cursor:pointer;}
+.cs-quick-bets button:active{background:rgba(255,215,0,.15);color:#ffd700;}
+.cs-turn-lbl{text-align:center;font-size:.8em;color:#ffd700;font-weight:700;margin-bottom:4px;}
+/* Casino room list */
+.cs-room-card{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 13px;cursor:pointer;transition:all .2s;width:100%;}
+.cs-room-card:hover,.cs-room-card:active{background:rgba(255,255,255,.1);border-color:rgba(255,215,0,.35);}
+.cs-rc-name{font-weight:700;color:#ffd700;font-family:'Oswald',sans-serif;font-size:.92em;}
+.cs-rc-info{font-size:.7em;color:#888;margin-top:2px;}.cs-rc-pot{font-size:.68em;color:#64c864;margin-top:2px;}
+.cs-rc-status{padding:3px 9px;border-radius:8px;font-size:.67em;font-weight:700;font-family:'Oswald',sans-serif;}
+.cs-st-WAITING{background:rgba(80,180,80,.18);color:#64c864;border:1px solid rgba(80,180,80,.3);}
+.cs-st-PLAYING{background:rgba(255,120,30,.18);color:#ff9040;border:1px solid rgba(255,120,30,.3);}
+.cs-st-ROUND_END{background:rgba(140,140,255,.18);color:#a0a0ff;border:1px solid rgba(140,140,255,.3);}
+/* Shuffle overlay */
+#cs-shuffle-ov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#cs-shuffle-ov.active{display:flex;}
+.cs-shufl-deck{width:54px;height:74px;background:linear-gradient(160deg,#1a2a60,#283890);border:2px solid rgba(100,130,255,.5);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,80,.5);}
 </style>
 <script>
 window.onerror=function(m,s,l,c,e){
@@ -2134,13 +2194,13 @@ function _onFbScript(ok){
         <span class="mode-badge">HOTSPOT</span>
       </button>
 
-      <button class="mode-btn mb-online" onclick="goOnline()">
-        <span class="mode-icon">🌐</span>
+      <button class="mode-btn mb-online" onclick="goKasino()">
+        <span class="mode-icon">🎰</span>
         <span class="mode-text">
-          <span class="mode-title">MABAR ONLINE</span>
-          <span class="mode-desc">Buat/gabung room via internet</span>
+          <span class="mode-title">KASINO ONLINE</span>
+          <span class="mode-desc">Meja kasino permanen, 4 kursi, taruhan rupiah</span>
         </span>
-        <span class="mode-badge">ONLINE</span>
+        <span class="mode-badge">KASINO</span>
       </button>
 
       <button class="mode-btn mb-ranked" onclick="goRanked()">
@@ -2620,15 +2680,15 @@ function _onFbScript(ok){
 </div>
 
 <!-- ONLINE (pilih buat/gabung) -->
-<div id="s-online" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#0d3320,#050e05);">
-  <div class="panel">
-    <div class="panel-title">🌐 MABAR ONLINE</div>
-    <div style="font-size:.8em;color:#aaa;text-align:center;">Main bersama teman via internet</div>
-    <button class="btn b-gold" style="margin-top:8px;" onclick="go('s-create-online')">🏗️ BUAT ROOM BARU</button>
-    <div style="color:rgba(255,255,255,.3);font-size:.8em;letter-spacing:2px;">— ATAU —</div>
-    <button class="btn b-green" onclick="go('s-join-online')">🚪 GABUNG ROOM</button>
-    <button class="btn b-gray" onclick="go('s-menu')">← Kembali</button>
+<!-- KASINO ONLINE - Daftar Meja -->
+<div id="s-casino-rooms" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#0d0d2a,#040408);padding:0;flex-direction:column;">
+  <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
+    <button class="btn b-gray" style="padding:6px 12px;font-size:.8em;min-width:unset;" onclick="go('s-menu')">← Kembali</button>
+    <div style="flex:1;text-align:center;font-family:'Oswald',sans-serif;font-size:1em;color:#ffd700;letter-spacing:2px;">🎰 KASINO ONLINE</div>
+    <button class="btn b-gray" style="padding:6px 10px;font-size:.8em;min-width:unset;" onclick="cRefreshRooms()">⟳</button>
   </div>
+  <div style="padding:6px 0 2px;text-align:center;color:#666;font-size:.72em;">5 meja permanen tersedia 24 jam</div>
+  <div id="casino-room-list" style="display:flex;flex-direction:column;gap:9px;padding:10px 14px 20px;overflow-y:auto;flex:1;"></div>
 </div>
 
 <!-- CREATE (dipakai mabar & online) -->
@@ -2657,29 +2717,91 @@ function _onFbScript(ok){
   </div>
 </div>
 
-<!-- CREATE ONLINE -->
-<div id="s-create-online" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#0d3320,#050e05);">
-  <div class="panel">
-    <div class="panel-title">🏗️ BUAT ROOM ONLINE</div>
-    <div style="font-size:.82em;color:#aaa;">Jumlah Pemain</div>
-    <div class="num-row">
-      <button class="nb on" id="nbo2" onclick="setNumOnline(2)">2</button>
-      <button class="nb" id="nbo3" onclick="setNumOnline(3)">3</button>
-      <button class="nb" id="nbo4" onclick="setNumOnline(4)">4</button>
+<!-- KASINO ONLINE - Meja Kasino -->
+<div id="s-casino" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#061206,#020702);padding:0;flex-direction:column;overflow:hidden;">
+  <!-- Header -->
+  <div class="cs-hdr">
+    <span id="cs-rn" class="cs-rn">🎰 Meja 1</span>
+    <span id="cs-sb" class="cs-sb cs-st-WAITING">WAITING</span>
+    <button class="cs-xbtn" onclick="leaveCasino()">✕ Keluar</button>
+  </div>
+  <!-- Dealer + Oval -->
+  <div class="cs-tabwrap">
+    <div class="cs-dealer-row">
+      <div class="cs-dealer-badge">🎴 DEALER</div>
+      <div id="cs-deck" class="cs-deck-wrap"></div>
     </div>
-    <div class="bet-section-lbl">💰 Taruhan Per Pemain</div>
-    <div class="bet-row" id="bet-row-online">
-      <button class="bet-chip on" data-bet="0" onclick="setBet(0,'online')">🚫 Tanpa</button>
-      <button class="bet-chip" data-bet="50000" onclick="setBet(50000,'online')">50K</button>
-      <button class="bet-chip" data-bet="100000" onclick="setBet(100000,'online')">100K</button>
-      <button class="bet-chip" data-bet="500000" onclick="setBet(500000,'online')">500K</button>
-      <button class="bet-chip" data-bet="1000000" onclick="setBet(1000000,'online')">1JT</button>
-      <button class="bet-chip" data-bet="2500000" onclick="setBet(2500000,'online')">2.5JT</button>
-      <button class="bet-chip" data-bet="5000000" onclick="setBet(5000000,'online')">5JT</button>
-      <button class="bet-chip" data-bet="10000000" onclick="setBet(10000000,'online')">10JT</button>
+    <div class="cs-oval" id="cs-oval">
+      <!-- Seat 2 — top center -->
+      <div class="cs-seat cs-s2" id="cs-seat-2" onclick="doTakeSeat(2)"><div class="cs-si cs-empty" id="cs-si-2"></div></div>
+      <!-- Seat 1 — left -->
+      <div class="cs-seat cs-s1" id="cs-seat-1" onclick="doTakeSeat(1)"><div class="cs-si cs-empty" id="cs-si-1"></div></div>
+      <!-- Seat 3 — right -->
+      <div class="cs-seat cs-s3" id="cs-seat-3" onclick="doTakeSeat(3)"><div class="cs-si cs-empty" id="cs-si-3"></div></div>
+      <!-- Seat 4 — bottom center -->
+      <div class="cs-seat cs-s4" id="cs-seat-4" onclick="doTakeSeat(4)"><div class="cs-si cs-empty" id="cs-si-4"></div></div>
+      <!-- Pot -->
+      <div class="cs-pot" id="cs-pot">
+        <div id="cs-pot-money" class="cs-pot-money"></div>
+        <div id="cs-pot-lbl" class="cs-pot-lbl"></div>
+      </div>
+      <!-- Table cards -->
+      <div id="cs-tbl-cards" class="cs-tbl-cards"></div>
     </div>
-    <button class="btn b-green" onclick="doCreateOnline()">Buat Room ▶</button>
-    <button class="btn b-gray" onclick="go('s-online')">← Kembali</button>
+  </div>
+  <!-- Message -->
+  <div class="cs-msg" id="cs-msg">Klik kursi kosong untuk duduk</div>
+  <!-- Controls area -->
+  <div id="cs-ctrl" class="cs-ctrl">
+    <!-- Spectator panel -->
+    <div id="cs-spec" class="cs-panel">
+      <div style="color:#888;font-size:.78em;text-align:center;padding:6px 0;">👁 Mode Penonton — klik kursi kosong untuk duduk</div>
+    </div>
+    <!-- Bet panel -->
+    <div id="cs-bet-panel" class="cs-panel" style="display:none;flex-direction:column;gap:8px;">
+      <div id="cs-bet-info" class="cs-bet-info">💰 Pasang taruhan untuk memulai:</div>
+      <div style="display:flex;gap:7px;align-items:center;justify-content:center;">
+        <input type="number" id="cs-bet-inp" class="cs-inp" min="5000" max="10000000" placeholder="Min Rp 5.000" step="5000">
+        <button class="cs-btn cs-gold" onclick="doCasinoBet()">Pasang</button>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+        <button id="cs-call-btn" class="cs-btn cs-blue" onclick="doCasinoCall()" style="display:none;">CALL Rp 0</button>
+        <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Tinggalkan Kursi</button>
+      </div>
+      <div class="cs-quick-bets">
+        <button onclick="csQBet(5000)">5K</button>
+        <button onclick="csQBet(10000)">10K</button>
+        <button onclick="csQBet(20000)">20K</button>
+        <button onclick="csQBet(50000)">50K</button>
+        <button onclick="csQBet(100000)">100K</button>
+        <button onclick="csQBet(500000)">500K</button>
+        <button onclick="csQBet(1000000)">1JT</button>
+        <button onclick="csQBet(5000000)">5JT</button>
+        <button onclick="csQBet(10000000)">10JT</button>
+      </div>
+    </div>
+    <!-- Game panel (Capsa berlangsung) -->
+    <div id="cs-game-panel" class="cs-panel" style="display:none;">
+      <div id="cs-turn-lbl" class="cs-turn-lbl">⏳ Menunggu giliran...</div>
+      <div class="hand-zone" style="background:transparent;">
+        <div class="hand-scroll"><div class="hand-inner" id="cs-hand"></div></div>
+      </div>
+      <div class="actbar" id="cs-actbar">
+        <button class="btn b-green" onclick="doCasinoPlay()">▶ MAIN</button>
+        <button class="btn b-gray" onclick="doCasinoSkip()">⏭ LEWATI</button>
+      </div>
+    </div>
+    <!-- Round end panel -->
+    <div id="cs-end-panel" class="cs-panel" style="display:none;text-align:center;padding:10px 0;">
+      <div id="cs-end-msg" style="color:#ffd700;font-size:1.05em;font-weight:700;margin-bottom:4px;"></div>
+      <div style="color:#777;font-size:.75em;">Ronde berikutnya dimulai otomatis...</div>
+    </div>
+    <!-- Waiting next round -->
+    <div id="cs-wait-next" class="cs-panel" style="display:none;text-align:center;padding:10px 0;">
+      <div style="color:#f0a050;font-size:.85em;">⏳ Menunggu ronde selesai...</div>
+      <div style="color:#777;font-size:.72em;margin-top:3px;">Kamu ikut ronde berikutnya</div>
+      <button class="cs-btn cs-red" style="margin-top:8px;" onclick="doCasinoLeaveSeat()">Tinggalkan Kursi</button>
+    </div>
   </div>
 </div>
 
@@ -2696,18 +2818,6 @@ function _onFbScript(ok){
   </div>
 </div>
 
-<!-- JOIN ONLINE -->
-<div id="s-join-online" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#0d3320,#050e05);">
-  <div class="panel">
-    <div class="panel-title">🚪 GABUNG ONLINE</div>
-    <div style="font-size:.8em;color:#aaa;">Masukkan kode dari teman</div>
-    <input class="inp" id="inp-room-online" placeholder="ABC123" maxlength="6"
-      oninput="this.value=this.value.toUpperCase()"
-      style="letter-spacing:8px;font-size:1.35em;text-align:center;">
-    <button class="btn b-green" onclick="doJoinOnline()">Gabung ▶</button>
-    <button class="btn b-gray" onclick="go('s-online')">← Kembali</button>
-  </div>
-</div>
 
 <!-- LOBBY -->
 <div id="s-lobby" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#1a3a1a,#050e05);gap:10px;overflow-y:auto;padding-bottom:20px;">
@@ -3628,6 +3738,20 @@ function initSock(){
     const txt='🔍 Kartu P'+(d.pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
     toast(txt,'info');
   });
+  // Casino listeners
+  sock.on('casino_rooms',rooms=>renderCasinoRooms(rooms));
+  sock.on('casino_state',st=>{if(st){_csState=st;if(document.getElementById('s-casino')?.classList.contains('on'))renderCasino(st);}});
+  sock.on('casino_shuffle',data=>showCasinoShuffle(data?.numPlayers||2));
+  sock.on('casino_deal',()=>hideCasinoShuffle());
+  sock.on('casino_round_end',data=>{
+    hideCasinoShuffle();
+    const ep=document.getElementById('cs-end-panel');
+    const em=document.getElementById('cs-end-msg');
+    if(em)em.textContent=data?.message||'Ronde selesai!';
+    if(ep)ep.style.display='flex';
+    toast(data?.message||'Ronde selesai!','success');
+  });
+  sock.on('casino_error',data=>toast(data?.msg||'Error!'));
 }
 
 function go(id){
@@ -3649,6 +3773,8 @@ function go(id){
   if(id==='s-menu'&&typeof _updateSecretButtons==='function') _updateSecretButtons();
   // Kick listener
   if(id==='s-game'&&typeof _rtdbRoom!=='undefined'&&_rtdbRoom&&typeof _listenRoomKick==='function') _listenRoomKick(_rtdbRoom);
+  // Casino: re-render when entering casino screen
+  if(id==='s-casino'&&typeof _csState!=='undefined'&&_csState)setTimeout(()=>renderCasino(_csState),50);
   // Profile FAB: hanya di menu utama
   const fab = document.getElementById('profile-fab');
   if(fab){
@@ -4771,10 +4897,247 @@ async function doStart(){
 // ═══════════════════════════════════════════════════════════════
 //  OVERRIDE NAVIGASI & ACTIONS
 // ═══════════════════════════════════════════════════════════════
-function goOnline(){
-  if(!navigator.onLine||!fbRtdb){toast('❌ Tidak ada koneksi internet!');return;}
-  if(!currentUser||currentUser.isGuest){toast('❌ Login akun dulu untuk Mabar Online!');return;}
-  go('s-online');
+function goOnline(){go('s-menu');}// legacy stub
+
+// ═══════════════════════════════════════════════════════════════
+//  KASINO ONLINE SYSTEM
+// ═══════════════════════════════════════════════════════════════
+let _csState=null,_csMyRoom=null;
+
+function goKasino(){
+  if(!sock||!sock.connected)initSock();
+  sock.emit('casino_get_rooms');
+  go('s-casino-rooms');
+}
+function cRefreshRooms(){
+  if(!sock||!sock.connected)initSock();
+  sock.emit('casino_get_rooms');
+}
+function renderCasinoRooms(rooms){
+  const list=document.getElementById('casino-room-list');if(!list)return;
+  list.innerHTML='';
+  (rooms||[]).forEach(r=>{
+    const seated=r.seatedCount||0;
+    const potStr=r.totalPot>0?`💰 Pot: Rp ${csRp(r.totalPot)}`:'';
+    const betStr=r.highestBet>0?`Taruhan tertinggi: Rp ${csRp(r.highestBet)}`:'Belum ada taruhan';
+    const card=document.createElement('div');
+    card.className='cs-room-card';
+    card.innerHTML=`<div style="flex:1;"><div class="cs-rc-name">🎰 ${r.roomName}</div><div class="cs-rc-info">${seated}/${r.maxPlayers} pemain duduk · ${betStr}</div>${potStr?`<div class="cs-rc-pot">${potStr}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="cs-rc-status cs-st-${r.gameStatus}">${r.gameStatus}</div></div>`;
+    card.onclick=()=>joinCasinoRoom(r.roomID);
+    list.appendChild(card);
+  });
+}
+function joinCasinoRoom(roomID){
+  if(!sock||!sock.connected)initSock();
+  _csMyRoom=roomID;
+  sock.emit('casino_join',{roomID});
+  go('s-casino');
+}
+function leaveCasino(){
+  if(sock&&_csMyRoom)sock.emit('casino_leave');
+  _csMyRoom=null;_csState=null;
+  go('s-casino-rooms');
+  if(sock)sock.emit('casino_get_rooms');
+}
+function doTakeSeat(seatID){
+  if(!_csState)return;
+  if(_csState.mySeatID!=null){toast('Kamu sudah duduk di kursi '+_csState.mySeatID+'!');return;}
+  const seat=(_csState.seats||[]).find(s=>s.seatID===seatID);
+  if(!seat||seat.seatStatus!=='EMPTY'){toast('Kursi sudah terisi!');return;}
+  const name=gname()||currentUser?.displayName||'Pemain';
+  sock.emit('casino_take_seat',{seatID,playerName:name});
+}
+function doCasinoLeaveSeat(){sock.emit('casino_leave_seat');}
+function csQBet(amount){const inp=document.getElementById('cs-bet-inp');if(inp)inp.value=amount;}
+function doCasinoBet(){
+  const inp=document.getElementById('cs-bet-inp');
+  const amt=parseInt(inp?.value||'0');
+  if(!amt||amt<5000){toast('Taruhan minimal Rp 5.000');return;}
+  sock.emit('casino_place_bet',{amount:amt});
+}
+function doCasinoCall(){sock.emit('casino_call');}
+function doCasinoPlay(){
+  if(!_csState?.game)return;
+  const g=_csState.game;
+  if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
+  const sel=[...document.querySelectorAll('#cs-hand .card.selected')].map(el=>({suit:el.dataset.suit,value:el.dataset.value}));
+  if(!sel.length){toast('Pilih kartu dulu!');return;}
+  sock.emit('casino_play_cards',{cards:sel});
+}
+function doCasinoSkip(){
+  if(!_csState?.game)return;
+  const g=_csState.game;
+  if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
+  sock.emit('casino_skip_turn');
+}
+function csRp(v){
+  if(v==null)return'?';
+  if(v>=1000000)return(v/1000000).toFixed(1).replace('.0','')+'JT';
+  if(v>=1000)return(v/1000).toFixed(0)+'K';
+  return v+'';
+}
+function renderCasino(st){
+  if(!st)return;
+  // Header
+  const rn=document.getElementById('cs-rn');if(rn)rn.textContent='🎰 '+(st.roomName||'');
+  const sb=document.getElementById('cs-sb');
+  if(sb){sb.textContent=st.gameStatus||'';sb.className='cs-sb cs-st-'+(st.gameStatus||'WAITING');}
+  // Pot
+  renderCasinoPot(st.totalPot||0);
+  // Seats
+  for(let i=1;i<=4;i++){
+    const sd=(st.seats||[]).find(s=>s.seatID===i);
+    renderCasinoSeat(i,sd,st);
+  }
+  // Panels
+  const isSitting=st.mySeatID!=null;
+  const isWaiting=st.gameStatus==='WAITING';
+  const isPlaying=st.gameStatus==='PLAYING';
+  const isRoundEnd=st.gameStatus==='ROUND_END';
+  const myStatus=isSitting?(st.seats||[]).find(s=>s.seatID===st.mySeatID)?.seatStatus:null;
+  const isWaitingNext=myStatus==='WAITING_NEXT_ROUND';
+  const spec=document.getElementById('cs-spec');
+  const betP=document.getElementById('cs-bet-panel');
+  const gameP=document.getElementById('cs-game-panel');
+  const endP=document.getElementById('cs-end-panel');
+  const waitNextP=document.getElementById('cs-wait-next');
+  if(spec)spec.style.display=(!isSitting&&!isRoundEnd)?'flex':'none';
+  if(betP)betP.style.display=(isSitting&&isWaiting&&!isWaitingNext)?'flex':'none';
+  if(waitNextP)waitNextP.style.display=isWaitingNext?'flex':'none';
+  if(endP)endP.style.display=isRoundEnd?'flex':'none';
+  if(gameP)gameP.style.display=(isSitting&&isPlaying&&!isWaitingNext)?'block':'none';
+  // Call button
+  const cb=document.getElementById('cs-call-btn');
+  if(cb&&isSitting&&isWaiting){
+    const hb=st.highestBet||0;const mb=st.myBet||0;
+    if(hb>0&&mb<hb){cb.style.display='inline-block';cb.textContent='CALL Rp '+csRp(hb);}
+    else cb.style.display='none';
+  }else if(cb)cb.style.display='none';
+  // Bet info
+  const bi=document.getElementById('cs-bet-info');
+  if(bi&&isSitting&&isWaiting){
+    const hb=st.highestBet||0;const mb=st.myBet||0;
+    if(mb>0&&mb===hb)bi.textContent='✅ Taruhan terpasang Rp '+csRp(mb)+' — menunggu pemain lain...';
+    else if(mb>0&&mb<hb)bi.textContent='⚡ Perlu CALL! Taruhan tertinggi: Rp '+csRp(hb);
+    else bi.textContent='💰 Pasang taruhan (min Rp 5.000):';
+  }
+  // Message bar
+  const msg=document.getElementById('cs-msg');
+  if(msg){
+    if(!isSitting&&isWaiting)msg.textContent='👁 Penonton — klik kursi kosong untuk duduk';
+    else if(isSitting&&isWaiting&&isWaitingNext)msg.textContent='⏳ Menunggu ronde selesai sebelum ikut main';
+    else if(isSitting&&isWaiting){
+      const mb=st.myBet||0;const hb=st.highestBet||0;
+      if(mb===0)msg.textContent='💰 Pasang taruhanmu untuk memulai permainan';
+      else if(mb<hb)msg.textContent='⚡ CALL diperlukan — taruhan tertinggi Rp '+csRp(hb);
+      else msg.textContent='✅ Taruhan terpasang — menunggu pemain lain...';
+    }else if(isPlaying&&st.game){
+      const g=st.game;const myPidx=g.my_player_idx;
+      if(!isSitting)msg.textContent='👁 Penonton';
+      else if(isWaitingNext)msg.textContent='⏳ Menunggu ronde ini selesai...';
+      else if(myPidx!=null&&g.current_player===myPidx)msg.textContent='🟢 GILIRANMU — Pilih kartu!';
+      else{
+        const curSeatID=st.playerToSeat?.[g.current_player];
+        const curSeat=curSeatID!=null?(st.seats||[]).find(s=>s.seatID===curSeatID):null;
+        msg.textContent=curSeat?`⏳ Giliran ${curSeat.playerName||'Pemain'}`:'⏳ Menunggu giliran...';
+      }
+    }else if(isRoundEnd){
+      msg.textContent='🏆 Ronde selesai!';
+    }
+  }
+  // Game panel content
+  if(isSitting&&isPlaying&&st.game){
+    const g=st.game;const myPidx=g.my_player_idx;const isMyTurn=myPidx!=null&&g.current_player===myPidx;
+    const tl=document.getElementById('cs-turn-lbl');
+    if(tl)tl.textContent=isMyTurn?'🟢 GILIRANMU — Pilih kartu!':'⏳ Menunggu giliran...';
+    if(g.hand&&g.hand.length>0)renderCasinoHand(g.hand);
+    renderCasinoTableCards(g.table_cards||[]);
+    const ab=document.getElementById('cs-actbar');
+    if(ab)ab.style.opacity=isMyTurn?'1':'.4';
+    if(g.game_over&&gameP)gameP.style.display='none';
+  }else{
+    renderCasinoTableCards([]);
+  }
+}
+function renderCasinoSeat(seatID,seat,st){
+  const si=document.getElementById('cs-si-'+seatID);if(!si)return;
+  const onClick=document.getElementById('cs-seat-'+seatID);
+  if(!seat||seat.seatStatus==='EMPTY'){
+    si.className='cs-si cs-empty';
+    si.innerHTML=`<div class="cs-sn">Kursi ${seatID}</div><div class="cs-shint">+ Duduk</div>`;
+    if(onClick)onClick.style.cursor='pointer';
+    return;
+  }
+  const isMe=seat.seatID===st.mySeatID;
+  const g=st.game;
+  let isTurn=false;
+  if(g&&st.gameStatus==='PLAYING'){
+    const spIdx=st.seatToPlayer?.[seat.seatID];
+    if(spIdx!=null&&g.current_player===spIdx&&(g.active_players||[]).includes(spIdx))isTurn=true;
+  }
+  let cls='cs-si cs-'+seat.seatStatus.toLowerCase();
+  if(isMe)cls+=' cs-mine';
+  if(isTurn)cls+=' cs-active-turn';
+  si.className=cls;
+  if(onClick)onClick.style.cursor=(seat.seatStatus==='EMPTY')?'pointer':'default';
+  const betStr=seat.playerBet>0?`<div class="cs-sbet">🎯 Rp ${csRp(seat.playerBet)}</div>`:'';
+  const cardStr=(seat.seatStatus==='PLAYING'&&seat.cardCount>0)?`<div class="cs-scards">${seat.cardCount} 🃏</div>`:'';
+  const waitStr=seat.seatStatus==='WAITING_NEXT_ROUND'?`<div class="cs-shint">⏳ ronde depan</div>`:'';
+  const money=isMe&&st.myMoney!=null?st.myMoney:seat.playerMoney;
+  si.innerHTML=`<div class="cs-sn">${isMe?'⭐ ':''}${seat.playerName||'?'}</div><div class="cs-sm">Rp ${csRp(money)}</div>${betStr}${cardStr}${waitStr}`;
+}
+function renderCasinoPot(totalPot){
+  const c=document.getElementById('cs-pot-money');
+  const lbl=document.getElementById('cs-pot-lbl');
+  if(!c)return;
+  if(totalPot<=0){c.innerHTML='';if(lbl)lbl.textContent='';return;}
+  let rem=totalPot;
+  const gep=Math.floor(rem/1000000);rem%=1000000;
+  const b100=Math.floor(rem/100000);rem%=100000;
+  const b50=Math.floor(rem/50000);rem%=50000;
+  const b20=Math.floor(rem/20000);rem%=20000;
+  const b10=Math.floor(rem/10000);rem%=10000;
+  const b5=Math.floor(rem/5000);
+  const MAX=20;let obj=0;
+  c.innerHTML='';
+  function addItems(count,cls,lbl_){
+    const show=Math.min(count,MAX-obj);
+    for(let i=0;i<show;i++){const el=document.createElement('div');el.className=cls+' money-anim';if(lbl_){const l=document.createElement('span');l.className='gepok-lbl';l.textContent=lbl_;el.appendChild(l);}c.appendChild(el);}
+    if(count>show&&show>0){const last=c.lastElementChild;if(last){const ll=last.querySelector('.gepok-lbl');if(ll)ll.textContent='×'+count;}}
+    obj+=show;
+  }
+  addItems(gep,'gepok','');
+  if(obj<MAX)addItems(b100,'lembar lembar-100k','');
+  if(obj<MAX)addItems(b50,'lembar lembar-50k','');
+  if(obj<MAX)addItems(b20,'lembar lembar-20k','');
+  if(obj<MAX)addItems(b10,'lembar lembar-10k','');
+  if(obj<MAX)addItems(b5,'lembar lembar-5k','');
+  if(lbl)lbl.textContent='POT: Rp '+csRp(totalPot);
+}
+function renderCasinoHand(cards){
+  const h=document.getElementById('cs-hand');if(!h)return;
+  h.innerHTML='';
+  (cards||[]).forEach((c,i)=>{
+    const el=makeCardEl(c,false,false,i*30);
+    el.dataset.suit=c.suit;el.dataset.value=c.value;
+    el.addEventListener('click',function(){this.classList.toggle('selected');});
+    h.appendChild(el);
+  });
+}
+function renderCasinoTableCards(cards){
+  const el=document.getElementById('cs-tbl-cards');if(!el)return;
+  el.innerHTML='';
+  (cards||[]).forEach(c=>el.appendChild(makeCardEl(c,true,false)));
+}
+function showCasinoShuffle(n){
+  let ov=document.getElementById('cs-shuffle-ov');
+  if(!ov){ov=document.createElement('div');ov.id='cs-shuffle-ov';
+    ov.innerHTML=`<div class="cs-shufl-deck"></div><div style="color:#ffd700;font-size:1.1em;font-weight:700;font-family:'Oswald',sans-serif;">🃏 Dealer mengocok kartu...</div><div style="color:#aaa;font-size:.8em;">${n} pemain siap bermain</div>`;
+    document.body.appendChild(ov);}
+  ov.classList.add('active');
+}
+function hideCasinoShuffle(){
+  const ov=document.getElementById('cs-shuffle-ov');if(ov)ov.classList.remove('active');
 }
 
 // doPlay — lihat tutorial section di atas

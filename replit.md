@@ -43,6 +43,18 @@ The app runs with `node server.js`. No build step required.
 - **Give Reward** — Kirim diamond ke player by UID
 - **Global Message** — Broadcast pesan ke semua player yang sedang online, dengan pilihan durasi
 
+## Kasino Online System
+
+- **5 Meja Permanen** — `CASINO_1` s/d `CASINO_5` ("Meja 1"–"Meja 5") dibuat saat server start, tidak pernah dihapus
+- **4 Kursi per Meja** — `cs-s1` (kiri), `cs-s2` (atas), `cs-s3` (kanan), `cs-s4` (bawah), dealer badge di atas
+- **Call-Based Betting** — Min taruhan Rp 5.000, maks Rp 10.000.000 per ronde; semua pemain harus CALL taruhan tertinggi sebelum game mulai
+- **Starting Money** — Rp 5.000.000 per pemain per sesi kasino
+- **Spectator Mode** — Pemain yang join saat game sedang berjalan menunggu di `WAITING_NEXT_ROUND`, bisa nonton
+- **Animasi Pot** — Uang (gepok, lembaran 100K/50K/20K/10K/5K) muncul di tengah meja, max 20 objek
+- **Dealer NPC** — Badge "🎰 DEALER" di atas meja (bukan pemain)
+- **Shuffle Overlay** — Fullscreen overlay `#cs-shuffle-ov` saat dealer mengocok kartu
+- **Socket Events**: `casino_get_rooms`, `casino_join`, `casino_take_seat`, `casino_leave_seat`, `casino_leave`, `casino_place_bet`, `casino_call`, `casino_play_cards`, `casino_skip_turn`
+
 ## Taruhan (Betting) System
 
 - **Bet Selector** — Saat buat room (Bot, Mabar Privat, Online), pilih taruhan per pemain: Tanpa, 50K, 100K, 500K, 1JT, 2.5JT, 5JT, 10JT

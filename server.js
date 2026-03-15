@@ -461,6 +461,109 @@ async function botThink(roomId){
   }
 }
 
+// ══════════════════════════════════════════════
+//  CASINO SYSTEM — Permanent Rooms
+// ══════════════════════════════════════════════
+const CASINO_MIN_BET=5000,CASINO_MAX_BET=10000000,CASINO_START_MONEY=5000000;
+const casinoRooms={},casinoSidRoom={};
+function _mkCR(id,name){
+  return{roomID:id,roomName:name,maxPlayers:4,gameStatus:'WAITING',highestBet:0,totalPot:0,
+    seatToPlayer:{},playerToSeat:{},gameInstance:null,
+    seats:Array.from({length:4},(_,i)=>({seatID:i+1,playerID:null,socketID:null,
+      playerName:null,playerMoney:CASINO_START_MONEY,playerBet:0,seatStatus:'EMPTY',cards:[]}))};
+}
+for(let i=1;i<=5;i++)casinoRooms['CASINO_'+i]=_mkCR('CASINO_'+i,'Meja '+i);
+
+function _cPub(r){
+  return{roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,
+    highestBet:r.highestBet,totalPot:r.totalPot,
+    seatToPlayer:r.seatToPlayer||{},playerToSeat:r.playerToSeat||{},
+    seats:r.seats.map(s=>({seatID:s.seatID,playerName:s.playerName,
+      playerMoney:s.playerMoney,playerBet:s.playerBet,
+      seatStatus:s.seatStatus,cardCount:s.cards.length}))};
+}
+function _cFor(r,sid){
+  const st=_cPub(r);
+  const ms=r.seats.find(s=>s.socketID===sid);
+  if(ms){st.mySeatID=ms.seatID;st.myCards=ms.cards;st.myMoney=ms.playerMoney;st.myBet=ms.playerBet;}
+  if(r.gameInstance&&r.gameStatus==='PLAYING'){
+    const gs=r.gameInstance;const myPidx=ms!=null?r.seatToPlayer[ms.seatID]:null;
+    st.game={current_player:gs.currentPlayer,
+      table_cards:gs.tableCards.map(c=>cDict(c.suit,c.value)),
+      table_type:gs.tableType||'',rankings:gs.rankings,
+      active_players:gs.activePlayers,stopped_players:[...gs.stoppedPlayers],
+      game_over:gs.gameOver,message:gs.message||'',phase:gs.phase,
+      opener_idx:gs.openerIdx,opening_done:[...gs.openingDone],
+      decoy_cards:gs.decoyCards.map(c=>cDict(c.suit,c.value)),
+      opening_table:gs.openingTable.map(c=>cDict(c.suit,c.value)),
+      hand_counts:gs.hands.map(h=>h.length),
+      hand:myPidx!=null?gs.hands[myPidx].map(c=>cDict(c.suit,c.value)):[],
+      my_player_idx:myPidx!=null?myPidx:null};
+  }
+  return st;
+}
+function _cBcast(roomID){
+  const r=casinoRooms[roomID];if(!r)return;
+  for(const[sid,rid] of Object.entries(casinoSidRoom)){
+    if(rid!==roomID)continue;
+    const sck=io.sockets.sockets.get(sid);if(!sck)continue;
+    sck.emit('casino_state',_cFor(r,sid));
+  }
+}
+function _cEmptySeat(seat){
+  seat.playerID=null;seat.socketID=null;seat.playerName=null;
+  seat.playerBet=0;seat.seatStatus='EMPTY';seat.cards=[];
+}
+async function _cStart(roomID){
+  const r=casinoRooms[roomID];if(!r)return;
+  const rdy=r.seats.filter(s=>s.seatStatus==='SITTING'&&s.playerBet===r.highestBet&&r.highestBet>0);
+  if(rdy.length<2)return;
+  r.gameStatus='PLAYING';
+  r.totalPot=rdy.reduce((sum,s)=>sum+s.playerBet,0);
+  rdy.forEach(s=>{s.playerMoney-=s.playerBet;s.seatStatus='PLAYING';});
+  r.seats.forEach(s=>{if(s.seatStatus==='SITTING')s.seatStatus='WAITING_NEXT_ROUND';});
+  r.seatToPlayer={};r.playerToSeat={};
+  rdy.forEach((seat,pidx)=>{r.seatToPlayer[seat.seatID]=pidx;r.playerToSeat[pidx]=seat.seatID;});
+  io.to('casino_'+roomID).emit('casino_shuffle',{roomID,numPlayers:rdy.length});
+  _cBcast(roomID);
+  await sleep(2800);
+  r.gameInstance=new GameState(rdy.length);
+  r.gameInstance.startGame();
+  rdy.forEach((seat,pidx)=>{seat.cards=r.gameInstance.hands[pidx].map(c=>cDict(c.suit,c.value));});
+  io.to('casino_'+roomID).emit('casino_deal',{roomID,seats:rdy.map(s=>s.seatID)});
+  await sleep(1500);
+  _cBcast(roomID);
+}
+function _cCheckReady(roomID){
+  const r=casinoRooms[roomID];if(!r||r.gameStatus!=='WAITING')return;
+  const seated=r.seats.filter(s=>s.seatStatus==='SITTING');
+  if(seated.length<2||r.highestBet<=0)return;
+  if(seated.every(s=>s.playerBet===r.highestBet))_cStart(roomID);
+}
+function _cGameOver(roomID){
+  const r=casinoRooms[roomID];if(!r||!r.gameInstance)return;
+  r.gameStatus='ROUND_END';
+  let winnerSeatID=null,winnerName='?';
+  const rnk=r.gameInstance.rankings;
+  if(rnk.length>0){
+    const wSeatID=r.playerToSeat[rnk[0]];
+    if(wSeatID!=null){
+      const wSeat=r.seats.find(s=>s.seatID===wSeatID);
+      if(wSeat){winnerSeatID=wSeatID;winnerName=wSeat.playerName||'?';wSeat.playerMoney+=r.totalPot;}
+    }
+  }
+  io.to('casino_'+roomID).emit('casino_round_end',{roomID,winnerSeatID,winnerName,totalPot:r.totalPot,
+    message:`🏆 ${winnerName} menang pot Rp ${r.totalPot.toLocaleString('id-ID')}!`});
+  _cBcast(roomID);
+  setTimeout(()=>{
+    r.gameStatus='WAITING';r.highestBet=0;r.totalPot=0;r.gameInstance=null;
+    r.seatToPlayer={};r.playerToSeat={};
+    r.seats.forEach(s=>{s.playerBet=0;s.cards=[];
+      if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND')s.seatStatus='SITTING';});
+    _cBcast(roomID);
+  },6000);
+}
+
 // ── EVENTS ──
 io.on('connection',socket=>{
   console.log(`[+] ${socket.id}`);
@@ -471,6 +574,20 @@ io.on('connection',socket=>{
       const r=rooms[rid];const pidx=r.players[socket.id];
       delete r.players[socket.id];delete sidRoom[socket.id];
       io.to(rid).emit('player_left',{message:`Pemain ${r.playerNames[pidx]||pidx+1} keluar!`});
+    }
+    const cRid=casinoSidRoom[socket.id];
+    if(cRid&&casinoRooms[cRid]){
+      const cr=casinoRooms[cRid];
+      const seat=cr.seats.find(s=>s.socketID===socket.id);
+      if(seat){
+        _cEmptySeat(seat);
+        if(cr.gameStatus==='PLAYING'){
+          const playing=cr.seats.filter(s=>s.seatStatus==='PLAYING').length;
+          if(playing<2)setTimeout(()=>_cGameOver(cRid),500);
+        }
+        _cBcast(cRid);
+      }
+      delete casinoSidRoom[socket.id];
     }
     console.log(`[-] ${socket.id}`);
   });
@@ -582,6 +699,107 @@ io.on('connection',socket=>{
     if(pidx==null)return;
     const hand=(r.game.hands[pidx]||[]).map(c=>cDict(c.suit,c.value));
     socket.emit('cheat_scan_result',{pidx,hand});
+  });
+
+  // ── CASINO EVENTS ──
+  socket.on('casino_get_rooms',()=>{
+    socket.emit('casino_rooms',Object.values(casinoRooms).map(r=>({
+      roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,
+      seatedCount:r.seats.filter(s=>s.seatStatus!=='EMPTY').length,
+      maxPlayers:r.maxPlayers,totalPot:r.totalPot,highestBet:r.highestBet})));
+  });
+  socket.on('casino_join',(data)=>{
+    const rID=data?.roomID;
+    if(!casinoRooms[rID])return socket.emit('casino_error',{msg:'Room tidak ada!'});
+    const prev=casinoSidRoom[socket.id];
+    if(prev&&prev!==rID){
+      socket.leave('casino_'+prev);
+      const pr=casinoRooms[prev];
+      if(pr){const s=pr.seats.find(s=>s.socketID===socket.id);if(s){_cEmptySeat(s);_cBcast(prev);}}
+      delete casinoSidRoom[socket.id];
+    }
+    casinoSidRoom[socket.id]=rID;
+    socket.join('casino_'+rID);
+    socket.emit('casino_state',_cFor(casinoRooms[rID],socket.id));
+  });
+  socket.on('casino_leave',()=>{
+    const rID=casinoSidRoom[socket.id];if(!rID)return;
+    const r=casinoRooms[rID];
+    if(r){const s=r.seats.find(s=>s.socketID===socket.id);if(s){_cEmptySeat(s);_cBcast(rID);}}
+    socket.leave('casino_'+rID);
+    delete casinoSidRoom[socket.id];
+  });
+  socket.on('casino_take_seat',(data)=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    const sNum=parseInt(data?.seatID);
+    const seat=r.seats.find(s=>s.seatID===sNum);
+    if(!seat||seat.seatStatus!=='EMPTY')return socket.emit('casino_error',{msg:'Kursi sudah terisi!'});
+    const old=r.seats.find(s=>s.socketID===socket.id);if(old)_cEmptySeat(old);
+    seat.playerID=socket.id;seat.socketID=socket.id;
+    seat.playerName=data?.playerName||'Pemain';
+    seat.playerMoney=CASINO_START_MONEY;seat.playerBet=0;
+    seat.seatStatus=(r.gameStatus==='WAITING'||r.gameStatus==='ROUND_END')?'SITTING':'WAITING_NEXT_ROUND';
+    _cBcast(rID);
+  });
+  socket.on('casino_leave_seat',()=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    const seat=r.seats.find(s=>s.socketID===socket.id);if(!seat)return;
+    if(r.gameStatus==='PLAYING'&&seat.seatStatus==='PLAYING')
+      return socket.emit('casino_error',{msg:'Tidak bisa keluar saat game berlangsung!'});
+    _cEmptySeat(seat);
+    r.highestBet=Math.max(0,...r.seats.map(s=>s.playerBet));
+    _cBcast(rID);
+  });
+  socket.on('casino_place_bet',(data)=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    if(r.gameStatus!=='WAITING')return socket.emit('casino_error',{msg:'Taruhan hanya saat WAITING!'});
+    const seat=r.seats.find(s=>s.socketID===socket.id);
+    if(!seat||seat.seatStatus!=='SITTING')return socket.emit('casino_error',{msg:'Kamu belum duduk!'});
+    const amt=parseInt(data?.amount)||0;
+    if(amt<CASINO_MIN_BET)return socket.emit('casino_error',{msg:'Min taruhan Rp 5.000'});
+    if(amt>CASINO_MAX_BET)return socket.emit('casino_error',{msg:'Max taruhan Rp 10.000.000'});
+    if(amt>seat.playerMoney)return socket.emit('casino_error',{msg:'Uang tidak cukup!'});
+    seat.playerBet=amt;
+    if(amt>r.highestBet)r.highestBet=amt;
+    _cBcast(rID);_cCheckReady(rID);
+  });
+  socket.on('casino_call',()=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    if(r.gameStatus!=='WAITING')return;
+    const seat=r.seats.find(s=>s.socketID===socket.id);
+    if(!seat||seat.seatStatus!=='SITTING')return;
+    if(r.highestBet<=0)return socket.emit('casino_error',{msg:'Belum ada taruhan!'});
+    if(r.highestBet>seat.playerMoney)return socket.emit('casino_error',{msg:'Uang tidak cukup!'});
+    seat.playerBet=r.highestBet;
+    _cBcast(rID);_cCheckReady(rID);
+  });
+  socket.on('casino_play_cards',(data)=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    if(r.gameStatus!=='PLAYING'||!r.gameInstance)return;
+    const seat=r.seats.find(s=>s.socketID===socket.id);if(!seat)return;
+    const pidx=r.seatToPlayer[seat.seatID];if(pidx===undefined)return;
+    const cards=(data?.cards||[]).map(c=>({suit:c.suit,value:c.value}));
+    const[ok,msg]=r.gameInstance.playCards(pidx,cards);
+    if(!ok)return socket.emit('casino_error',{msg});
+    seat.cards=r.gameInstance.hands[pidx].map(c=>cDict(c.suit,c.value));
+    if(r.gameInstance.gameOver){_cBcast(rID);setTimeout(()=>_cGameOver(rID),800);}
+    else _cBcast(rID);
+  });
+  socket.on('casino_skip_turn',()=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    if(r.gameStatus!=='PLAYING'||!r.gameInstance)return;
+    const seat=r.seats.find(s=>s.socketID===socket.id);if(!seat)return;
+    const pidx=r.seatToPlayer[seat.seatID];if(pidx===undefined)return;
+    const[ok,msg]=r.gameInstance.skipTurn(pidx);
+    if(!ok)return socket.emit('casino_error',{msg});
+    if(r.gameInstance.gameOver){_cBcast(rID);setTimeout(()=>_cGameOver(rID),800);}
+    else _cBcast(rID);
   });
 });
 
