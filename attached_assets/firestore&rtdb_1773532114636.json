@@ -166,6 +166,11 @@ service cloud.firestore {
 
 
 
+
+================================================================================
+REALTIME DATABASE (RTDB) RULES — tempel di Firebase Console > Realtime Database > Rules
+================================================================================
+
 {
   "rules": {
     "rooms": {
@@ -216,10 +221,21 @@ service cloud.firestore {
         }
       }
     },
-"global_message": {
-  ".read": "auth != null",
-  ".write": "auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2'"
-},
+
+    "global_message": {
+      ".read": "auth != null",
+      ".write": "auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2'"
+    },
+
+    "casino": {
+      "rooms": {
+        "$roomId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+
     "users": {
       "$uid": {
         "online": {
