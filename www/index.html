@@ -3686,9 +3686,12 @@ function buildPips(val, sym){
 })();
 
 // ══ SOCKET ══
+// URL server untuk APK — ganti dengan URL deployed Replit kamu setelah deploy
+const APK_SERVER_URL = 'https://GANTI_DENGAN_URL_DEPLOYED_KAMU.replit.app';
+function _isApkEnv(){return !!(window.Capacitor&&window.Capacitor.isNative)||window.location.protocol==='capacitor:';}
 function initSock(){
   if(sock)sock.disconnect();
-  sock=io();
+  sock=_isApkEnv()?io(APK_SERVER_URL):io();
   sock.on('room_created',d=>{
     myIdx=d.player_idx;myRoom=d.room_id;isHost=true;
     document.getElementById('lob-code').textContent=d.room_id;
@@ -4915,13 +4918,21 @@ function goOnline(){go('s-menu');}// legacy stub
 let _csState=null,_csMyRoom=null;
 
 function goKasino(){
-  if(!sock||!sock.connected)initSock();
-  sock.emit('casino_get_rooms');
   go('s-casino-rooms');
+  if(!sock||!sock.connected){
+    initSock();
+    sock.once('connect',()=>sock.emit('casino_get_rooms'));
+  } else {
+    sock.emit('casino_get_rooms');
+  }
 }
 function cRefreshRooms(){
-  if(!sock||!sock.connected)initSock();
-  sock.emit('casino_get_rooms');
+  if(!sock||!sock.connected){
+    initSock();
+    sock.once('connect',()=>sock.emit('casino_get_rooms'));
+  } else {
+    sock.emit('casino_get_rooms');
+  }
 }
 function renderCasinoRooms(rooms){
   const list=document.getElementById('casino-room-list');if(!list)return;
