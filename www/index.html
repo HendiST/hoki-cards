@@ -2779,6 +2779,7 @@ function _onFbScript(ok){
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px;">
         <button class="cs-btn cs-bot-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;display:none;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
         <button class="cs-btn cs-bot-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;display:none;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
+        <button class="cs-btn cs-owner-btn" style="background:rgba(255,150,0,.22);border:1px solid rgba(255,150,0,.4);color:#ffb060;display:none;" onclick="doResetCasino()">🔄 Reset Meja</button>
       </div>
     </div>
     <!-- Bet panel -->
@@ -2814,6 +2815,10 @@ function _onFbScript(ok){
       <div id="cs-turn-lbl" class="cs-turn-lbl" style="padding:6px 10px 2px;">⏳ Menunggu giliran...</div>
       <div class="hand-zone" style="background:transparent;">
         <div class="hand-scroll" style="touch-action:pan-x;"><div class="hand-inner" id="cs-hand"></div></div>
+      </div>
+      <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:4px 8px 6px;">
+        <button class="cs-btn cs-red" style="font-size:.7em;padding:5px 12px;" onclick="doForfeitCasino()">🏳 Keluar Kursi (Forfeit)</button>
+        <button class="cs-btn cs-owner-btn" style="background:rgba(255,150,0,.22);border:1px solid rgba(255,150,0,.4);color:#ffb060;font-size:.7em;padding:5px 12px;display:none;" onclick="doResetCasino()">🔄 Reset Meja</button>
       </div>
     </div>
     <!-- Round end panel -->
@@ -5142,25 +5147,21 @@ function _csListenRoom(roomID){
     if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
     // Host: trigger bots saat PLAYING
     if(_csIsHost&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
-    // Auto-claim host jika host pergi (dan saya sedang duduk)
+    // Auto-claim host — siapa saja yang masuk room bisa jadi host jika belum ada
     if(!r.hostUID&&_csMyUID&&!_csIsHost){
-      const seatsArr=Object.values(r.seats||{});
-      const iAmSeated=seatsArr.some(s=>s.playerUID===_csMyUID&&s.seatStatus!=='EMPTY');
-      if(iAmSeated){
-        const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
-        hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(res=>{
-          if(res.committed){
-            _csIsHost=true;hostRef.onDisconnect().set(null);
-            // Rebuild local game jika sedang PLAYING
-            if(r.gameStatus==='PLAYING'&&r.game&&!r.game.gameOver){
-              _csLocalGame=_csRebuildGame(r);
-              _csBotSeats=new Set();
-              Object.values(r.seats||{}).forEach(s=>{if(s.isBot&&s.seatStatus==='PLAYING'){const pidx=r.seatToPlayer?.[s.seatID];if(pidx!=null)_csBotSeats.add(Number(pidx));}});
-            }
-            toast('Kamu jadi host!','info');
+      const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
+      hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(res=>{
+        if(res.committed){
+          _csIsHost=true;hostRef.onDisconnect().set(null);
+          // Rebuild local game jika sedang PLAYING
+          if(r.gameStatus==='PLAYING'&&r.game&&!r.game.gameOver){
+            _csLocalGame=_csRebuildGame(r);
+            _csBotSeats=new Set();
+            Object.values(r.seats||{}).forEach(s=>{if(s.isBot&&s.seatStatus==='PLAYING'){const pidx=r.seatToPlayer?.[s.seatID];if(pidx!=null)_csBotSeats.add(Number(pidx));}});
           }
-        });
-      }
+          toast('Kamu jadi owner meja!','info');
+        }
+      });
     }
     // Deteksi PLAYING tapi semua kursi kosong → reset paksa
     if(r.gameStatus==='PLAYING'&&_csMyUID){
@@ -5169,8 +5170,8 @@ function _csListenRoom(roomID){
         fbRtdb.ref('casino/rooms/'+_csMyRoom).update({gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null});
       }
     }
-    // Tampilkan/sembunyikan tombol bot berdasarkan status host
-    document.querySelectorAll('.cs-bot-btn').forEach(b=>b.style.display=_csIsHost?'':'none');
+    // Tampilkan/sembunyikan tombol owner berdasarkan status host
+    document.querySelectorAll('.cs-bot-btn,.cs-owner-btn').forEach(b=>b.style.display=_csIsHost?'':'none');
   });
 }
 function _csBuildState(r){
@@ -5302,11 +5303,14 @@ function doCasinoLeaveSeat(){_csLeaveSeat(false);}
 function _csLeaveSeat(force){
   if(!_csMyRoom||!fbRtdb||!_csState)return;
   const mySeat=_csState.mySeatID;if(mySeat==null)return;
+  const isPlayingNow=_csState.gameStatus==='PLAYING';
   const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+mySeat);
   seatRef.onDisconnect().cancel();
   seatRef.update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});
   _csStopBetTimer();
-  if(_csIsHost){
+  // Jika game sedang berlangsung dan saya host, tetap jadi host (spectator-host)
+  // agar bot dan giliran tetap dikelola. Host baru dilepas setelah game selesai.
+  if(_csIsHost&&!isPlayingNow){
     _csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
     const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
     hostRef.onDisconnect().cancel();hostRef.set(null);
@@ -5492,6 +5496,28 @@ async function doAddCasinoBot(){
 function doRemoveCasinoBots(){
   if(!_csMyRoom||!fbRtdb||!_csState)return;
   (_csState.seats||[]).forEach(s=>{if((s.playerUID||'').startsWith('bot_')||s.playerName?.includes('🤖')){fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+s.seatID).update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});}});
+}
+async function doResetCasino(){
+  if(!_csIsHost||!_csMyRoom||!fbRtdb){toast('Hanya owner yang bisa reset!');return;}
+  if(!confirm('Reset pertandingan? Semua chip dikembalikan ke awal ('+csRp(CASINO_START_MONEY)+').'))return;
+  const upd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null,betTimerExpiresAt:0};
+  (_csState?.seats||[]).forEach(s=>{
+    if(s.seatStatus!=='EMPTY'){
+      upd['seats/'+s.seatID+'/playerMoney']=CASINO_START_MONEY;
+      upd['seats/'+s.seatID+'/playerBet']=0;
+      upd['seats/'+s.seatID+'/cardCount']=0;
+      upd['seats/'+s.seatID+'/seatStatus']='SITTING';
+    }
+  });
+  _csLocalGame=null;_csBotSeats=new Set();
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(upd);
+  toast('Pertandingan direset! Semua chip dikembalikan.','success');
+}
+function doForfeitCasino(){
+  if(!_csState?.game||_csState.mySeatID==null)return;
+  if(!confirm('Yakin keluar dari kursi? Kamu dianggap kalah dan game tetap lanjut.'))return;
+  _csLeaveSeat(true);
+  toast('Kamu keluar dari kursi. Game terus berlanjut.','info');
 }
 async function _csGameOver(r){
   if(!_csIsHost||!_csMyRoom||!fbRtdb||!_csLocalGame)return;
@@ -5710,17 +5736,21 @@ function renderCasinoHand(cards){
   (cards||[]).forEach((c)=>{
     const el=makeCardEl(c,false,false,0);
     el.dataset.suit=c.suit;el.dataset.value=c.value;
-    // Track touch start to distinguish tap from horizontal scroll
-    let _ts={x:0,y:0,t:0};
+    el.style.touchAction='pan-x';
+    let _ts={x:0,y:0,t:0,scrolled:false};
     el.addEventListener('touchstart',e=>{
-      const t=e.touches[0];_ts={x:t.clientX,y:t.clientY,t:Date.now()};
+      const t=e.touches[0];_ts={x:t.clientX,y:t.clientY,t:Date.now(),scrolled:false};
+    },{passive:true});
+    el.addEventListener('touchmove',e=>{
+      const t=e.touches[0];
+      if(Math.abs(t.clientX-_ts.x)>8)_ts.scrolled=true;
     },{passive:true});
     el.addEventListener('touchend',e=>{
+      if(_ts.scrolled)return;
       const t=e.changedTouches[0];
       const dx=Math.abs(t.clientX-_ts.x),dy=Math.abs(t.clientY-_ts.y),dt=Date.now()-_ts.t;
-      if(dx<10&&dy<10&&dt<300){e.preventDefault();el.classList.toggle('selected');}
+      if(dx<12&&dy<15&&dt<350){e.preventDefault();el.classList.toggle('selected');}
     },{passive:false});
-    el.addEventListener('click',function(){this.classList.toggle('selected');});
     h.appendChild(el);
   });
 }

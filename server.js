@@ -879,10 +879,22 @@ io.on('connection',socket=>{
     const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
     const r=casinoRooms[rID];
     const seat=r.seats.find(s=>s.socketID===socket.id);if(!seat)return;
-    if(r.gameStatus==='PLAYING'&&seat.seatStatus==='PLAYING')
-      return socket.emit('casino_error',{msg:'Tidak bisa keluar saat game berlangsung!'});
+    const wasPlaying=r.gameStatus==='PLAYING'&&seat.seatStatus==='PLAYING';
     _cEmptySeat(seat);
     r.highestBet=Math.max(0,...r.seats.map(s=>s.playerBet));
+    if(wasPlaying){
+      // Game tetap lanjut, giliran pemain yang keluar akan di-skip oleh bot trigger
+      const seatID=seat.seatID;
+      if(!casinoBotSeats[rID])casinoBotSeats[rID]=new Set();
+      const pidx=r.seatToPlayer[seatID];
+      if(pidx!=null){
+        casinoBotSeats[rID].add(seatID);
+        socket.emit('casino_state',{..._cFor(r,socket.id),message:'Kamu keluar dari kursi. Game tetap lanjut.'});
+      }
+      const playing=r.seats.filter(s=>s.seatStatus==='PLAYING').length;
+      if(playing<2)setTimeout(()=>_cGameOver(rID),500);
+      else _cTriggerBot(rID);
+    }
     _cBcast(rID);
   });
   socket.on('casino_place_bet',(data)=>{
@@ -962,6 +974,21 @@ io.on('connection',socket=>{
     casinoBotSeats[rID]=new Set();
     _cBcast(rID);
     socket.emit('casino_bot_added',{name:null});
+  });
+  socket.on('casino_reset',()=>{
+    const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
+    const r=casinoRooms[rID];
+    // Reset game, kembalikan semua chip
+    r.gameStatus='WAITING';r.highestBet=0;r.totalPot=0;r.gameInstance=null;
+    r.seatToPlayer={};r.playerToSeat={};
+    if(casinoBotSeats[rID])casinoBotSeats[rID]=new Set();
+    r.seats.forEach(s=>{
+      s.playerBet=0;s.cards=[];
+      s.playerMoney=CASINO_START_MONEY;
+      if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND')s.seatStatus='SITTING';
+    });
+    _cBcast(rID);
+    socket.emit('casino_reset_ok',{msg:'Pertandingan direset! Semua chip dikembalikan.'});
   });
 });
 
