@@ -1948,7 +1948,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
 .cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
 .cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
-.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding-top:min(10vw,52px);flex-shrink:0;overflow:visible;}
+.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding-top:min(7vw,36px);padding-bottom:min(4vw,24px);flex-shrink:0;overflow:visible;}
 .cs-dealer-row{display:none;}
 .cs-dealer-badge{display:none;}
 .cs-deck-wrap{width:40px;height:5px;margin-top:2px;}
@@ -2718,7 +2718,7 @@ function _onFbScript(ok){
 </div>
 
 <!-- KASINO ONLINE - Meja Kasino -->
-<div id="s-casino" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#061206,#020702);padding:0;flex-direction:column;overflow:hidden;">
+<div id="s-casino" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#061206,#020702);padding:0;flex-direction:column;overflow-x:hidden;">
   <!-- Header -->
   <div class="cs-hdr">
     <span id="cs-rn" class="cs-rn">🎰 Meja 1</span>
@@ -2754,12 +2754,16 @@ function _onFbScript(ok){
     <!-- Spectator panel -->
     <div id="cs-spec" class="cs-panel">
       <div style="color:#888;font-size:.78em;text-align:center;padding:6px 0;">👁 Mode Penonton — klik kursi kosong untuk duduk</div>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px;">
+        <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
+        <button class="cs-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
+      </div>
     </div>
     <!-- Bet panel -->
     <div id="cs-bet-panel" class="cs-panel" style="display:none;flex-direction:column;gap:8px;">
       <div id="cs-bet-info" class="cs-bet-info">💰 Pasang taruhan untuk memulai:</div>
       <div style="display:flex;gap:7px;align-items:center;justify-content:center;">
-        <input type="number" id="cs-bet-inp" class="cs-inp" min="5000" max="10000000" placeholder="Min Rp 5.000" step="5000">
+        <input type="text" inputmode="numeric" id="cs-bet-inp" class="cs-inp" placeholder="Min Rp 5.000" oninput="csFormatBet(this)">
         <button class="cs-btn cs-gold" onclick="doCasinoBet()">Pasang</button>
       </div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
@@ -2776,6 +2780,10 @@ function _onFbScript(ok){
         <button onclick="csQBet(1000000)">1JT</button>
         <button onclick="csQBet(5000000)">5JT</button>
         <button onclick="csQBet(10000000)">10JT</button>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);padding-top:7px;">
+        <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;font-size:.72em;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
+        <button class="cs-btn" style="background:rgba(255,80,80,.18);border:1px solid rgba(255,80,80,.3);color:#ff9090;font-size:.72em;" onclick="doRemoveCasinoBots()">✕ Hapus Bot</button>
       </div>
     </div>
     <!-- Game panel (Capsa berlangsung) -->
@@ -3750,6 +3758,10 @@ function initSock(){
     toast(data?.message||'Ronde selesai!','success');
   });
   sock.on('casino_error',data=>toast(data?.msg||'Error!'));
+  sock.on('casino_bot_added',data=>{
+    if(data?.name)toast('🤖 '+data.name+' ditambahkan!','success');
+    else toast('Bot dihapus dari meja.');
+  });
 }
 
 function go(id){
@@ -4946,10 +4958,24 @@ function doTakeSeat(seatID){
   sock.emit('casino_take_seat',{seatID,playerName:name});
 }
 function doCasinoLeaveSeat(){sock.emit('casino_leave_seat');}
-function csQBet(amount){const inp=document.getElementById('cs-bet-inp');if(inp)inp.value=amount;}
-function doCasinoBet(){
+function csFormatBet(inp){
+  let v=inp.value.replace(/\D/g,'');
+  if(v===''){inp.value='';return;}
+  inp.value=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function csGetBetValue(){
   const inp=document.getElementById('cs-bet-inp');
-  const amt=parseInt(inp?.value||'0');
+  if(!inp)return 0;
+  return parseInt(inp.value.replace(/\./g,'')||'0')||0;
+}
+function csQBet(amount){
+  const inp=document.getElementById('cs-bet-inp');
+  if(inp)inp.value=amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function doAddCasinoBot(){if(sock)sock.emit('casino_add_bot');}
+function doRemoveCasinoBots(){if(sock)sock.emit('casino_remove_bots');}
+function doCasinoBet(){
+  const amt=csGetBetValue();
   if(!amt||amt<5000){toast('Taruhan minimal Rp 5.000');return;}
   sock.emit('casino_place_bet',{amount:amt});
 }
