@@ -5434,7 +5434,7 @@ function doTakeSeat(seatID){
   const isCurrentlyPlaying=_csState.gameStatus==='PLAYING';
   const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+seatID);
   const roomRef=fbRtdb.ref('casino/rooms/'+_csMyRoom);
-  const startMoney=(_csPersistBal!=null&&_csPersistBal>1000)?_csPersistBal:CASINO_START_MONEY;
+  const startMoney=(_csPersistBal!=null)?_csPersistBal:CASINO_START_MONEY;
   const myAvatar=(typeof currentUserData!=='undefined'&&currentUserData?.avatar)||'😎';
   seatRef.transaction(cur=>{
     if(!cur||cur.seatStatus!=='EMPTY')return;
@@ -6771,13 +6771,12 @@ async function onUserLoggedIn(user){
         if(Date.now()-d.ts > 5*60*1000) return; // abaikan hadiah > 5 menit lalu
         // Tampilkan notifikasi
         toast('🎁 Kamu menerima +'+d.diamonds+' 💎 dari owner!','ok');
-        // Update diamond count di UI jika ada
+        // Update diamond count di UI
+        if(window.currentUserData) window.currentUserData.diamonds=(window.currentUserData.diamonds||0)+d.diamonds;
+        if(typeof _updateDiamondHUD==='function') _updateDiamondHUD();
+        if(typeof _animateDiamondGain==='function') _animateDiamondGain(d.diamonds);
         const dEl=document.getElementById('prof-diamonds');
-        if(dEl && window.currentUserData){
-          const cur=parseInt(dEl.textContent||'0')||0;
-          dEl.textContent=cur+d.diamonds;
-          if(window.currentUserData)window.currentUserData.diamonds=(window.currentUserData.diamonds||0)+d.diamonds;
-        }
+        if(dEl) dEl.textContent=(window.currentUserData&&window.currentUserData.diamonds)||0;
         // Hapus dari RTDB setelah diterima
         await fbRtdb.ref('pending_rewards/'+user.uid).remove().catch(()=>{});
       });
