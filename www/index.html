@@ -1985,15 +1985,15 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-sn{font-size:.63em;font-weight:700;color:#e8e8e8;font-family:'Oswald',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px;}
 .cs-sm{font-size:.55em;color:#aaa;}.cs-sbet{font-size:.58em;color:#ffd700;}.cs-scards{font-size:.54em;color:#90c0ff;}.cs-shint{font-size:.52em;color:rgba(255,255,255,.28);font-style:italic;}
 /* ── Casino Avatar ── */
-.cs-av-circle{width:46px;height:46px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(20,20,40,.85);border:2px solid rgba(255,255,255,.2);font-size:1.55em;line-height:1;transition:border-color .2s,box-shadow .2s;}
-.cs-av-circle.cs-av-me{border-color:rgba(100,255,100,.75);box-shadow:0 0 8px rgba(100,255,100,.35);}
-.cs-av-circle.cs-av-active{border-color:#64ff64;box-shadow:0 0 14px rgba(100,255,100,.85);}
+.cs-av-circle{width:34px;height:34px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(20,20,40,.85);border:2px solid rgba(255,255,255,.2);font-size:1.15em;line-height:1;transition:border-color .2s,box-shadow .2s;}
+.cs-av-circle.cs-av-me{border-color:rgba(100,255,100,.75);box-shadow:0 0 6px rgba(100,255,100,.35);}
+.cs-av-circle.cs-av-active{border-color:#64ff64;box-shadow:0 0 10px rgba(100,255,100,.85);}
 .cs-av-img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.cs-av-name{font-size:.58em;font-weight:700;color:#e8e8e8;font-family:'Oswald',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;text-align:center;}
-.cs-av-money{font-size:.5em;color:#7fffb0;text-align:center;font-family:'Rajdhani',sans-serif;}
-.cs-av-bet{font-size:.5em;color:#ffd700;text-align:center;}
-.cs-av-cards{font-size:.5em;color:#90c0ff;text-align:center;background:rgba(0,0,60,.5);border-radius:6px;padding:1px 4px;}
-.cs-av-wait{font-size:.47em;color:rgba(255,255,255,.38);font-style:italic;text-align:center;}
+.cs-av-name{font-size:.5em;font-weight:700;color:#e8e8e8;font-family:'Oswald',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px;text-align:center;}
+.cs-av-money{font-size:.48em;color:#90ee90;text-align:center;font-family:'Rajdhani',sans-serif;}
+.cs-av-bet{font-size:.45em;color:#ffd700;text-align:center;}
+.cs-av-cards{font-size:.45em;color:#90c0ff;text-align:center;background:rgba(0,0,60,.4);border-radius:4px;padding:1px 3px;}
+.cs-av-wait{font-size:.42em;color:rgba(255,255,255,.38);font-style:italic;text-align:center;}
 /* ── Casino Balance HUD (menu) ── */
 #cs-bal-hud{
   position:absolute;top:50px;left:14px;z-index:10;
@@ -2783,7 +2783,7 @@ function _onFbScript(ok){
 </div>
 
 <!-- KASINO ONLINE - Meja Kasino -->
-<div id="s-casino" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#061206,#020702);padding:0;flex-direction:column;overflow-x:hidden;">
+<div id="s-casino" class="scr" style="background:radial-gradient(ellipse at 50% 30%,#061206,#020702);padding:0;flex-direction:column;">
   <!-- Header -->
   <div class="cs-hdr">
     <span id="cs-rn" class="cs-rn">🎰 Meja 1</span>
@@ -2861,8 +2861,8 @@ function _onFbScript(ok){
     <!-- Game panel (Capsa berlangsung) -->
     <div id="cs-game-panel" class="cs-panel" style="display:none;padding:0;">
       <div id="cs-turn-lbl" class="cs-turn-lbl" style="padding:6px 10px 2px;">⏳ Menunggu giliran...</div>
-      <div class="hand-zone" style="background:transparent;">
-        <div class="hand-scroll" style="touch-action:pan-x;"><div class="hand-inner" id="cs-hand"></div></div>
+      <div class="hand-zone" style="background:transparent;overflow:visible;">
+        <div class="hand-scroll" style="touch-action:pan-x;overflow-x:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;"><div class="hand-inner" id="cs-hand"></div></div>
       </div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:4px 8px 6px;">
         <button class="cs-btn cs-red" style="font-size:.7em;padding:5px 12px;" onclick="doForfeitCasino()">🏳 Keluar Kursi (Forfeit)</button>
@@ -5239,10 +5239,20 @@ function _csListenRoom(roomID){
     if(_csIsHost&&r.hostUID&&r.hostUID!==_csMyUID){
       _csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
     }
-    // Host: auto-bet bot & cek start saat WAITING (hanya kalau ada highestBet)
-    if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
-    // Host: trigger bots saat PLAYING
-    if(_csIsHost&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
+    // Host/owner: auto-bet bot & cek start saat WAITING (hanya kalau ada highestBet)
+    if(_csCanControl()&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
+    // Host/owner: trigger bots saat PLAYING
+    if(_csCanControl()&&r.gameStatus==='PLAYING'&&!r.game?.gameOver)_csMaybeTriggerBot(r);
+    // Setiap player: simpan saldo sendiri saat ROUND_END
+    if(r.gameStatus==='ROUND_END'&&_csMyUID){
+      const mySeat=Object.values(r.seats||{}).find(s=>s.playerUID===_csMyUID);
+      if(mySeat&&!mySeat.isBot){
+        const roundEndWinner=r.roundEndWinner;
+        const totalPot=r.totalPot||0;
+        const myFinal=mySeat.seatID===roundEndWinner?(mySeat.playerMoney+totalPot):Math.max(0,mySeat.playerMoney||0);
+        _csSaveCasinoBal(myFinal);
+      }
+    }
     // Auto-claim host — siapa saja yang masuk room bisa jadi host jika belum ada
     const _amOwner=typeof _isOwner==='function'&&_isOwner();
     if(!r.hostUID&&_csMyUID&&!_csIsHost){
@@ -5291,7 +5301,7 @@ function _csBuildState(r){
   const myPidxNum=mySeat!=null?(seatToPlayer[mySeat.seatID]??null):null;
   const hands=r.hands||{};
   const myCards=myPidxNum!=null?(hands[myPidxNum]||[]):[];
-  const st={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatToPlayer,playerToSeat,seats:seats.map(s=>({seatID:s.seatID,playerName:s.playerName,playerMoney:s.playerMoney,playerBet:s.playerBet,seatStatus:s.seatStatus,cardCount:s.cardCount||0})),mySeatID:mySeat?.seatID??null,myCards,myMoney:mySeat?.playerMoney??CASINO_START_MONEY,myBet:mySeat?.playerBet??0,shuffleAnim:r.shuffleAnim||null,betTimerExpiresAt:r.betTimerExpiresAt||0};
+  const st={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatToPlayer,playerToSeat,seats:seats.map(s=>({seatID:s.seatID,playerName:s.playerName,playerUID:s.playerUID||null,playerAvatar:s.playerAvatar||null,playerMoney:s.playerMoney,playerBet:s.playerBet,seatStatus:s.seatStatus,cardCount:s.cardCount||0})),mySeatID:mySeat?.seatID??null,myCards,myMoney:mySeat?.playerMoney??CASINO_START_MONEY,myBet:mySeat?.playerBet??0,shuffleAnim:r.shuffleAnim||null,betTimerExpiresAt:r.betTimerExpiresAt||0};
   if(r.game&&r.gameStatus==='PLAYING'){
     const g=r.game;
     st.game={current_player:g.currentPlayer,table_cards:g.tableCards||[],table_type:g.tableType||'',rankings:g.rankings||[],active_players:g.activePlayers||[],stopped_players:g.stoppedPlayers||[],game_over:g.gameOver||false,message:g.message||'',phase:g.phase||'opening',opener_idx:g.openerIdx||0,opening_done:g.openingDone||[],decoy_cards:g.decoyCards||[],opening_table:g.openingTable||[],hand_counts:g.handCounts||[],hand:myCards,my_player_idx:myPidxNum};
@@ -5519,6 +5529,9 @@ async function _csStartGame(r){
   await new Promise(res=>setTimeout(res,2800));
   await _csFlushGame(r,seatToPlayer,playerToSeat,sitting);
   await fbRtdb.ref('casino/rooms/'+_csMyRoom+'/shuffleAnim').remove();
+  // Segera trigger bot untuk ronde pembukaan
+  const _rFresh=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+  if(_rFresh.exists())_csMaybeTriggerBot(_rFresh.val());
 }
 async function _csFlushGame(r,seatToPlayer,playerToSeat,sitting){
   if(!_csLocalGame||!_csMyRoom||!fbRtdb)return;
@@ -5529,7 +5542,7 @@ async function _csFlushGame(r,seatToPlayer,playerToSeat,sitting){
   await fbRtdb.ref('casino/rooms/'+_csMyRoom).update({...seatUpd,game:gameData,hands});
 }
 async function _csMaybeTriggerBot(r){
-  if(!_csIsHost||!_csLocalGame||_csLocalGame.gameOver)return;
+  if(!_csCanControl()||!_csLocalGame||_csLocalGame.gameOver)return;
   const gs=_csLocalGame;
   // Check if current player's seat is EMPTY (left during game) — auto-skip them
   function _isSeatEmpty(pidx){
@@ -5663,6 +5676,12 @@ async function _csGameOver(r){
   const msg=`🏆 ${winnerName} menang pot Rp ${(r.totalPot||0).toLocaleString('id-ID')}!`;
   const upd={gameStatus:'ROUND_END',roundEndMsg:msg,roundEndWinner:winnerSeatID};
   if(winnerSeatID)upd['seats/'+winnerSeatID+'/playerMoney']=winnerMoney;
+  // Simpan saldo diri sendiri (host/owner) jika ikut bermain
+  const mySeatAtEnd=Object.values(r.seats||{}).find(s=>s.playerUID===_csMyUID);
+  if(mySeatAtEnd){
+    const myFinal=mySeatAtEnd.seatID===winnerSeatID?winnerMoney:Math.max(0,mySeatAtEnd.playerMoney||0);
+    _csSaveCasinoBal(myFinal);
+  }
   await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(upd);
   setTimeout(async()=>{
     if(!_csMyRoom||!fbRtdb)return;
@@ -5671,7 +5690,6 @@ async function _csGameOver(r){
     const sUpd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null};
     Object.values(r2.seats||{}).forEach(s=>{
       if(s.isBot&&(s.seatStatus==='PLAYING'||s.seatStatus==='SITTING'||s.seatStatus==='WAITING_NEXT_ROUND')){
-        // Bot keluar setelah ronde selesai
         sUpd['seats/'+s.seatID+'/seatStatus']='EMPTY';sUpd['seats/'+s.seatID+'/playerName']=null;
         sUpd['seats/'+s.seatID+'/playerUID']=null;sUpd['seats/'+s.seatID+'/isBot']=false;
         sUpd['seats/'+s.seatID+'/playerBet']=0;sUpd['seats/'+s.seatID+'/cardCount']=0;
@@ -5847,19 +5865,26 @@ function renderCasinoSeat(seatID,seat,st){
   const uid=seat.playerUID;
   const emojiAv=seat.playerAvatar||'😎';
   const avCircleCls='cs-av-circle'+(isMe?' cs-av-me':'')+(isTurn?' cs-av-active':'');
-  const photo=uid?_csPhotoCache[uid]:undefined;
+  // Untuk diri sendiri: pakai foto dari currentUserData langsung (tidak perlu fetch)
+  let photo=null;
+  if(isMe){
+    photo=(typeof currentUserData!=='undefined'&&currentUserData?.photoBase64)||null;
+    if(photo)_csPhotoCache[uid]=photo;
+  } else if(uid){
+    photo=_csPhotoCache[uid]??null;
+  }
   let avHTML;
   if(photo){
     avHTML=`<div class="${avCircleCls}"><img class="cs-av-img" src="${photo}" onerror="this.parentNode.innerHTML='<span>${emojiAv}</span>'"/></div>`;
   } else {
     avHTML=`<div class="${avCircleCls}"><span>${emojiAv}</span></div>`;
-    // Async fetch foto dari Firestore jika belum di-cache
+    // Async fetch foto dari Firestore jika belum di-cache (player lain, bukan bot)
     if(uid&&!Object.prototype.hasOwnProperty.call(_csPhotoCache,uid)&&!uid.startsWith('bot_')&&fbDb){
       _csPhotoCache[uid]=null; // tandai sedang loading
       fbDb.collection('users').doc(uid).get().then(snap=>{
-        if(snap.exists){const d=snap.data();_csPhotoCache[uid]=d.photoBase64||null;}
-        else _csPhotoCache[uid]=null;
-        if(_csState&&document.getElementById('s-casino')?.classList.contains('on'))renderCasinoSeat(seatID,seat,st);
+        const d=snap.exists?snap.data():{};
+        _csPhotoCache[uid]=d.photoBase64||null;
+        if(_csState&&document.getElementById('s-casino')?.classList.contains('on'))renderCasinoSeat(seatID,seat,_csState);
       }).catch(()=>{_csPhotoCache[uid]=null;});
     }
   }
