@@ -5661,7 +5661,21 @@ async function _csMaybeTriggerBot(r){
     const cp=gs.currentPlayer;
     const emptySeat=gs.activePlayers.includes(cp)&&_isSeatEmpty(cp)&&!_csBotSeats.has(cp);
     if(emptySeat){
-      gs.skipTurn(cp);
+      // Pemain sudah keluar kursi — eliminasi langsung dari game, jangan sekadar skip
+      gs.activePlayers=gs.activePlayers.filter(p=>p!==cp);
+      gs.stoppedPlayers.add(cp);
+      if(gs.activePlayers.length<=1){
+        if(gs.activePlayers.length===1){
+          const loser=gs.activePlayers[0];
+          gs.activePlayers=[];
+          gs.gameOver=true;
+          gs.message=`💀 Pemain ${loser+1} kalah!`;
+        } else {
+          gs.gameOver=true;
+        }
+      } else {
+        gs._nextPlayer();
+      }
       const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
       if(!snap.exists())return;const rv=snap.val();
       await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
@@ -5677,7 +5691,7 @@ async function _csMaybeTriggerBot(r){
         const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
         if(!snap.exists())return;const rv=snap.val();
         await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
-        if(_csLocalGame.gameOver)await _csGameOver(rv);
+        if(_csLocalGame.gameOver)await _csGameOver(rv);else _csMaybeTriggerBot(rv);
       },200);
     }
   }
