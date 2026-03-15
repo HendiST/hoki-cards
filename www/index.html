@@ -2861,13 +2861,13 @@ function _onFbScript(ok){
     <!-- Game panel (Capsa berlangsung) -->
     <div id="cs-game-panel" class="cs-panel" style="display:none;padding:0;">
       <div id="cs-turn-lbl" class="cs-turn-lbl" style="padding:6px 10px 2px;">⏳ Menunggu giliran...</div>
-      <div class="hand-zone" style="background:transparent;overflow:visible;">
+      <div class="hand-zone" style="background:transparent;overflow:visible;touch-action:pan-x;">
         <div class="hand-scroll" style="touch-action:pan-x;overflow-x:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;"><div class="hand-inner" id="cs-hand"></div></div>
-        <div class="reorder-mode-bar" id="cs-reorder-bar">
-          <button class="rmb-btn rmb-left" onclick="csMoveReorder(-1)">◀ Kiri</button>
+        <div class="reorder-mode-bar" id="cs-reorder-bar" style="touch-action:manipulation;">
+          <button class="rmb-btn rmb-left" style="touch-action:manipulation;" onclick="csMoveReorder(-1)">◀ Kiri</button>
           <span class="rmb-info" id="cs-reorder-info">Pilih kartu</span>
-          <button class="rmb-btn rmb-right" onclick="csMoveReorder(1)">Kanan ▶</button>
-          <button class="rmb-btn rmb-done" onclick="csExitReorder()">✓ Selesai</button>
+          <button class="rmb-btn rmb-right" style="touch-action:manipulation;" onclick="csMoveReorder(1)">Kanan ▶</button>
+          <button class="rmb-btn rmb-done" style="touch-action:manipulation;" onclick="csExitReorder()">✓ Selesai</button>
         </div>
       </div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:4px 8px 6px;">
@@ -5984,6 +5984,7 @@ function renderCasinoHand(cards,animate=false){
     const isReord=csReorderIdx===i;
     const el=makeCardEl(c,false,isSel,animate?i*0.055:0);
     el.dataset.suit=c.suit;el.dataset.value=c.value;
+    el.style.touchAction='pan-x'; // allow horizontal scroll through card
     if(isReord)el.classList.add('reorder-active');
 
     let tStart={x:0,y:0,t:0};
@@ -6054,8 +6055,20 @@ function csMoveReorder(dir){
   const c=csHandOrder[ni];
   const info=document.getElementById('cs-reorder-info');
   if(info)info.textContent=`${c.value}${SS[c.suit]}`;
+  // Scroll the hand-scroll container to keep active card visible
+  const scroll=document.querySelector('#cs-game-panel .hand-scroll');
   const h=document.getElementById('cs-hand');
-  if(h){const cards=h.querySelectorAll('.card');if(cards[ni])cards[ni].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+  if(scroll&&h){
+    const cards=h.querySelectorAll('.card');
+    const card=cards[ni];
+    if(card){
+      const cLeft=card.offsetLeft;
+      const cWidth=card.offsetWidth;
+      const sWidth=scroll.clientWidth;
+      // Center the card in the scroll container
+      scroll.scrollLeft=cLeft-(sWidth/2)+(cWidth/2);
+    }
+  }
 }
 function renderCasinoTableCards(cards){
   const el=document.getElementById('cs-tbl-cards');if(!el)return;
@@ -11826,13 +11839,13 @@ setTimeout(function(){
             _playEnhancedDeal(numP, cards, null);
           });
         }, 200);
-        // ── FAILSAFE: paksa tampilkan kartu setelah 12 detik jika animasi gagal ──
+        // ── FAILSAFE: paksa tampilkan kartu setelah 2.5 detik jika animasi gagal ──
         setTimeout(function(){
           document.querySelectorAll('#g-hand .card.deal-hidden').forEach(function(c){
             c.classList.remove('deal-hidden');
             c.classList.add('deal-reveal');
           });
-        }, 12000);
+        }, 2500);
       } else {
         _baseRenderForShuffle(st, firstDeal);
       }
