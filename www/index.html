@@ -5790,7 +5790,12 @@ function renderCasino(st){
   if(betP)betP.style.display=(isSitting&&isWaiting&&!isWaitingNext)?'flex':'none';
   if(waitNextP)waitNextP.style.display=isWaitingNext?'flex':'none';
   if(endP)endP.style.display=isRoundEnd?'flex':'none';
-  if(gameP)gameP.style.display=(isSitting&&isPlaying&&!isWaitingNext)?'block':'none';
+  const _gpActive=isSitting&&isPlaying&&!isWaitingNext;
+  if(gameP)gameP.style.display=_gpActive?'block':'none';
+  // When game panel is active, cs-ctrl must NOT be overflow-y:auto — it competes with
+  // the card hand-scroll for horizontal swipe on mobile. Hide overflow-y when playing.
+  const csCtrl=document.getElementById('cs-ctrl');
+  if(csCtrl)csCtrl.style.overflowY=_gpActive?'hidden':'auto';
   // Call button
   const cb=document.getElementById('cs-call-btn');
   if(cb&&isSitting&&isWaiting){
