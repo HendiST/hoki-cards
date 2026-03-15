@@ -1950,6 +1950,19 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
 .cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
 .cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
+/* ── Casino Money HUD ── */
+#cs-money-hud{
+  display:none;align-items:center;gap:4px;
+  background:rgba(0,0,0,.55);
+  border:1.5px solid rgba(0,230,120,.4);
+  border-radius:16px;padding:4px 10px 4px 7px;
+  font-family:'Rajdhani',sans-serif;
+  box-shadow:0 2px 10px rgba(0,200,80,.2);
+  white-space:nowrap;
+}
+#cs-money-hud.vis{display:flex;}
+#cs-money-hud .cmh-icon{font-size:1em;line-height:1;}
+#cs-money-hud .cmh-val{font-size:.8em;font-weight:800;color:#7fffb0;letter-spacing:.3px;}
 .cs-tabwrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:visible;min-height:0;}
 .cs-dealer-row{display:none;}
 .cs-dealer-badge{display:none;}
@@ -2745,6 +2758,11 @@ function _onFbScript(ok){
   <div class="cs-hdr">
     <span id="cs-rn" class="cs-rn">🎰 Meja 1</span>
     <span id="cs-sb" class="cs-sb cs-st-WAITING">WAITING</span>
+    <!-- Casino Money HUD: tampil saat duduk -->
+    <div id="cs-money-hud">
+      <span class="cmh-icon">💵</span>
+      <span class="cmh-val" id="cs-money-val">Rp 0</span>
+    </div>
     <button class="cs-xbtn" id="cs-exit-btn" onclick="csExitStep()">✕ Keluar</button>
   </div>
   <!-- Dealer + Oval -->
@@ -3366,6 +3384,27 @@ function _onFbScript(ok){
         <input class="op-inp" id="op-reward-amt" placeholder="Jumlah 💎" type="number" style="max-width:90px;"/>
         <button class="op-btn op-btn-gold" onclick="opGiveReward()">Kirim</button>
       </div>
+    </div>
+
+    <!-- 4b. Give Uang Kasino -->
+    <div class="op-card">
+      <div class="op-card-title green">💵 GIVE UANG KASINO</div>
+      <div style="font-size:.73em;color:rgba(255,255,255,.4);margin-bottom:8px;">Tambah/kurangi uang kasino pemain yang sedang duduk di meja (±Rp)</div>
+      <div class="op-row">
+        <select class="op-inp" id="op-casino-room" style="max-width:110px;">
+          <option value="CASINO_1">Meja 1</option>
+          <option value="CASINO_2">Meja 2</option>
+          <option value="CASINO_3">Meja 3</option>
+          <option value="CASINO_4">Meja 4</option>
+          <option value="CASINO_5">Meja 5</option>
+        </select>
+        <input class="op-inp" id="op-casino-uid" placeholder="UID player..." />
+      </div>
+      <div class="op-row">
+        <input class="op-inp" id="op-casino-money-amt" placeholder="±Rp (cth: 500000 atau -100000)" type="number"/>
+        <button class="op-btn op-btn-green" onclick="opGiveCasinoMoney()">💵 Kasih</button>
+      </div>
+      <div id="op-casino-money-info" style="font-size:.73em;color:rgba(0,230,120,.7);margin-top:4px;"></div>
     </div>
 
     <!-- 5. Global Message -->
@@ -5560,6 +5599,19 @@ function renderCasino(st){
   const rn=document.getElementById('cs-rn');if(rn)rn.textContent='🎰 '+(st.roomName||'');
   const sb=document.getElementById('cs-sb');
   if(sb){sb.textContent=st.gameStatus||'';sb.className='cs-sb cs-st-'+(st.gameStatus||'WAITING');}
+  // Money HUD — tampil saat duduk
+  const mhud=document.getElementById('cs-money-hud');
+  const mval=document.getElementById('cs-money-val');
+  if(mhud&&mval){
+    const sitting=st.mySeatID!=null;
+    if(sitting){
+      const money=st.myMoney!=null?st.myMoney:CASINO_START_MONEY;
+      mval.textContent='Rp '+csRp(money);
+      mhud.classList.add('vis');
+    }else{
+      mhud.classList.remove('vis');
+    }
+  }
   // Pot
   renderCasinoPot(st.totalPot||0);
   // Seats
@@ -9336,6 +9388,47 @@ async function opGiveReward(){
   toast('🎁 +'+amt+' 💎 dikirim ke '+uid,'ok');
   document.getElementById('op-reward-uid').value='';
   document.getElementById('op-reward-amt').value='';
+}
+
+// ── 6b. Give Uang Kasino ───────────────────────────────────────────────
+async function opGiveCasinoMoney(){
+  const roomId  = document.getElementById('op-casino-room').value;
+  const uid     = document.getElementById('op-casino-uid').value.trim();
+  const amt     = parseInt(document.getElementById('op-casino-money-amt').value)||0;
+  const infoEl  = document.getElementById('op-casino-money-info');
+  if(!roomId||!uid||!amt||!fbRtdb){ toast('Isi semua field!','warn'); return; }
+  if(infoEl) infoEl.textContent = '⏳ Mencari pemain...';
+  try {
+    const snap = await fbRtdb.ref('casino/rooms/'+roomId+'/seats').once('value');
+    const seats = snap.val();
+    if(!seats){ toast('Meja tidak ditemukan atau kosong','warn'); if(infoEl)infoEl.textContent=''; return; }
+    let targetSeatID = null;
+    Object.entries(seats).forEach(([sid, s])=>{
+      if(s && s.playerUID === uid) targetSeatID = sid;
+    });
+    if(!targetSeatID){
+      toast('Player tidak ditemukan di meja ini','warn');
+      if(infoEl) infoEl.textContent = '❌ UID tidak ada di '+roomId;
+      return;
+    }
+    const seatRef = fbRtdb.ref('casino/rooms/'+roomId+'/seats/'+targetSeatID);
+    await seatRef.transaction(cur=>{
+      if(!cur) return cur;
+      const newMoney = Math.max(0,(cur.playerMoney||0)+amt);
+      cur.playerMoney = newMoney;
+      return cur;
+    });
+    const afterSnap = await seatRef.once('value');
+    const newBal = afterSnap.val()?.playerMoney||0;
+    const sign = amt>=0?'+':'';
+    toast('💵 '+sign+(amt>=1000000?(amt/1000000).toFixed(1)+'JT':amt>=1000?(amt/1000)+'K':amt)+' Rp diberikan ke '+uid,'ok');
+    if(infoEl) infoEl.textContent = '✅ Saldo sekarang: Rp '+(newBal>=1000000?(newBal/1000000).toFixed(2)+'JT':newBal.toLocaleString('id'));
+    document.getElementById('op-casino-uid').value='';
+    document.getElementById('op-casino-money-amt').value='';
+  } catch(e){
+    toast(e.message,'warn');
+    if(infoEl) infoEl.textContent = '❌ Error: '+e.message;
+  }
 }
 
 // ── 7. Global Message ─────────────────────────────────────────────────

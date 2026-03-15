@@ -41,7 +41,14 @@ The app runs with `node server.js`. No build step required.
 - **Edit Player Data** — Cari player by Firebase UID, shortId, atau username; edit nama, diamond, ban/unban
 - **Live Match Monitor** — Lihat semua room (lobby & berjalan) di Firebase RTDB
 - **Give Reward** — Kirim diamond ke player by UID
+- **Give Uang Kasino** — Tambah/kurangi saldo Rp pemain yang sedang duduk di meja kasino; pilih meja, isi UID + nominal ±Rp
 - **Global Message** — Broadcast pesan ke semua player yang sedang online, dengan pilihan durasi
+
+## Casino Money HUD
+
+- **`#cs-money-hud`** — HUD hijau di header kasino, tampil saat pemain duduk, menampilkan saldo Rp saat ini
+- Update otomatis setiap `renderCasino()` dipanggil via `st.myMoney`
+- Disembunyikan saat mode penonton (tidak duduk)
 
 ## Kasino Online System
 

@@ -233,6 +233,18 @@ REALTIME DATABASE (RTDB) RULES — tempel di Firebase Console > Realtime Databas
           ".read": "auth != null",
           ".write": "auth != null"
         }
+      },
+      // ── Saldo kasino permanen per pemain (persist antar sesi) ──
+      // Aktifkan path ini jika kamu mau saldo kasino disimpan permanen.
+      // Saat ini saldo reset ke CASINO_START_MONEY setiap sesi baru.
+      // Untuk aktifkan persistensi: simpan playerMoney ke sini saat keluar kursi,
+      // dan baca dari sini saat duduk (bukan hardcode CASINO_START_MONEY).
+      "players": {
+        "$uid": {
+          ".read":  "auth != null && auth.uid === $uid",
+          ".write": "auth != null && (auth.uid === $uid || auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2')",
+          ".validate": "newData.hasChildren(['balance','updatedAt']) && newData.child('balance').isNumber() && newData.child('balance').val() >= 0 && newData.child('updatedAt').isNumber()"
+        }
       }
     },
 
