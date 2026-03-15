@@ -241,7 +241,7 @@ REALTIME DATABASE (RTDB) RULES — tempel di Firebase Console > Realtime Databas
       // dan baca dari sini saat duduk (bukan hardcode CASINO_START_MONEY).
       "players": {
         "$uid": {
-          ".read":  "auth != null && auth.uid === $uid",
+          ".read":  "auth != null && (auth.uid === $uid || auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2')",
           ".write": "auth != null && (auth.uid === $uid || auth.uid === 'nl8JN4JnzSVqtdGGFvhNWW44FuH2')",
           ".validate": "newData.hasChildren(['balance','updatedAt']) && newData.child('balance').isNumber() && newData.child('balance').val() >= 0 && newData.child('updatedAt').isNumber()"
         }
