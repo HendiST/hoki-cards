@@ -5209,8 +5209,9 @@ function _csListenRoom(roomID){
         fbRtdb.ref('casino/rooms/'+_csMyRoom).update({gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null});
       }
     }
-    // Tampilkan/sembunyikan tombol owner berdasarkan status host
-    document.querySelectorAll('.cs-bot-btn,.cs-owner-btn').forEach(b=>b.style.display=_csIsHost?'':'none');
+    // Tampilkan/sembunyikan tombol owner: host ATAU owner yang sedang menonton
+    const _showOwnerCtrls=_csIsHost||(typeof _isOwner==='function'&&_isOwner());
+    document.querySelectorAll('.cs-bot-btn,.cs-owner-btn').forEach(b=>b.style.display=_showOwnerCtrls?'':'none');
   });
 }
 function _csBuildState(r){
@@ -5327,15 +5328,30 @@ function doTakeSeat(seatID){
   if(_csState.mySeatID!=null){toast('Kamu sudah duduk di kursi '+_csState.mySeatID+'!');return;}
   const seat=(_csState.seats||[]).find(s=>s.seatID===seatID);
   if(!seat||seat.seatStatus!=='EMPTY'){toast('Kursi sudah terisi!');return;}
+  const isCurrentlyPlaying=_csState.gameStatus==='PLAYING';
   const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+seatID);
+  const roomRef=fbRtdb.ref('casino/rooms/'+_csMyRoom);
   seatRef.transaction(cur=>{
     if(!cur||cur.seatStatus!=='EMPTY')return;
-    return{...cur,seatStatus:'SITTING',playerName:_csMyName,playerUID:_csMyUID,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
+    // Saat game sedang berlangsung, masuk sebagai WAITING_NEXT_ROUND bukan SITTING
+    const newStatus=isCurrentlyPlaying?'WAITING_NEXT_ROUND':'SITTING';
+    return{...cur,seatStatus:newStatus,playerName:_csMyName,playerUID:_csMyUID,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
   }).then(res=>{
     if(!res.committed){toast('Kursi sudah diambil!');return;}
     seatRef.onDisconnect().update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});
-    const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
-    hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(r=>{if(r.committed){_csIsHost=true;hostRef.onDisconnect().set(null);}});
+    if(!isCurrentlyPlaying){
+      // Reset countdown saat player baru bergabung (WAITING phase)
+      roomRef.transaction(r=>{
+        if(!r||r.gameStatus!=='WAITING')return;
+        if((r.betTimerExpiresAt||0)>Date.now()) r.betTimerExpiresAt=Date.now()+10000;
+        return r;
+      });
+      const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
+      hostRef.transaction(cur=>{if(cur)return;return _csMyUID;}).then(r=>{if(r.committed){_csIsHost=true;hostRef.onDisconnect().set(null);}});
+    }
+    if(isCurrentlyPlaying){
+      toast('Kamu akan ikut ronde berikutnya.','info');
+    }
   });
 }
 function doCasinoLeaveSeat(){_csLeaveSeat(false);}
@@ -5537,7 +5553,8 @@ function doRemoveCasinoBots(){
   (_csState.seats||[]).forEach(s=>{if((s.playerUID||'').startsWith('bot_')||s.playerName?.includes('🤖')){fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+s.seatID).update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});}});
 }
 async function doResetCasino(){
-  if(!_csIsHost||!_csMyRoom||!fbRtdb){toast('Hanya owner yang bisa reset!');return;}
+  const canReset=_csIsHost||(typeof _isOwner==='function'&&_isOwner());
+  if(!canReset||!_csMyRoom||!fbRtdb){toast('Hanya host/owner yang bisa reset!');return;}
   if(!confirm('Reset pertandingan? Semua chip dikembalikan ke awal ('+csRp(CASINO_START_MONEY)+').'))return;
   const upd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null,betTimerExpiresAt:0};
   (_csState?.seats||[]).forEach(s=>{
@@ -5631,7 +5648,8 @@ function renderCasino(st){
   const gameP=document.getElementById('cs-game-panel');
   const endP=document.getElementById('cs-end-panel');
   const waitNextP=document.getElementById('cs-wait-next');
-  if(spec)spec.style.display=(!isSitting&&!isRoundEnd)?'flex':'none';
+  const _isOwnerWatching=!isSitting&&(typeof _isOwner==='function'&&_isOwner());
+  if(spec)spec.style.display=(!isSitting&&(!isRoundEnd||_isOwnerWatching))?'flex':'none';
   if(betP)betP.style.display=(isSitting&&isWaiting&&!isWaitingNext)?'flex':'none';
   if(waitNextP)waitNextP.style.display=isWaitingNext?'flex':'none';
   if(endP)endP.style.display=isRoundEnd?'flex':'none';
@@ -5679,6 +5697,9 @@ function renderCasino(st){
       msg.textContent='🏆 Ronde selesai!';
     }
   }
+  // Owner/bot buttons visibility (re-apply on every render in case isOwner status changed)
+  const _ownerCtrl=_csIsHost||(typeof _isOwner==='function'&&_isOwner());
+  document.querySelectorAll('.cs-bot-btn,.cs-owner-btn').forEach(b=>b.style.display=_ownerCtrl?'':'none');
   // Actbar (outside cs-ctrl) — show only when playing and it's my turn area
   const ab=document.getElementById('cs-actbar');
   if(ab){

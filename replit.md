@@ -44,6 +44,13 @@ The app runs with `node server.js`. No build step required.
 - **Give Uang Kasino** — Tambah/kurangi saldo Rp pemain yang sedang duduk di meja kasino; pilih meja, isi UID + nominal ±Rp
 - **Global Message** — Broadcast pesan ke semua player yang sedang online, dengan pilihan durasi
 
+## Kasino — Bug Fixes & Improvements
+
+- **Rejoin saat PLAYING** — Duduk di kursi saat game PLAYING kini masuk sebagai `WAITING_NEXT_ROUND` (bukan `SITTING`), sehingga tidak mengganggu pemain lain. Pemain otomatis ikut ronde berikutnya setelah ronde selesai.
+- **Countdown reset** — Saat player baru duduk (`doTakeSeat`) selama fase WAITING dan countdown sudah berjalan, timer di-reset ke 10s agar pemain baru punya waktu untuk pasang taruhan.
+- **Owner bot/reset saat menonton** — Tombol Add Bot, Hapus Bot, Reset Meja sekarang tampil untuk owner meski hanya menonton (tidak duduk di kursi). `doResetCasino()` mengizinkan owner meski bukan host.
+- **`_isSeatEmpty` auto-skip** — Jika pemain forfeit saat game berlangsung, host otomatis skip giliran mereka agar game tidak buntu.
+
 ## Casino Money HUD
 
 - **`#cs-money-hud`** — HUD hijau di header kasino, tampil saat pemain duduk, menampilkan saldo Rp saat ini
