@@ -1974,12 +1974,26 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
 .cs-tbl-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
 .cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
-.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-/* Chip betting */
-.cs-chips-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:4px 0;}
-.cs-chip{border:2px solid transparent;border-radius:22px;padding:6px 10px;font-weight:800;font-size:.72em;cursor:pointer;font-family:'Oswald',sans-serif;transition:all .15s;letter-spacing:.3px;color:#fff;}
-.cs-chip:active{transform:scale(.9);}
-.cs-chip-sel{border-color:#ffd700!important;box-shadow:0 0 10px rgba(255,215,0,.5)!important;transform:scale(1.08);}
+.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:48vh;}
+/* Chip betting — round casino chips */
+.cs-chips-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 4px;}
+.cs-chip{
+  position:relative;width:54px;height:54px;border-radius:50%;
+  border:4px solid rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:.68em;cursor:pointer;
+  font-family:'Oswald',sans-serif;transition:all .15s;
+  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);
+  box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.3);
+  letter-spacing:.2px;flex-shrink:0;text-align:center;line-height:1.1;
+}
+.cs-chip::before{content:'';position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(255,255,255,.22);pointer-events:none;}
+.cs-chip::after{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.18) 0%,transparent 60%);pointer-events:none;}
+.cs-chip:active{transform:scale(.88);}
+.cs-chip-sel{border-color:#ffd700!important;box-shadow:0 0 18px rgba(255,215,0,.8),0 4px 10px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.18)!important;transform:scale(1.12)!important;}
+.cs-bet-countdown{text-align:center;font-size:.85em;font-weight:800;color:#ff9040;font-family:'Oswald',sans-serif;letter-spacing:.5px;padding:2px 0;display:none;}
+.cs-bet-countdown.on{display:block;}
+.cs-bet-countdown.urgent{color:#ff3030;animation:mmPulse .5s ease-in-out infinite alternate;}
 .cs-bet-amt{text-align:center;font-size:1.15em;font-weight:800;color:#ffd700;font-family:'Oswald',sans-serif;letter-spacing:1px;padding:4px 0;}
 .cs-panel{display:flex;flex-direction:column;gap:7px;padding:10px;}
 .cs-bet-info{color:#aaa;font-size:.78em;text-align:center;}
@@ -2729,7 +2743,7 @@ function _onFbScript(ok){
   <div class="cs-hdr">
     <span id="cs-rn" class="cs-rn">🎰 Meja 1</span>
     <span id="cs-sb" class="cs-sb cs-st-WAITING">WAITING</span>
-    <button class="cs-xbtn" onclick="leaveCasino()">✕ Keluar</button>
+    <button class="cs-xbtn" id="cs-exit-btn" onclick="csExitStep()">✕ Keluar</button>
   </div>
   <!-- Dealer + Oval -->
   <div class="cs-tabwrap">
@@ -2769,23 +2783,24 @@ function _onFbScript(ok){
     <div id="cs-bet-panel" class="cs-panel" style="display:none;flex-direction:column;gap:6px;">
       <div id="cs-bet-info" class="cs-bet-info">💰 Pasang taruhan untuk memulai:</div>
       <div class="cs-bet-amt" id="cs-bet-display">Rp 0</div>
+      <div id="cs-bet-countdown" class="cs-bet-countdown">⏱ Game mulai dalam <span id="cs-countdown-sec">10</span>s</div>
       <div class="cs-chips-row">
         <button class="cs-chip" data-amt="5000" style="background:#c0392b;" onclick="csSelectChip(5000)">5K</button>
         <button class="cs-chip" data-amt="10000" style="background:#7f8c8d;" onclick="csSelectChip(10000)">10K</button>
         <button class="cs-chip" data-amt="25000" style="background:#8e44ad;" onclick="csSelectChip(25000)">25K</button>
         <button class="cs-chip" data-amt="50000" style="background:#27ae60;" onclick="csSelectChip(50000)">50K</button>
         <button class="cs-chip" data-amt="100000" style="background:#e74c3c;" onclick="csSelectChip(100000)">100K</button>
-        <button class="cs-chip" data-amt="250000" style="background:#2c3e50;border-color:rgba(200,200,200,.3);" onclick="csSelectChip(250000)">250K</button>
+        <button class="cs-chip" data-amt="250000" style="background:#2c3e50;" onclick="csSelectChip(250000)">250K</button>
         <button class="cs-chip" data-amt="500000" style="background:#2980b9;" onclick="csSelectChip(500000)">500K</button>
         <button class="cs-chip" data-amt="1000000" style="background:#e67e22;" onclick="csSelectChip(1000000)">1JT</button>
-        <button class="cs-chip" data-amt="2500000" style="background:#922b21;border:2px solid #ffd700;color:#ffd700;" onclick="csSelectChip(2500000)">2.5JT</button>
+        <button class="cs-chip" data-amt="2500000" style="background:#922b21;" onclick="csSelectChip(2500000)">2.5JT</button>
         <button class="cs-chip" data-amt="5000000" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;" onclick="csSelectChip(5000000)">5JT</button>
       </div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
         <button class="cs-btn" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#aaa;" onclick="csResetBet()">🗑 Hapus</button>
         <button class="cs-btn cs-gold" onclick="doCasinoBet()">✓ Pasang</button>
         <button id="cs-call-btn" class="cs-btn cs-blue" onclick="doCasinoCall()" style="display:none;">CALL Rp 0</button>
-        <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Keluar</button>
+        <button class="cs-btn cs-red" onclick="doCasinoLeaveSeat()">Keluar Kursi</button>
       </div>
       <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;">
         <button class="cs-btn" style="background:rgba(100,100,255,.25);border:1px solid rgba(100,100,255,.4);color:#b0b0ff;font-size:.72em;" onclick="doAddCasinoBot()">🤖 Tambah Bot</button>
@@ -2793,14 +2808,10 @@ function _onFbScript(ok){
       </div>
     </div>
     <!-- Game panel (Capsa berlangsung) -->
-    <div id="cs-game-panel" class="cs-panel" style="display:none;">
-      <div id="cs-turn-lbl" class="cs-turn-lbl">⏳ Menunggu giliran...</div>
+    <div id="cs-game-panel" class="cs-panel" style="display:none;padding:0;">
+      <div id="cs-turn-lbl" class="cs-turn-lbl" style="padding:6px 10px 2px;">⏳ Menunggu giliran...</div>
       <div class="hand-zone" style="background:transparent;">
-        <div class="hand-scroll"><div class="hand-inner" id="cs-hand"></div></div>
-      </div>
-      <div class="actbar" id="cs-actbar">
-        <button class="btn b-green" onclick="doCasinoPlay()">▶ MAIN</button>
-        <button class="btn b-gray" onclick="doCasinoSkip()">⏭ LEWATI</button>
+        <div class="hand-scroll" style="touch-action:pan-x;"><div class="hand-inner" id="cs-hand"></div></div>
       </div>
     </div>
     <!-- Round end panel -->
@@ -2814,6 +2825,11 @@ function _onFbScript(ok){
       <div style="color:#777;font-size:.72em;margin-top:3px;">Kamu ikut ronde berikutnya</div>
       <button class="cs-btn cs-red" style="margin-top:8px;" onclick="doCasinoLeaveSeat()">Tinggalkan Kursi</button>
     </div>
+  </div>
+  <!-- Action bar — outside cs-ctrl so it's always visible at bottom -->
+  <div class="actbar" id="cs-actbar" style="display:none;">
+    <button class="btn b-green" onclick="doCasinoPlay()">▶ MAIN</button>
+    <button class="btn b-gray" onclick="doCasinoSkip()">⏭ LEWATI</button>
   </div>
 </div>
 
@@ -4959,6 +4975,7 @@ function csResetBet(){
   document.querySelectorAll('.cs-chip').forEach(b=>b.classList.remove('cs-chip-sel'));
 }
 let _csState=null,_csMyRoom=null,_csMyUID=null,_csMyName=null;
+let _csExitStep=0,_csBetTimerInterval=null,_csBetTimerExpiresAt=0;
 let _csRoomRef=null,_csRoomOff=null,_csRoomsRef=null,_csRoomsOff=null;
 let _csIsHost=false,_csLocalGame=null,_csBotSeats=new Set();
 
@@ -5027,6 +5044,9 @@ function joinCasinoRoom(roomID){
   _csMyRoom=roomID;
   _csMyUID=currentUser?.uid||('guest_'+Math.random().toString(36).slice(2,8));
   _csMyName=gname()||currentUser?.displayName||'Pemain';
+  _csExitStep=0;
+  const exitBtn=document.getElementById('cs-exit-btn');
+  if(exitBtn){exitBtn.textContent='✕ Keluar';exitBtn.style.background='';}
   go('s-casino');
   _csListenRoom(roomID);
 }
@@ -5057,6 +5077,13 @@ function _csListenRoom(roomID){
       const numSitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='PLAYING').length||4;
       setTimeout(()=>{if(typeof _playEnhancedDealCasino==='function')_playEnhancedDealCasino(numSitting,13);},600);
     }
+    // Bet timer sync (all clients)
+    const eta=r.betTimerExpiresAt||0;
+    if(r.gameStatus==='WAITING'&&eta>Date.now()){
+      if(eta!==_csBetTimerExpiresAt)_csStartBetTimer(eta);
+    } else if(r.gameStatus!=='WAITING'||!eta){
+      _csStopBetTimer();
+    }
     // Host: auto-bet bot & cek start saat WAITING (hanya kalau ada highestBet)
     if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
     // Host: trigger bots saat PLAYING
@@ -5073,7 +5100,7 @@ function _csBuildState(r){
   const myPidxNum=mySeat!=null?(seatToPlayer[mySeat.seatID]??null):null;
   const hands=r.hands||{};
   const myCards=myPidxNum!=null?(hands[myPidxNum]||[]):[];
-  const st={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatToPlayer,playerToSeat,seats:seats.map(s=>({seatID:s.seatID,playerName:s.playerName,playerMoney:s.playerMoney,playerBet:s.playerBet,seatStatus:s.seatStatus,cardCount:s.cardCount||0})),mySeatID:mySeat?.seatID??null,myCards,myMoney:mySeat?.playerMoney??CASINO_START_MONEY,myBet:mySeat?.playerBet??0,shuffleAnim:r.shuffleAnim||null};
+  const st={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatToPlayer,playerToSeat,seats:seats.map(s=>({seatID:s.seatID,playerName:s.playerName,playerMoney:s.playerMoney,playerBet:s.playerBet,seatStatus:s.seatStatus,cardCount:s.cardCount||0})),mySeatID:mySeat?.seatID??null,myCards,myMoney:mySeat?.playerMoney??CASINO_START_MONEY,myBet:mySeat?.playerBet??0,shuffleAnim:r.shuffleAnim||null,betTimerExpiresAt:r.betTimerExpiresAt||0};
   if(r.game&&r.gameStatus==='PLAYING'){
     const g=r.game;
     st.game={current_player:g.currentPlayer,table_cards:g.tableCards||[],table_type:g.tableType||'',rankings:g.rankings||[],active_players:g.activePlayers||[],stopped_players:g.stoppedPlayers||[],game_over:g.gameOver||false,message:g.message||'',phase:g.phase||'opening',opener_idx:g.openerIdx||0,opening_done:g.openingDone||[],decoy_cards:g.decoyCards||[],opening_table:g.openingTable||[],hand_counts:g.handCounts||[],hand:myCards,my_player_idx:myPidxNum};
@@ -5097,6 +5124,10 @@ function _csRebuildGame(r){
   return gs;
 }
 function leaveCasino(){
+  _csStopBetTimer();
+  _csExitStep=0;
+  const exitBtn=document.getElementById('cs-exit-btn');
+  if(exitBtn){exitBtn.textContent='✕ Keluar';exitBtn.style.background='';}
   if(_csMyRoom&&fbRtdb&&_csState){
     // Remove all bots from the table
     (_csState.seats||[]).forEach(s=>{
@@ -5104,17 +5135,69 @@ function leaveCasino(){
         fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+s.seatID).update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false,playerMoney:CASINO_START_MONEY});
       }
     });
-    // If game is PLAYING, force reset so table doesn't stay stuck
-    if(_csState.gameStatus==='PLAYING'){
-      const resetUpd={gameStatus:'WAITING',highestBet:0,totalPot:0,game:null,hands:null,seatToPlayer:{},playerToSeat:{},roundEndMsg:null,roundEndWinner:null,shuffleAnim:null};
-      fbRtdb.ref('casino/rooms/'+_csMyRoom).update(resetUpd);
-    }
   }
   _csLeaveSeat(true);
   if(_csRoomOff){_csRoomOff();_csRoomOff=null;}
   _csMyRoom=null;_csState=null;_csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
   csResetBet();
   go('s-casino-rooms');
+}
+function csExitStep(){
+  if(_csExitStep===0){
+    // First click: leave seat (forfeit if in game), but stay on screen
+    const exitBtn=document.getElementById('cs-exit-btn');
+    if(_csState&&_csState.mySeatID!=null){
+      _csLeaveSeat(false);
+      toast('Kamu keluar dari kursi. Tekan ✕ Keluar sekali lagi untuk ke menu.','info');
+    }
+    _csExitStep=1;
+    if(exitBtn){exitBtn.textContent='← Menu';exitBtn.style.background='rgba(255,150,0,.35)';}
+  } else {
+    // Second click: go to menu
+    leaveCasino();
+  }
+}
+function _csStopBetTimer(){
+  if(_csBetTimerInterval){clearInterval(_csBetTimerInterval);_csBetTimerInterval=null;}
+  _csBetTimerExpiresAt=0;
+  const cd=document.getElementById('cs-bet-countdown');
+  if(cd){cd.classList.remove('on','urgent');}
+}
+function _csStartBetTimer(expiresAt){
+  _csStopBetTimer();
+  _csBetTimerExpiresAt=expiresAt;
+  _csBetTimerInterval=setInterval(()=>{
+    const now=Date.now();const rem=Math.ceil((_csBetTimerExpiresAt-now)/1000);
+    const sec=document.getElementById('cs-countdown-sec');
+    const cd=document.getElementById('cs-bet-countdown');
+    if(sec)sec.textContent=Math.max(0,rem);
+    if(cd){cd.classList.add('on');if(rem<=3)cd.classList.add('urgent');else cd.classList.remove('urgent');}
+    if(rem<=0){
+      _csStopBetTimer();
+      if(_csIsHost)_csBetTimerExpired();
+    }
+  },500);
+}
+async function _csBetTimerExpired(){
+  if(!_csMyRoom||!fbRtdb||!_csState)return;
+  // Kick all players whose bet < highestBet
+  await fbRtdb.ref('casino/rooms/'+_csMyRoom).transaction(r=>{
+    if(!r||r.gameStatus!=='WAITING')return;
+    const hb=r.highestBet||0;if(hb<=0)return;
+    const seats=r.seats||{};
+    Object.values(seats).forEach(s=>{
+      if(s.seatStatus==='SITTING'&&(s.playerBet||0)<hb){
+        s.seatStatus='EMPTY';s.playerName=null;s.playerUID=null;s.playerBet=0;s.cardCount=0;s.isBot=false;
+      }
+    });
+    return r;
+  });
+  // Check if enough players remain
+  const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+  if(!snap.exists())return;
+  const r=snap.val();
+  const sitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING');
+  if(sitting.length>=2)_csCheckReady();
 }
 function doTakeSeat(seatID){
   if(!_csState||!_csMyRoom||!fbRtdb)return;
@@ -5136,10 +5219,10 @@ function doCasinoLeaveSeat(){_csLeaveSeat(false);}
 function _csLeaveSeat(force){
   if(!_csMyRoom||!fbRtdb||!_csState)return;
   const mySeat=_csState.mySeatID;if(mySeat==null)return;
-  if(!force&&_csState.gameStatus==='PLAYING'){toast('Tidak bisa keluar saat game berlangsung!');return;}
   const seatRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/seats/'+mySeat);
   seatRef.onDisconnect().cancel();
   seatRef.update({seatStatus:'EMPTY',playerName:null,playerUID:null,playerBet:0,cardCount:0,isBot:false});
+  _csStopBetTimer();
   if(_csIsHost){
     _csIsHost=false;_csLocalGame=null;_csBotSeats=new Set();
     const hostRef=fbRtdb.ref('casino/rooms/'+_csMyRoom+'/hostUID');
@@ -5156,10 +5239,15 @@ function doCasinoBet(){
   if(!_csMyRoom||!_csState?.mySeatID||!fbRtdb)return;
   if(amt>(_csState.myMoney||CASINO_START_MONEY)){toast('Uang tidak cukup!');return;}
   const seatID=_csState.mySeatID;
+  const prevHB=_csState.highestBet||0;
   fbRtdb.ref('casino/rooms/'+_csMyRoom).transaction(r=>{
     if(!r||r.gameStatus!=='WAITING')return;
     const seat=r.seats?.[seatID];if(!seat||seat.seatStatus!=='SITTING')return;
-    seat.playerBet=amt;if(amt>(r.highestBet||0))r.highestBet=amt;return r;
+    const raised=amt>(r.highestBet||0);
+    seat.playerBet=amt;
+    if(raised){r.highestBet=amt;r.betTimerExpiresAt=Date.now()+10000;}
+    else if(!(r.betTimerExpiresAt))r.betTimerExpiresAt=Date.now()+10000;
+    return r;
   }).then(()=>{if(_csIsHost)_csCheckReady();});
 }
 function doCasinoCall(){
@@ -5202,7 +5290,7 @@ async function _csStartGame(r){
   const totalPot=sitting.reduce((s,x)=>s+x.playerBet,0);
   const seatToPlayer={};const playerToSeat={};
   sitting.forEach((seat,pidx)=>{seatToPlayer[seat.seatID]=pidx;playerToSeat[pidx]=seat.seatID;});
-  const updates={gameStatus:'PLAYING',totalPot,seatToPlayer,playerToSeat,shuffleAnim:{ts:Date.now(),numPlayers:sitting.length}};
+  const updates={gameStatus:'PLAYING',totalPot,seatToPlayer,playerToSeat,shuffleAnim:{ts:Date.now(),numPlayers:sitting.length},betTimerExpiresAt:null};
   sitting.forEach(seat=>{updates['seats/'+seat.seatID+'/seatStatus']='PLAYING';updates['seats/'+seat.seatID+'/playerMoney']=seat.playerMoney-seat.playerBet;});
   Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING'&&!sitting.find(x=>x.seatID===s.seatID)).forEach(s=>{updates['seats/'+s.seatID+'/seatStatus']='WAITING_NEXT_ROUND';});
   await fbRtdb.ref('casino/rooms/'+_csMyRoom).update(updates);
@@ -5223,23 +5311,45 @@ async function _csFlushGame(r,seatToPlayer,playerToSeat,sitting){
 async function _csMaybeTriggerBot(r){
   if(!_csIsHost||!_csLocalGame||_csLocalGame.gameOver)return;
   const gs=_csLocalGame;
+  // Check if current player's seat is EMPTY (left during game) — auto-skip them
+  function _isSeatEmpty(pidx){
+    const seatID=r.playerToSeat?.[pidx];
+    if(seatID==null)return false;
+    const s=(r.seats||{})[seatID];
+    return s&&s.seatStatus==='EMPTY';
+  }
   if(gs.phase==='opening'){
     let acted=false;
+    // Auto-skip opening for players whose seats are empty
+    for(const pidx of gs.activePlayers){
+      if(gs.openingDone.has(pidx))continue;
+      if(_isSeatEmpty(pidx)&&!_csBotSeats.has(pidx)){gs.playOpening(pidx,[]);acted=true;}
+    }
     for(const bp of _csBotSeats){if(gs.openingDone.has(bp)||!gs.activePlayers.includes(bp))continue;const mv=CG.botTurn(gs,bp);if(!mv)continue;if(mv.action==='play')gs.playOpening(bp,mv.cards);else gs.playOpening(bp,[]);acted=true;}
     if(acted){await _csFlushGame(r,r.seatToPlayer,r.playerToSeat,null);if(gs.gameOver)await _csGameOver(r);}
-  } else if(_csBotSeats.has(gs.currentPlayer)){
-    setTimeout(async()=>{
-      if(!_csLocalGame||_csLocalGame.gameOver)return;
-      const cp=_csLocalGame.currentPlayer;if(!_csBotSeats.has(cp))return;
-      const mv=CG.botTurn(_csLocalGame,cp);if(!mv)return;
-      await new Promise(res=>setTimeout(res,900));
-      if(!_csLocalGame)return;
-      if(mv.action==='play'&&mv.cards.length)_csLocalGame.playCards(cp,mv.cards);else _csLocalGame.skipTurn(cp);
+  } else {
+    const cp=gs.currentPlayer;
+    const emptySeat=gs.activePlayers.includes(cp)&&_isSeatEmpty(cp)&&!_csBotSeats.has(cp);
+    if(emptySeat){
+      gs.skipTurn(cp);
       const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
       if(!snap.exists())return;const rv=snap.val();
       await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
-      if(_csLocalGame.gameOver)await _csGameOver(rv);
-    },200);
+      if(gs.gameOver)await _csGameOver(rv);else _csMaybeTriggerBot(rv);
+    } else if(_csBotSeats.has(cp)){
+      setTimeout(async()=>{
+        if(!_csLocalGame||_csLocalGame.gameOver)return;
+        const cp2=_csLocalGame.currentPlayer;if(!_csBotSeats.has(cp2))return;
+        const mv=CG.botTurn(_csLocalGame,cp2);if(!mv)return;
+        await new Promise(res=>setTimeout(res,900));
+        if(!_csLocalGame)return;
+        if(mv.action==='play'&&mv.cards.length)_csLocalGame.playCards(cp2,mv.cards);else _csLocalGame.skipTurn(cp2);
+        const snap=await fbRtdb.ref('casino/rooms/'+_csMyRoom).once('value');
+        if(!snap.exists())return;const rv=snap.val();
+        await _csFlushGame(rv,rv.seatToPlayer,rv.playerToSeat,null);
+        if(_csLocalGame.gameOver)await _csGameOver(rv);
+      },200);
+    }
   }
 }
 async function _csMakeMove(applyFn){
@@ -5252,12 +5362,16 @@ async function _csMakeMove(applyFn){
   _csLocalGame=gs;
   await _csFlushGame(r,r.seatToPlayer,r.playerToSeat,null);
   if(gs.gameOver){if(_csIsHost)await _csGameOver(r);}
-  else if(_csIsHost&&_csBotSeats.has(gs.currentPlayer))_csMaybeTriggerBot(r);
+  else if(_csIsHost)_csMaybeTriggerBot(r);
 }
 async function doCasinoPlay(){
   if(!_csState?.game)return;
   const g=_csState.game;
-  if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
+  if(g.my_player_idx==null)return;
+  const isOp=g.phase==='opening';
+  const myActed=isOp&&(g.opening_done||[]).includes(g.my_player_idx);
+  const isMyTurn=isOp?!myActed:g.current_player===g.my_player_idx;
+  if(!isMyTurn){toast('Bukan giliranmu!');return;}
   const sel=[...document.querySelectorAll('#cs-hand .card.selected')].map(el=>({suit:el.dataset.suit,value:el.dataset.value}));
   if(!sel.length){toast('Pilih kartu dulu!');return;}
   _csMakeMove(gs=>gs.playCards(g.my_player_idx,sel));
@@ -5265,7 +5379,11 @@ async function doCasinoPlay(){
 async function doCasinoSkip(){
   if(!_csState?.game)return;
   const g=_csState.game;
-  if(g.my_player_idx==null||g.current_player!==g.my_player_idx){toast('Bukan giliranmu!');return;}
+  if(g.my_player_idx==null)return;
+  const isOp=g.phase==='opening';
+  const myActed=isOp&&(g.opening_done||[]).includes(g.my_player_idx);
+  const isMyTurn=isOp?!myActed:g.current_player===g.my_player_idx;
+  if(!isMyTurn){toast('Bukan giliranmu!');return;}
   _csMakeMove(gs=>gs.skipTurn(g.my_player_idx));
 }
 async function doAddCasinoBot(){
@@ -5365,9 +5483,13 @@ function renderCasino(st){
       else msg.textContent='✅ Taruhan terpasang — menunggu pemain lain...';
     }else if(isPlaying&&st.game){
       const g=st.game;const myPidx=g.my_player_idx;
+      const isOp=g.phase==='opening';
       if(!isSitting)msg.textContent='👁 Penonton';
       else if(isWaitingNext)msg.textContent='⏳ Menunggu ronde ini selesai...';
-      else if(myPidx!=null&&g.current_player===myPidx)msg.textContent='🟢 GILIRANMU — Pilih kartu!';
+      else if(isOp){
+        const myActed=myPidx!=null&&(g.opening_done||[]).includes(myPidx);
+        msg.textContent=myActed?'✅ Kartu pembukaan sudah keluar — menunggu pemain lain...':'🃏 Ronde Pembukaan — semua pemain keluar kartu barengan!';
+      }else if(myPidx!=null&&g.current_player===myPidx)msg.textContent='🟢 GILIRANMU — Pilih kartu!';
       else{
         const curSeatID=st.playerToSeat?.[g.current_player];
         const curSeat=curSeatID!=null?(st.seats||[]).find(s=>s.seatID===curSeatID):null;
@@ -5377,15 +5499,39 @@ function renderCasino(st){
       msg.textContent='🏆 Ronde selesai!';
     }
   }
+  // Actbar (outside cs-ctrl) — show only when playing and it's my turn area
+  const ab=document.getElementById('cs-actbar');
+  if(ab){
+    let showActbar=false;let actbarOpacity='1';
+    if(isSitting&&isPlaying&&st.game&&!isWaitingNext){
+      const g=st.game;const myPidx=g.my_player_idx;
+      const isOp=g.phase==='opening';
+      const myActed=isOp&&(g.opening_done||[]).includes(myPidx);
+      const isMyTurn=isOp?(!myActed&&myPidx!=null):myPidx!=null&&g.current_player===myPidx;
+      showActbar=!g.game_over;
+      actbarOpacity=isMyTurn?'1':'.4';
+    }
+    ab.style.display=showActbar?'flex':'none';
+    ab.style.opacity=actbarOpacity;
+  }
   // Game panel content
   if(isSitting&&isPlaying&&st.game){
-    const g=st.game;const myPidx=g.my_player_idx;const isMyTurn=myPidx!=null&&g.current_player===myPidx;
+    const g=st.game;const myPidx=g.my_player_idx;
+    const isOp=g.phase==='opening';
+    const myActed=isOp&&(g.opening_done||[]).includes(myPidx);
+    const isMyTurn=isOp?(!myActed&&myPidx!=null):myPidx!=null&&g.current_player===myPidx;
     const tl=document.getElementById('cs-turn-lbl');
-    if(tl)tl.textContent=isMyTurn?'🟢 GILIRANMU — Pilih kartu!':'⏳ Menunggu giliran...';
+    if(tl){
+      if(isOp){
+        if(myActed)tl.textContent='✅ Kamu sudah keluar kartu pembukaan!';
+        else if(myPidx===g.opener_idx)tl.textContent='🟢 Wajib keluarkan 3♠ (atau kartu 3 lain)!';
+        else tl.textContent='🟢 Ronde Pembukaan — pilih kartumu!';
+      } else {
+        tl.textContent=isMyTurn?'🟢 GILIRANMU — Pilih kartu!':'⏳ Menunggu giliran...';
+      }
+    }
     if(g.hand&&g.hand.length>0)renderCasinoHand(g.hand);
     renderCasinoTableCards(g.table_cards||[]);
-    const ab=document.getElementById('cs-actbar');
-    if(ab)ab.style.opacity=isMyTurn?'1':'.4';
     if(g.game_over&&gameP)gameP.style.display='none';
   }else{
     renderCasinoTableCards([]);
