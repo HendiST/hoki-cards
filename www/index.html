@@ -4941,16 +4941,21 @@ let _csState=null,_csMyRoom=null,_csMyUID=null,_csMyName=null;
 let _csRoomRef=null,_csRoomOff=null,_csRoomsRef=null,_csRoomsOff=null;
 let _csIsHost=false,_csLocalGame=null,_csBotSeats=new Set();
 
+// 5 meja permanen — selalu ada, tidak bergantung RTDB
+const _CS_DEFAULT_ROOMS=Array.from({length:5},(_,i)=>({roomID:'CASINO_'+(i+1),roomName:'Meja '+(i+1),gameStatus:'WAITING',highestBet:0,totalPot:0,maxPlayers:4,seatedCount:0}));
+
 async function _csInitRooms(){
   if(!fbRtdb)return;
   for(let i=1;i<=5;i++){
     const rid='CASINO_'+i;
-    const snap=await fbRtdb.ref('casino/rooms/'+rid).once('value');
-    if(!snap.exists()){
-      const seats={};
-      for(let s=1;s<=4;s++)seats[s]={seatID:s,seatStatus:'EMPTY',playerName:null,playerUID:null,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
-      await fbRtdb.ref('casino/rooms/'+rid).set({roomID:rid,roomName:'Meja '+i,maxPlayers:4,gameStatus:'WAITING',highestBet:0,totalPot:0,hostUID:null,seats,seatToPlayer:{},playerToSeat:{},game:null,hands:null});
-    }
+    try{
+      const snap=await fbRtdb.ref('casino/rooms/'+rid).once('value');
+      if(!snap.exists()){
+        const seats={};
+        for(let s=1;s<=4;s++)seats[s]={seatID:s,seatStatus:'EMPTY',playerName:null,playerUID:null,playerMoney:CASINO_START_MONEY,playerBet:0,isBot:false,cardCount:0};
+        await fbRtdb.ref('casino/rooms/'+rid).set({roomID:rid,roomName:'Meja '+i,maxPlayers:4,gameStatus:'WAITING',highestBet:0,totalPot:0,hostUID:null,seats,seatToPlayer:{},playerToSeat:{},game:null,hands:null});
+      }
+    }catch(e){console.warn('[csInitRooms] gagal init '+rid+':',e.message);}
   }
 }
 
@@ -4958,15 +4963,27 @@ function goKasino(){go('s-casino-rooms');_csListenRooms();}
 function cRefreshRooms(){_csListenRooms();}
 
 function _csListenRooms(){
+  // Selalu tampilkan 5 meja default dulu agar tidak kosong
+  renderCasinoRooms(_CS_DEFAULT_ROOMS.map(r=>({...r})));
   if(!fbRtdb)return;
   if(_csRoomsOff)_csRoomsOff();
   _csRoomsRef=fbRtdb.ref('casino/rooms');
   _csRoomsOff=()=>_csRoomsRef.off();
   _csRoomsRef.on('value',snap=>{
-    if(!snap.exists()){renderCasinoRooms([]);return;}
-    const rooms=[];
-    snap.forEach(child=>{const r=child.val();if(!r)return;const seats=r.seats?Object.values(r.seats):[];rooms.push({roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatedCount:seats.filter(s=>s.seatStatus!=='EMPTY').length});});
+    // Mulai dari 5 room default, overlay dengan data live dari RTDB
+    const liveMap={};
+    if(snap&&snap.exists()){
+      snap.forEach(child=>{const r=child.val();if(!r)return;const seats=r.seats?Object.values(r.seats):[];liveMap[r.roomID]={roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus||'WAITING',highestBet:r.highestBet||0,totalPot:r.totalPot||0,maxPlayers:r.maxPlayers||4,seatedCount:seats.filter(s=>s.seatStatus!=='EMPTY').length};});
+    }
+    // Gabung default + live data; pastikan 5 room selalu ada
+    const rooms=_CS_DEFAULT_ROOMS.map(def=>liveMap[def.roomID]||{...def});
     renderCasinoRooms(rooms);
+    // Kalau RTDB kosong, coba buat room data
+    if(!snap||!snap.exists())_csInitRooms();
+  },err=>{
+    console.warn('[csListenRooms] error:',err.message);
+    // Tetap tampilkan 5 meja default walau RTDB error
+    renderCasinoRooms(_CS_DEFAULT_ROOMS.map(r=>({...r})));
   });
 }
 
