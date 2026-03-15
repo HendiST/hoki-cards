@@ -1948,7 +1948,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-rn{font-family:'Oswald',sans-serif;font-size:.95em;color:#ffd700;font-weight:700;flex:1;}
 .cs-sb{padding:2px 8px;border-radius:10px;font-size:.68em;font-weight:700;font-family:'Oswald',sans-serif;white-space:nowrap;}
 .cs-xbtn{background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff9090;border-radius:6px;padding:4px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;}
-.cs-tabwrap{display:flex;flex-direction:column;align-items:center;padding-top:min(7vw,36px);padding-bottom:min(4vw,24px);flex-shrink:0;overflow:visible;}
+.cs-tabwrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:visible;min-height:0;}
 .cs-dealer-row{display:none;}
 .cs-dealer-badge{display:none;}
 .cs-deck-wrap{width:40px;height:5px;margin-top:2px;}
@@ -1974,7 +1974,7 @@ body{font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:co
 .cs-pot-lbl{font-size:.6em;font-weight:700;font-family:'Oswald',sans-serif;color:rgba(255,215,0,.9);margin-top:2px;text-align:center;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px;}
 .cs-tbl-cards{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:150px;z-index:6;pointer-events:none;}
 .cs-msg{padding:5px 12px;color:#bbb;font-size:.75em;text-align:center;background:rgba(0,0,0,.35);flex-shrink:0;min-height:25px;}
-.cs-ctrl{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;}
+.cs-ctrl{display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;max-height:48vh;}
 .cs-panel{display:flex;flex-direction:column;gap:7px;padding:10px;}
 .cs-bet-info{color:#aaa;font-size:.78em;text-align:center;}
 .cs-inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;padding:8px 10px;border-radius:8px;font-size:.85em;width:150px;text-align:center;}
@@ -5018,7 +5018,7 @@ function _csListenRoom(roomID){
     if(!snap.exists())return;
     const r=snap.val();
     // Shuffle animation
-    if(r.shuffleAnim&&!_csState?.shuffleAnim)showCasinoShuffle(r.shuffleAnim.numPlayers||2);
+    if(r.shuffleAnim&&!_csState?.shuffleAnim){if(typeof playShuffleAnimation==='function')playShuffleAnimation();else showCasinoShuffle(r.shuffleAnim.numPlayers||2);}
     else if(!r.shuffleAnim&&_csState?.shuffleAnim)hideCasinoShuffle();
     // Round end
     if(r.gameStatus==='ROUND_END'&&_csState?.gameStatus!=='ROUND_END'){
@@ -5028,8 +5028,14 @@ function _csListenRoom(roomID){
       if(ep)ep.style.display='flex';
       toast(r.roundEndMsg||'Ronde selesai!','success');
     }
+    const _prevStatus=_csState?.gameStatus;
     _csState=_csBuildState(r);
     if(document.getElementById('s-casino')?.classList.contains('on'))renderCasino(_csState);
+    // Deal animation when game first starts
+    if(r.gameStatus==='PLAYING'&&_prevStatus!=='PLAYING'){
+      const numSitting=Object.values(r.seats||{}).filter(s=>s.seatStatus==='PLAYING').length||4;
+      setTimeout(()=>{if(typeof _playEnhancedDealCasino==='function')_playEnhancedDealCasino(numSitting,13);},600);
+    }
     // Host: auto-bet bot & cek start saat WAITING (hanya kalau ada highestBet)
     if(_csIsHost&&r.gameStatus==='WAITING'&&(r.highestBet||0)>0)_csCheckReady();
     // Host: trigger bots saat PLAYING
@@ -11450,6 +11456,115 @@ function _getCbClass(){
   return '';
 }
 window._getCbClass=_getCbClass;
+
+// ══ CASINO DEAL ANIMATION — same as bot mode but uses cs-oval + cs-hand ══
+function _playEnhancedDealCasino(numPlayers, cardsPerPlayer){
+  var myGen=++_dealGen;
+  var ov=document.createElement('div');
+  ov.id='cs-deal-anim-overlay';
+  ov.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:9999;perspective:900px;';
+  document.body.appendChild(ov);
+
+  var ovalEl=document.getElementById('cs-oval');
+  var gameEl=document.getElementById('s-casino')||document.body;
+  var srcRect=(ovalEl||gameEl).getBoundingClientRect();
+  var cx=srcRect.left+srcRect.width/2;
+  var cy=srcRect.top+8;
+
+  // Get seat positions from cs-seat elements, fall back to SPOS
+  var spos=typeof SPOS!=='undefined'?(SPOS[numPlayers]||SPOS[4]):null;
+  var mySeat=typeof _csState!=='undefined'&&_csState?(_csState.mySeatID||1):1;
+  // Map seatID → playerIndex via _csState.seatToPlayer
+  var seatToPlayer=typeof _csState!=='undefined'&&_csState?(_csState.seatToPlayer||{}):{}; 
+  var myPidx=seatToPlayer[mySeat]??0;
+
+  // Compute positions for each playerIndex
+  var positions=[];
+  for(var i=0;i<numPlayers;i++){
+    var seatID=null;
+    // Find seatID for player index i
+    for(var sid in seatToPlayer){if(seatToPlayer[sid]===i){seatID=parseInt(sid);break;}}
+    var seatEl=seatID!=null?document.getElementById('cs-seat-'+seatID):null;
+    if(seatEl){
+      var sr=seatEl.getBoundingClientRect();
+      positions[i]={x:sr.left+sr.width/2,y:sr.top+sr.height/2};
+    } else if(spos){
+      var vi=i;
+      var p=spos[vi]||[50,50];
+      positions[i]={x:srcRect.left+srcRect.width*p[0]/100,y:srcRect.top+srcRect.height*p[1]/100};
+    } else {
+      positions[i]={x:cx,y:cy};
+    }
+  }
+
+  var cbClass=typeof window._getCbClass==='function'?window._getCbClass():'';
+  var bgStyle=
+    cbClass==='g-card-cb-blue'?'linear-gradient(148deg,#001a3a 55%,#0044a0)':
+    cbClass==='g-card-cb-red'?'linear-gradient(148deg,#2a0000 55%,#7a0000)':
+    cbClass==='g-card-cb-dark'?'linear-gradient(148deg,#0a0a0a 55%,#1a1a1a)':
+    cbClass==='g-card-cb-striped'?'repeating-linear-gradient(-45deg,#1a3a5c 0px,#1a3a5c 3px,#0d5c8a 3px,#0d5c8a 6px)':
+    cbClass==='g-card-cb-batik'?'radial-gradient(ellipse at 30% 30%,rgba(180,100,0,.5) 0%,transparent 55%) #1a0800':
+    'linear-gradient(148deg,#1c3d60 55%,#1a5080)';
+  var bdColor=cbClass==='g-card-cb-blue'?'#0088ff':cbClass==='g-card-cb-red'?'#ff3333':cbClass==='g-card-cb-dark'?'#555':cbClass==='g-card-cb-striped'?'#4499cc':cbClass==='g-card-cb-batik'?'#c8860b':'rgba(255,255,255,.82)';
+
+  var step=92,transit=360;
+  var totalCards=numPlayers*cardsPerPlayer;
+  var CW=30,CH=44;
+  var stackCount=[];
+  for(var p=0;p<numPlayers;p++) stackCount[p]=0;
+
+  for(var i=0;i<totalCards;i++){
+    (function(idx){
+      var pIdx=idx%numPlayers;
+      var dest=positions[pIdx]||{x:cx,y:cy};
+      var myStack=stackCount[pIdx]++;
+      setTimeout(function(){
+        if(_dealGen!==myGen)return;
+        var card=document.createElement('div');
+        var startRot=(Math.random()*22)-11;
+        card.style.cssText=[
+          'position:fixed','width:'+CW+'px','height:'+CH+'px',
+          'background:'+bgStyle,'border:1.5px solid '+bdColor,'border-radius:5px',
+          'box-shadow:0 10px 24px rgba(0,0,0,.8)',
+          'left:'+(cx-CW/2)+'px','top:'+(cy-CH/2)+'px',
+          'transform:rotate('+startRot+'deg) rotateX(-10deg) rotateY('+(Math.random()*14-7)+'deg) translateZ(38px) scale(1.1)',
+          'transition:left '+transit+'ms cubic-bezier(.22,1,.36,1),top '+transit+'ms cubic-bezier(.22,1,.36,1),transform '+transit+'ms cubic-bezier(.22,1,.36,1),box-shadow '+transit+'ms ease',
+          'opacity:1','z-index:9999','will-change:left,top,transform'
+        ].join(';');
+        ov.appendChild(card);
+        if(_dealGen===myGen&&typeof sfxDeal==='function') sfxDeal();
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            if(_dealGen!==myGen)return;
+            var sOff=myStack*2;
+            var endRot=(Math.random()*6)-3;
+            card.style.left=(dest.x-CW/2-sOff*0.5)+'px';
+            card.style.top=(dest.y-CH/2-sOff)+'px';
+            card.style.transform='rotate('+endRot+'deg) rotateX(4deg) translateZ(0px) scale(0.85)';
+            card.style.boxShadow='0 '+(3+myStack)+'px '+(8+myStack*2)+'px rgba(0,0,0,.55)';
+            if(typeof sfxCardStack==='function') setTimeout(function(){if(_dealGen===myGen)sfxCardStack();},transit*0.88);
+          });
+        });
+        // Reveal cs-hand cards for the local player
+        if(pIdx===myPidx){
+          var cardNum=Math.floor(idx/numPlayers);
+          setTimeout(function(){
+            var hc=document.querySelectorAll('#cs-hand .card');
+            if(hc[cardNum]){hc[cardNum].classList.remove('deal-hidden');hc[cardNum].classList.add('deal-reveal');}
+          },transit+120);
+        }
+      },idx*step);
+    })(i);
+  }
+  var finishAt=totalCards*step+transit+700;
+  setTimeout(function(){
+    document.querySelectorAll('#cs-hand .card.deal-hidden').forEach(function(c){c.classList.remove('deal-hidden');c.classList.add('deal-reveal');});
+    ov.style.transition='opacity .55s ease';
+    ov.style.opacity='0';
+    setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov);},600);
+  },finishAt);
+}
+window._playEnhancedDealCasino=_playEnhancedDealCasino;
 
 // ══ 8. SPRING CARD SELECTION (upgrade) ══════════════════════════
 // CSS sudah punya spring easing. Tambah scale kecil + shadow lebih dramatis saat select
