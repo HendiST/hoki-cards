@@ -10513,6 +10513,68 @@ if(_origBuildSeats){
   };
 }
 
+// ── Patch renderCasino untuk Scanner + SeeAll ────────────────────────────
+const _origRenderCasino=(typeof renderCasino==='function')?renderCasino:null;
+if(_origRenderCasino){
+  renderCasino=function(st){
+    _origRenderCasino(st);
+    if(_cheatState.scanner) _cheatRenderCasinoScannerHints(st);
+    if(_cheatState.seeall) _cheatApplyCasinoSeeAll(st);
+  };
+}
+
+// ── Casino Scanner Hints ─────────────────────────────────────────────────
+function _cheatRenderCasinoScannerHints(st){
+  if(!st||!st.game||st.gameStatus!=='PLAYING') return;
+  const g=st.game;
+  const myPidx=g.my_player_idx;
+  // Iterate semua seat, tambah scanner hint untuk seat lain
+  for(let seatID=1;seatID<=4;seatID++){
+    const si=document.getElementById('cs-si-'+seatID);
+    if(!si) continue;
+    const seatData=(st.seats||[]).find(s=>s.seatID===seatID);
+    if(!seatData||seatData.seatStatus!=='PLAYING') continue;
+    const pidx=st.seatToPlayer?.[seatID];
+    if(pidx==null||pidx===myPidx) continue;
+    // Add tap hint
+    const onClick=document.getElementById('cs-seat-'+seatID);
+    if(onClick){
+      onClick.style.cursor='pointer';
+      // Remove old overlay first
+      si.querySelectorAll('.seat-scanner-overlay').forEach(e=>e.remove());
+      // Add new overlay
+      const hint=document.createElement('div');
+      hint.className='seat-scanner-overlay';
+      hint.textContent='👁️ TAP';
+      hint.style.cssText='position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#0f0;font-size:.55em;padding:1px 4px;border-radius:4px;z-index:10;';
+      si.style.position='relative';
+      si.appendChild(hint);
+      // Set onclick
+      onClick.onclick=()=>_cheatScanPlayer(pidx);
+    }
+  }
+}
+
+// ── Casino SeeAll Hints ──────────────────────────────────────────────────
+function _cheatApplyCasinoSeeAll(st){
+  if(!st||!st.game||st.gameStatus!=='PLAYING') return;
+  const g=st.game;
+  const myPidx=g.my_player_idx;
+  const handCounts=g.hand_counts||[];
+  // Tampilkan jumlah kartu di nama seat
+  for(let seatID=1;seatID<=4;seatID++){
+    const si=document.getElementById('cs-si-'+seatID);
+    if(!si) continue;
+    const pidx=st.seatToPlayer?.[seatID];
+    if(pidx==null||pidx===myPidx) continue;
+    const cnt=handCounts[pidx];
+    if(cnt==null) continue;
+    const nameEl=si.querySelector('.cs-av-name');
+    if(nameEl&&!nameEl.dataset.origText) nameEl.dataset.origText=nameEl.textContent;
+    if(nameEl) nameEl.textContent=(nameEl.dataset.origText||'P'+seatID)+' ['+cnt+' kartu]';
+  }
+}
+
 function _cheatScanPlayer(pidx){
   if(!_cheatState.scanner){ toast('Scanner tidak aktif','warn'); return; }
   const SS2={S:'♠',H:'♥',D:'♦',C:'♣'};
