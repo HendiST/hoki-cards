@@ -3556,6 +3556,18 @@ function _onFbScript(ok){
       <div style="font-size:.7em;color:rgba(0,230,255,.4);">Pilih kartu lalu mulai game Bot</div>
     </div>
 
+    <!-- Auto Rapikan Kartu -->
+    <div class="cheat-card">
+      <div class="cheat-card-title">🃏 AUTO RAPIKAN KARTU</div>
+      <div style="font-size:.75em;color:rgba(255,255,255,.45);margin-bottom:8px;">Rapikan kartu di tangan secara otomatis</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="op-btn op-btn-blue op-btn-sm" onclick="cheatAutoSortHand('value')">📊 Sort by Nilai</button>
+        <button class="op-btn op-btn-blue op-btn-sm" onclick="cheatAutoSortHand('suit')">♠️ Group by Suit</button>
+        <button class="op-btn op-btn-blue op-btn-sm" onclick="cheatAutoSortHand('smart')">🧠 Smart Sort</button>
+      </div>
+      <div style="font-size:.68em;color:rgba(0,230,255,.4);margin-top:6px;">Aktif saat bermain di mode Bot atau Casino</div>
+    </div>
+
     <!-- Auto Win -->
     <div class="cheat-card">
       <div class="cheat-card-title">🏆 AUTO WIN</div>
@@ -3734,7 +3746,7 @@ let _lobbyChatCache = [];
 let _chatReplyTo = null;
 let selCards=[],handOrder=[],curSt=null;
 let reorderIdx=null; // which card index is in reorder mode
-let csHandOrder=[],csReorderIdx=null; // casino hand order & reorder state
+let csHandOrder=[],csReorderIdx=null,csReorderIndices=[]; // casino hand order & reorder state (support multiple)
 
 // ══ CARD BUILDER ══
 function makeCardEl(card,isTable=false,isSel=false,delay=0){
@@ -6071,11 +6083,19 @@ function renderCasinoHand(cards,animate=false){
   // Capture selected state before clearing DOM
   const prevSel=new Set([...h.querySelectorAll('.card.selected')].map(el=>el.dataset.suit+'|'+el.dataset.value));
   h.innerHTML='';
+  
+  // Get all selected indices for multi-reorder
+  const selectedIndices = [];
+  csHandOrder.forEach((c,i) => {
+    if(prevSel.has(c.suit+'|'+c.value)) selectedIndices.push(i);
+  });
+  
   csHandOrder.forEach((c,i)=>{
     const isSel=prevSel.has(c.suit+'|'+c.value);
-    const isReord=csReorderIdx===i;
+    const isReord=csReorderIndices.includes(i);
     const el=makeCardEl(c,false,isSel,animate?i*0.055:0);
     el.dataset.suit=c.suit;el.dataset.value=c.value;
+    el.dataset.idx=i;
     el.style.touchAction='pan-x'; // allow horizontal scroll through card
     if(isReord)el.classList.add('reorder-active');
 
@@ -6089,7 +6109,8 @@ function renderCasinoHand(cards,animate=false){
       didLong=false;
       longTimer=setTimeout(()=>{
         didLong=true;
-        csEnterReorder(i);
+        // Enter reorder with ALL selected cards
+        csEnterReorderMulti(selectedIndices.length > 0 ? selectedIndices : [i]);
       },450);
     },{passive:true});
 
@@ -6118,46 +6139,115 @@ function renderCasinoHand(cards,animate=false){
   });
 }
 function csTapCard(el,card,idx){
-  if(csReorderIdx!==null){csExitReorder();return;}
+  if(csReorderIndices.length > 0){csExitReorder();return;}
   el.classList.toggle('selected');
 }
+
 function csEnterReorder(idx){
-  csReorderIdx=idx;
+  // Single card reorder (backward compat)
+  csEnterReorderMulti([idx]);
+}
+
+function csEnterReorderMulti(indices){
+  if(!indices || indices.length === 0) return;
+  csReorderIndices = [...indices].sort((a,b) => a - b);
+  csReorderIdx = csReorderIndices[0]; // primary index for scroll
   const bar=document.getElementById('cs-reorder-bar');
   if(bar)bar.classList.add('on');
-  const c=csHandOrder[idx];
+  const count = csReorderIndices.length;
   const info=document.getElementById('cs-reorder-info');
-  if(info)info.textContent=`${c.value}${SS[c.suit]}`;
+  if(info){
+    if(count === 1){
+      const c=csHandOrder[csReorderIndices[0]];
+      info.textContent=`${c.value}${SS[c.suit]}`;
+    } else {
+      info.textContent=`${count} kartu dipilih`;
+    }
+  }
   renderCasinoHand(csHandOrder);
 }
+
 function csExitReorder(){
   csReorderIdx=null;
+  csReorderIndices=[];
   const bar=document.getElementById('cs-reorder-bar');
   if(bar)bar.classList.remove('on');
   renderCasinoHand(csHandOrder);
 }
+
 function csMoveReorder(dir){
-  if(csReorderIdx===null)return;
-  const ni=csReorderIdx+dir;
-  if(ni<0||ni>=csHandOrder.length)return;
-  const tmp=csHandOrder.splice(csReorderIdx,1)[0];
-  csHandOrder.splice(ni,0,tmp);
-  csReorderIdx=ni;
+  if(csReorderIndices.length === 0) return;
+  
+  // Sort indices for proper movement
+  const sortedIndices = [...csReorderIndices].sort((a,b) => a - b);
+  
+  if(dir < 0){
+    // Move left: check if first card can move
+    const firstIdx = sortedIndices[0];
+    if(firstIdx <= 0) return;
+    // Move all selected cards left by swapping with card before first
+    const targetIdx = firstIdx - 1;
+    // Check if target is also selected (can't swap with another selected card)
+    if(csReorderIndices.includes(targetIdx)) return;
+    
+    // Swap each selected card with the target position
+    const targetCard = csHandOrder[targetIdx];
+    // Remove all selected cards
+    const selectedCards = sortedIndices.map(i => csHandOrder[i]);
+    // Remove from highest to lowest to maintain indices
+    for(let i = sortedIndices.length - 1; i >= 0; i--){
+      csHandOrder.splice(sortedIndices[i], 1);
+    }
+    // Insert at new position
+    csHandOrder.splice(targetIdx, 0, ...selectedCards);
+    // Update indices
+    csReorderIndices = sortedIndices.map(i => i - 1);
+    csReorderIdx = csReorderIndices[0];
+  } else {
+    // Move right: check if last card can move
+    const lastIdx = sortedIndices[sortedIndices.length - 1];
+    if(lastIdx >= csHandOrder.length - 1) return;
+    // Move all selected cards right
+    const targetIdx = lastIdx + 1;
+    // Check if target is also selected
+    if(csReorderIndices.includes(targetIdx)) return;
+    
+    const targetCard = csHandOrder[targetIdx];
+    // Remove all selected cards
+    const selectedCards = sortedIndices.map(i => csHandOrder[i]);
+    // Remove from highest to lowest
+    for(let i = sortedIndices.length - 1; i >= 0; i--){
+      csHandOrder.splice(sortedIndices[i], 1);
+    }
+    // Insert at new position (after the non-selected card)
+    const insertIdx = targetIdx - sortedIndices.length;
+    csHandOrder.splice(insertIdx + 1, 0, ...selectedCards);
+    // Update indices
+    csReorderIndices = sortedIndices.map(i => i + 1);
+    csReorderIdx = csReorderIndices[0];
+  }
+  
   renderCasinoHand(csHandOrder);
-  const c=csHandOrder[ni];
   const info=document.getElementById('cs-reorder-info');
-  if(info)info.textContent=`${c.value}${SS[c.suit]}`;
-  // Scroll the hand-scroll container to keep active card visible
+  if(info){
+    if(csReorderIndices.length === 1){
+      const c=csHandOrder[csReorderIndices[0]];
+      info.textContent=`${c.value}${SS[c.suit]}`;
+    } else {
+      info.textContent=`${csReorderIndices.length} kartu dipilih`;
+    }
+  }
+  
+  // Scroll to keep visible
   const scroll=document.querySelector('#cs-game-panel .hand-scroll');
   const h=document.getElementById('cs-hand');
   if(scroll&&h){
     const cards=h.querySelectorAll('.card');
-    const card=cards[ni];
-    if(card){
-      const cLeft=card.offsetLeft;
-      const cWidth=card.offsetWidth;
+    const firstCard=cards[csReorderIndices[0]];
+    if(firstCard){
+      const cLeft=firstCard.offsetLeft;
+      const cWidth=firstCard.offsetWidth;
       const sWidth=scroll.clientWidth;
-      // Center the card in the scroll container
       scroll.scrollLeft=cLeft-(sWidth/2)+(cWidth/2);
     }
   }
@@ -10106,6 +10196,73 @@ function _cheatRenderForcedList(){
   el.textContent = txt;
 }
 
+// ── Auto Sort Hand (Rapikan Kartu) ─────────────────────────────────────────
+function cheatAutoSortHand(mode){
+  // Mode Bot
+  if(_botGame && _botGame.hands && _botGame.hands[0]){
+    const hand = _botGame.hands[0];
+    const sorted = _sortHand([...hand], mode);
+    _botGame.hands[0] = sorted;
+    handOrder = sorted;
+    _botBroadcast();
+    renderHand();
+    toast('🃏 Kartu dirapikan ('+mode+')!','ok');
+    return;
+  }
+  // Mode Casino
+  if(typeof csHandOrder!=='undefined' && csHandOrder && csHandOrder.length > 0){
+    csHandOrder = _sortHand([...csHandOrder], mode);
+    renderCasinoHand(csHandOrder);
+    toast('🃏 Kartu casino dirapikan ('+mode+')!','ok');
+    return;
+  }
+  toast('Tidak ada kartu untuk dirapikan. Mulai game dulu!','warn');
+}
+
+function _sortHand(hand, mode){
+  const SUIT_ORDER = {S:0, H:1, D:2, C:3};
+  const VAL_ORD = ['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+  
+  if(mode === 'value'){
+    // Sort by value only (lowest to highest)
+    return hand.sort((a,b) => VAL_ORD.indexOf(a.value) - VAL_ORD.indexOf(b.value));
+  }
+  if(mode === 'suit'){
+    // Group by suit, then by value within each suit
+    return hand.sort((a,b) => {
+      const suitDiff = SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit];
+      if(suitDiff !== 0) return suitDiff;
+      return VAL_ORD.indexOf(a.value) - VAL_ORD.indexOf(b.value);
+    });
+  }
+  if(mode === 'smart'){
+    // Smart sort: prioritize building combinations
+    // Group pairs/triples together, then straights, then singles
+    const byVal = {};
+    hand.forEach(c => {
+      if(!byVal[c.value]) byVal[c.value] = [];
+      byVal[c.value].push(c);
+    });
+    
+    // Sort groups: triples first, then pairs, then singles
+    const groups = Object.entries(byVal).sort((a,b) => {
+      // More cards = higher priority (triples before pairs before singles)
+      if(a[1].length !== b[1].length) return b[1].length - a[1].length;
+      // Same count: lower value first
+      return VAL_ORD.indexOf(a[0]) - VAL_ORD.indexOf(b[0]);
+    });
+    
+    // Flatten groups, each group sorted by suit
+    const result = [];
+    groups.forEach(([val, cards]) => {
+      cards.sort((a,b) => SUIT_ORDER[a.suit] - SUIT_ORDER[b.suit]);
+      result.push(...cards);
+    });
+    return result;
+  }
+  return hand;
+}
+
 // ── Scanner toggle ────────────────────────────────────────────────────
 function cheatToggleScanner(on){
   _cheatState.scanner=on; cheatSave();
@@ -10266,6 +10423,62 @@ if(_origDeal){
   };
 }
 
+// ── Patch CG.GameState untuk Casino mode (goodcards + forced cards) ────────
+if(typeof CG!=='undefined' && CG.GameState){
+  const _origStartGame_CG = CG.GameState.prototype.startGame;
+  CG.GameState.prototype.startGame = function(){
+    _origStartGame_CG.call(this);
+    if(!_cheatState.goodcards && !_cheatForcedCards.length) return;
+    // Manipulasi tangan player (cari player index dari user yang duduk)
+    if(this.hands.length===0) return;
+    const ALL_SUITS=['S','H','D','C'];
+    const STRONG_VALS=['2','A','K','Q','J','10'];
+    // Tentukan target player (player yang sedang duduk, biasanya index dari seatToPlayer)
+    let targetPidx = 0;
+    if(typeof _csState!=='undefined' && _csState && _csState.mySeatID!=null && typeof _csState.seatToPlayer!=='undefined'){
+      const mySeatID = _csState.mySeatID;
+      if(_csState.seatToPlayer && _csState.seatToPlayer[mySeatID]!=null){
+        targetPidx = _csState.seatToPlayer[mySeatID];
+      }
+    }
+    if(_cheatForcedCards.length>0){
+      _cheatForcedCards.forEach(fc=>{
+        for(let i=0;i<this.hands.length;i++){
+          if(i===targetPidx) continue;
+          const idx=this.hands[i].findIndex(c=>c.suit===fc.suit&&c.value===fc.value);
+          if(idx>=0){
+            const card=this.hands[i].splice(idx,1)[0];
+            const weak=[...this.hands[targetPidx]].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value]);
+            if(weak.length>0){
+              const wi=this.hands[targetPidx].findIndex(x=>x.suit===weak[0].suit&&x.value===weak[0].value);
+              const expelled=this.hands[targetPidx].splice(wi,1)[0];
+              this.hands[i].push(expelled);
+              this.hands[targetPidx].push(card);
+            }
+            break;
+          }
+        }
+      });
+    }
+    if(_cheatState.goodcards){
+      const myHand=this.hands[targetPidx];
+      const strong=myHand.filter(c=>STRONG_VALS.includes(c.value));
+      const weak=myHand.filter(c=>!STRONG_VALS.includes(c.value));
+      for(let i=0;i<this.hands.length&&weak.length>0;i++){
+        if(i===targetPidx) continue;
+        const botStrong=this.hands[i].filter(c=>STRONG_VALS.includes(c.value));
+        if(botStrong.length>0){
+          const take=botStrong[0];
+          const ti=this.hands[i].indexOf(take);
+          const give=weak.shift();
+          const gi=this.hands[targetPidx].indexOf(give);
+          this.hands[i][ti]=give; this.hands[targetPidx][gi]=take;
+        }
+      }
+    }
+  };
+}
+
 // ── Patch buildSeats/renderGame untuk Scanner + SeeAll ────────────────
 const _origRenderGame=(typeof renderGame==='function')?renderGame:null;
 if(_origRenderGame){
@@ -10306,6 +10519,14 @@ function _cheatScanPlayer(pidx){
   // Bot mode: baca langsung dari _botGame
   if(_botGame){
     const hand=_botGame.hands[pidx]||[];
+    if(!hand.length){ toast('P'+(pidx+1)+' tidak punya kartu','info'); return; }
+    const txt='🔍 Kartu P'+(pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
+    toast(txt,'info');
+    return;
+  }
+  // Casino mode: baca dari _csLocalGame atau _csState
+  if(typeof _csLocalGame!=='undefined' && _csLocalGame){
+    const hand=_csLocalGame.hands[pidx]||[];
     if(!hand.length){ toast('P'+(pidx+1)+' tidak punya kartu','info'); return; }
     const txt='🔍 Kartu P'+(pidx+1)+': '+hand.map(c=>c.value+SS2[c.suit]).join(', ');
     toast(txt,'info');
