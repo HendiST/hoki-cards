@@ -10014,10 +10014,43 @@ function _cheatBuildCardPicker(){
   });
 }
 
+// Helper: cek apakah kartu JQKA yang dipilih valid (semua harus sama suit)
+function _cheatValidateJQKA(){
+  const JQKA_VALS = ['J','Q','K','A'];
+  const jqkaCards = _cheatForcedCards.filter(c => JQKA_VALS.includes(c.value));
+  if(jqkaCards.length < 4) return true; // belum lengkap, OK
+  // Cek apakah semua JQKA punya suit yang sama
+  const suits = new Set(jqkaCards.map(c => c.suit));
+  if(suits.size > 1){
+    toast('⚠️ JQKA harus sama suit! Pilih J,Q,K,A dari suit yang sama.','warn');
+    return false;
+  }
+  return true;
+}
+
+// Helper: cek apakah kombinasi JQKA sudah lengkap dan valid
+function _cheatCheckJQKAStatus(){
+  const JQKA_VALS = ['J','Q','K','A'];
+  const jqkaCards = _cheatForcedCards.filter(c => JQKA_VALS.includes(c.value));
+  const hasAll = JQKA_VALS.every(v => jqkaCards.some(c => c.value === v));
+  if(!hasAll) return { complete: false, sameSuit: false };
+  const suits = new Set(jqkaCards.map(c => c.suit));
+  return { complete: true, sameSuit: suits.size === 1 };
+}
+
 function _cheatToggleForceCard(suit,value,btn){
   const idx = _cheatForcedCards.findIndex(c=>c.suit===suit&&c.value===value);
   if(idx>=0){ _cheatForcedCards.splice(idx,1); }
-  else { if(_cheatForcedCards.length>=13){ toast('Max 13 kartu!','warn'); return; } _cheatForcedCards.push({suit,value}); }
+  else { 
+    if(_cheatForcedCards.length>=13){ toast('Max 13 kartu!','warn'); return; }
+    _cheatForcedCards.push({suit,value}); 
+    // Validasi JQKA setelah menambah kartu baru
+    if(!_cheatValidateJQKA()){
+      // Hapus kartu yang baru ditambah jika JQKA tidak valid
+      _cheatForcedCards.splice(_cheatForcedCards.length-1, 1);
+      return;
+    }
+  }
   const col=(suit==='H'||suit==='D')?'#ff8888':'#8af';
   const isForced=_cheatForcedCards.some(c=>c.suit===suit&&c.value===value);
   btn.style.background=isForced?'rgba(0,230,255,.25)':'rgba(255,255,255,.06)';
@@ -10025,6 +10058,12 @@ function _cheatToggleForceCard(suit,value,btn){
   btn.style.color=col;
   _cheatRenderForcedList();
   cheatSave();
+  
+  // Tampilkan info jika JQKA sudah lengkap dan valid
+  const status = _cheatCheckJQKAStatus();
+  if(status.complete && status.sameSuit){
+    toast('✅ JQKA lengkap! Kombinasi valid.','ok');
+  }
 }
 
 function cheatForceCard(){
@@ -10032,10 +10071,23 @@ function cheatForceCard(){
   const s = document.getElementById('cheat-force-suit').value;
   if(!v||!s){ toast('Pilih nilai dan suit!','warn'); return; }
   const exists = _cheatForcedCards.some(c=>c.suit===s&&c.value===v);
-  if(!exists){ _cheatForcedCards.push({suit:s,value:v}); }
+  if(!exists){ 
+    _cheatForcedCards.push({suit:s,value:v}); 
+    // Validasi JQKA setelah menambah kartu baru
+    if(!_cheatValidateJQKA()){
+      _cheatForcedCards.splice(_cheatForcedCards.length-1, 1);
+      return;
+    }
+  }
   _cheatRenderForcedList();
   cheatSave();
-  toast('⚡ Force: '+v+{S:'♠',H:'♥',D:'♦',C:'♣'}[s],'ok');
+  // Tampilkan info jika JQKA sudah lengkap dan valid
+  const status = _cheatCheckJQKAStatus();
+  if(status.complete && status.sameSuit){
+    toast('✅ JQKA lengkap! Kombinasi valid.','ok');
+  } else {
+    toast('⚡ Force: '+v+{S:'♠',H:'♥',D:'♦',C:'♣'}[s],'ok');
+  }
 }
 
 function _cheatRenderForcedList(){
@@ -10043,7 +10095,15 @@ function _cheatRenderForcedList(){
   if(!el) return;
   if(!_cheatForcedCards.length){ el.textContent='Belum ada kartu dipaksa.'; return; }
   const SS2={S:'♠',H:'♥',D:'♦',C:'♣'};
-  el.textContent='Force: '+_cheatForcedCards.map(c=>c.value+SS2[c.suit]).join(', ');
+  let txt='Force: '+_cheatForcedCards.map(c=>c.value+SS2[c.suit]).join(', ');
+  // Tambahkan info JQKA
+  const status = _cheatCheckJQKAStatus();
+  if(status.complete && status.sameSuit){
+    txt += ' | ✅ JQKA VALID';
+  } else if(status.complete && !status.sameSuit){
+    txt += ' | ⚠️ JQKA beda suit!';
+  }
+  el.textContent = txt;
 }
 
 // ── Scanner toggle ────────────────────────────────────────────────────
