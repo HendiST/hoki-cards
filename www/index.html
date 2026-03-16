@@ -4388,11 +4388,21 @@ function _deal(n){const deck=[];for(const s of SUITS)for(const v of VALUES)deck.
 function _rem(hand,c){const i=hand.findIndex(x=>x.suit===c.suit&&x.value===c.value);if(i!==-1)hand.splice(i,1);}
 function _sameSuit(cards){return new Set(cards.map(c=>c.suit)).size===1;}
 function _validStr(cards){
+  // Straight: minimal 3 kartu, semua sama suit, nilai berurutan
+  // Bisa campuran angka & huruf: 6-7-8, 9-10-J, 10-J-Q, J-Q-K, Q-K-A, dll
+  // CATATAN: Kartu 2 TIDAK bisa ikut straight
   if(cards.length<3||!_sameSuit(cards))return false;
-  const allN=cards.every(c=>NUMBER_VALS.includes(c.value));
-  const allL=cards.every(c=>LETTER_VALS.includes(c.value));
-  if(!allN&&!allL)return false;
+  // Cek apakah ada kartu 2 dalam straight (tidak valid)
+  if(cards.some(c=>c.value==='2'))return false;
+  // Cek duplikat kartu - tidak boleh ada kartu yang sama
+  const seen=new Set();
+  for(const c of cards){
+    const key=c.suit+c.value;
+    if(seen.has(key))return false;
+    seen.add(key);
+  }
   const v=cards.map(c=>VAL_IDX[c.value]).sort((a,b)=>a-b);
+  // Cek urutan: setiap kartu harus +1 dari sebelumnya
   for(let i=1;i<v.length;i++)if(v[i]!==v[i-1]+1)return false;
   return true;
 }
@@ -5011,8 +5021,17 @@ const CG=(function(){
   function dealCards(n){const deck=[];for(const s of SUITS)for(const v of VALUES)deck.push({suit:s,value:v});shuffle(deck);const hands=Array.from({length:n},()=>[]);deck.forEach((c,i)=>hands[i%n].push(c));return hands;}
   function removeCard(hand,card){const i=hand.findIndex(c=>c.suit===card.suit&&c.value===card.value);if(i!==-1)hand.splice(i,1);return hand;}
   function sameSuit(cards){return new Set(cards.map(c=>c.suit)).size===1;}
-  function validStraight(cards){if(cards.length<3)return false;const allNum=cards.every(c=>NUMBER_VALS.includes(c.value));const allLet=cards.every(c=>LETTER_VALS.includes(c.value));if(!allNum&&!allLet)return false;const v=cards.map(c=>VAL_IDX[c.value]).sort((a,b)=>a-b);for(let i=1;i<v.length;i++)if(v[i]!==v[i-1]+1)return false;return true;}
-  function isJQKA(cards){if(cards.length!==4)return false;const v=cards.map(c=>c.value).sort();return v[0]==='A'&&v[1]==='J'&&v[2]==='K'&&v[3]==='Q';}
+  function validStraight(cards){
+    // Straight: minimal 3 kartu, semua sama suit, nilai berurutan
+    // Bisa campuran angka & huruf: 6-7-8, 9-10-J, 10-J-Q, J-Q-K, Q-K-A, dll
+    // CATATAN: Kartu 2 TIDAK bisa ikut straight
+    if(cards.length<3||!sameSuit(cards))return false;
+    if(cards.some(c=>c.value==='2'))return false;
+    const v=cards.map(c=>VAL_IDX[c.value]).sort((a,b)=>a-b);
+    for(let i=1;i<v.length;i++)if(v[i]!==v[i-1]+1)return false;
+    return true;
+  }
+  function isJQKA(cards){if(cards.length!==4)return false;const v=cards.map(c=>c.value).sort();return JSON.stringify(v)===JSON.stringify(['A','J','K','Q'])&&sameSuit(cards);}
   function getPlayType(cards){const n=cards.length;if(n===0)return['none',0];if(n===1)return['single',cVal(cards[0])];if(n===2){const[a,b]=cards;if(a.value===b.value)return['double',Math.max(cVal(a),cVal(b))];}if(n===3){const[a,b,c]=cards;if(a.value===b.value&&b.value===c.value)return['triple',cVal(a)];}if(n===4){const vals=new Set(cards.map(c=>c.value));if(vals.size===1)return['bomb4',cVal(cards[0])];if(isJQKA(cards)&&sameSuit(cards))return['jqka',1000];if(validStraight(cards))return['straight4',Math.max(...cards.map(cVal))];}if(n>=5&&validStraight(cards))return['straight5plus',Math.max(...cards.map(cVal))];return['invalid',0];}
   function isAllTwos(cards){return cards.length>0&&cards.every(c=>c.value==='2');}
   function isBomb(pt){return['bomb4','jqka','straight5plus'].includes(pt);}
