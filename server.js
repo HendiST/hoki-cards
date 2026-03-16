@@ -49,6 +49,13 @@ function validStraight(cards){
   if(cards.length<3||!sameSuit(cards))return false;
   // Cek apakah ada kartu 2 dalam straight (tidak valid)
   if(cards.some(c=>c.value==='2'))return false;
+  // Cek duplikat kartu - tidak boleh ada kartu yang sama
+  const seen=new Set();
+  for(const c of cards){
+    const key=c.suit+c.value;
+    if(seen.has(key))return false; // Duplikat kartu
+    seen.add(key);
+  }
   const v=cards.map(c=>VAL_IDX[c.value]).sort((a,b)=>a-b);
   // Cek urutan: setiap kartu harus +1 dari sebelumnya
   for(let i=1;i<v.length;i++){
@@ -91,8 +98,13 @@ function findStraights(hand, length){
   const results=[];
   const suits={};
   // Kelompokkan kartu berdasarkan suit
+  // Tambahkan validasi duplikat: pastikan tidak ada kartu sama dalam input
+  const seenCards=new Set();
   hand.forEach(c=>{
     if(c.value==='2')return; // 2 tidak bisa ikut straight
+    const cardKey=c.suit+c.value;
+    if(seenCards.has(cardKey))return; // Skip duplikat
+    seenCards.add(cardKey);
     suits[c.suit]=suits[c.suit]||[];
     suits[c.suit].push(c);
   });
@@ -127,7 +139,10 @@ function canBeat(play,table,ttype){
   // 22 double dan 222 triple: tidak ada yang bisa mengalahkan
   if(isAllTwos(table)&&table.length>1)return false;
   if(pt!==ttype)return false;
-  if(['straight3','straight4','straight5plus'].includes(ttype)&&play.length!==table.length)return false;
+  // Straight: harus sama panjang untuk straight3 dan straight4
+  // Untuk straight5plus, panjang harus >= panjang meja
+  if(['straight3','straight4'].includes(ttype)&&play.length!==table.length)return false;
+  if(ttype==='straight5plus'&&play.length<table.length)return false;
   return pv>tv;
 }
 
@@ -515,13 +530,21 @@ async function botThink(roomId){
       }
       if(!played)gs3.skipTurn(cpN);
     } else {
-      // Meja kosong - prioritas: single kecil > double > triple > straight
+      // Meja kosong - prioritas: single kecil > double > triple > straight > 3 pengecoh
       if(non3.length){
         // Coba main single terkecil
         const c=[...non3].sort((a,b)=>VAL_IDX[a.value]-VAL_IDX[b.value])[0];
         const[ok]=gs3.playCards(cpN,[c]);if(ok)played=true;
       }
-      if(!played&&hand.length)gs3.skipTurn(cpN);
+      // Jika tidak ada kartu non-3, coba main 3 sebagai pengecoh
+      if(!played && hand.length){
+        const threes=hand.filter(c=>c.value==='3');
+        if(threes.length){
+          const[ok]=gs3.playCards(cpN,[threes[0]]);if(ok)played=true;
+        }
+      }
+      // Jika masih tidak bisa main, skip
+      if(!played && hand.length)gs3.skipTurn(cpN);
     }
     broadcast(roomId);await sleep(200);
   }
@@ -552,6 +575,12 @@ async function _casinoBotBet(roomID){
     if(!casinoRooms[roomID])return;
     const r2=casinoRooms[roomID];if(r2.gameStatus!=='WAITING')return;
     const seat2=r2.seats.find(s=>s.seatID===seatID);if(!seat2)continue;
+    const betDiff=r2.highestBet-seat2.playerBet;
+    if(betDiff>seat2.playerMoney){
+      // Bot tidak punya uang cukup, skip
+      continue;
+    }
+    seat2.playerMoney-=betDiff;  // Kurangi uang bot
     seat2.playerBet=r2.highestBet;
     _cBcast(roomID);_cCheckReady(roomID);
   }
@@ -645,7 +674,7 @@ function _cTriggerBot(roomID){
 function _cPub(r){
   return{roomID:r.roomID,roomName:r.roomName,gameStatus:r.gameStatus,
     highestBet:r.highestBet,totalPot:r.totalPot,
-    seatToPlayer:r.seatToPlayer||{},playerToSeat:r.playerToSeat||{},
+    // Jangan expose seatToPlayer dan playerToSeat ke client - data internal
     seats:r.seats.map(s=>({seatID:s.seatID,playerName:s.playerName,
       playerMoney:s.playerMoney,playerBet:s.playerBet,
       seatStatus:s.seatStatus,cardCount:s.cards.length}))};
@@ -725,6 +754,22 @@ function _cGameOver(roomID){
         winnerSeatID=wSeatID;
         winnerName=wSeat.playerName||'?';
         wSeat.playerMoney+=r.totalPot;
+      }
+    }
+  } else if(gs.activePlayers.length===0 && gs.rankings.length>0){
+    // Jika tidak ada activePlayers tapi ada rankings, ambil pemenang dari rankings
+    // Pemenang = yang pertama di rankings (kartu habis duluan)
+    for(let i=0;i<gs.rankings.length;i++){
+      const winnerPidx=gs.rankings[i];
+      const wSeatID=r.playerToSeat[winnerPidx];
+      if(wSeatID!=null){
+        const wSeat=r.seats.find(s=>s.seatID===wSeatID);
+        if(wSeat){
+          winnerSeatID=wSeatID;
+          winnerName=wSeat.playerName||'?';
+          wSeat.playerMoney+=r.totalPot;
+          break;
+        }
       }
     }
   }
@@ -912,8 +957,8 @@ io.on('connection',socket=>{
       io.to(rid).emit('player_joined',{message:joined+'/'+r.numPlayers+' pemain',
         players_joined:joined,num_players:r.numPlayers,player_names:r.playerNames});
     }
-    // Hapus room kalau kosong
-    if(!Object.keys(r.players).filter(s=>!r.botIndices||true).length)delete rooms[rid];
+    // Hapus room kalau tidak ada pemain dan game belum mulai
+    if(Object.keys(r.players).length===0 && !r.started)delete rooms[rid];
     console.log('[LEAVE]',socket.id,'from',rid);
   });
 
@@ -924,8 +969,11 @@ io.on('connection',socket=>{
   });
 
   socket.on('cheat_scan',(data)=>{
+    // Hanya host yang bisa menggunakan cheat_scan
     const rid=sidRoom[socket.id];if(!rid||!rooms[rid])return;
-    const r=rooms[rid];if(!r.game)return;
+    const r=rooms[rid];
+    if(r.hostSid!==socket.id)return socket.emit('error',{message:'Hanya host yang bisa scan kartu!'});
+    if(!r.game)return;
     const pidx=data?.pidx;
     if(pidx==null)return;
     const hand=(r.game.hands[pidx]||[]).map(c=>cDict(c.suit,c.value));
@@ -994,9 +1042,12 @@ io.on('connection',socket=>{
       
       socket.emit('casino_state',{..._cFor(r,socket.id),message:'Kamu keluar. Kamu kalah!'});
       
-      // Langsung game over - pemain tersisa menang
-      setTimeout(()=>_cGameOver(rID),500);
+      // Kosongkan seat dulu baru game over
+      _cEmptySeat(seat);
       _cBcast(rID);
+      
+      // Langsung game over tanpa setTimeout untuk hindari race condition
+      _cGameOver(rID);
     } else {
       // Tidak sedang playing, boleh kosongkan seat
       _cEmptySeat(seat);
@@ -1085,13 +1136,14 @@ io.on('connection',socket=>{
   socket.on('casino_reset',()=>{
     const rID=casinoSidRoom[socket.id];if(!rID||!casinoRooms[rID])return;
     const r=casinoRooms[rID];
-    // Reset game, kembalikan semua chip
+    // Reset game, kembalikan semua chip bet ke pemain
     r.gameStatus='WAITING';r.highestBet=0;r.totalPot=0;r.gameInstance=null;
     r.seatToPlayer={};r.playerToSeat={};
     if(casinoBotSeats[rID])casinoBotSeats[rID]=new Set();
     r.seats.forEach(s=>{
+      // Kembalikan uang bet ke pemain
+      s.playerMoney+=s.playerBet;
       s.playerBet=0;s.cards=[];
-      s.playerMoney=CASINO_START_MONEY;
       if(s.seatStatus==='PLAYING'||s.seatStatus==='WAITING_NEXT_ROUND')s.seatStatus='SITTING';
     });
     _cBcast(rID);
