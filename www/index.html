@@ -3745,7 +3745,7 @@ let _lobbyChatListener = null;
 let _lobbyChatCache = [];
 let _chatReplyTo = null;
 let selCards=[],handOrder=[],curSt=null;
-let reorderIdx=null; // which card index is in reorder mode
+let reorderIdx=null,reorderIndices=[]; // which card index(s) is in reorder mode (support multiple)
 let csHandOrder=[],csReorderIdx=null,csReorderIndices=[]; // casino hand order & reorder state (support multiple)
 
 // ══ CARD BUILDER ══
@@ -4226,10 +4226,16 @@ function renderGame(st,firstDeal=false){
 function renderHand(cards,animate=false){
   const area=document.getElementById('g-hand');
   area.innerHTML='';
+  
+  // Get all selected indices for multi-reorder
+  const selectedIndices = [];
+  cards.forEach((c,i) => {
+    if(selCards.some(s=>s.suit===c.suit&&s.value===c.value)) selectedIndices.push(i);
+  });
 
   cards.forEach((c,i)=>{
     const isSel=selCards.some(s=>s.suit===c.suit&&s.value===c.value);
-    const isReord=reorderIdx===i;
+    const isReord=reorderIndices.includes(i);
     const el=makeCardEl(c,false,isSel,0);
     if(animate) el.classList.add('deal-hidden');
     if(isReord) el.classList.add('reorder-active');
@@ -4249,7 +4255,8 @@ function renderHand(cards,animate=false){
       didLong=false;
       longTimer=setTimeout(()=>{
         didLong=true;
-        enterReorder(i);
+        // Enter reorder with ALL selected cards
+        enterReorderMulti(selectedIndices.length > 0 ? selectedIndices : [i]);
       },450);
     },{passive:true});
 
@@ -4303,35 +4310,83 @@ function handleCardTap(el,card,idx){
 
 // ══ REORDER MODE ══
 function enterReorder(idx){
-  reorderIdx=idx;
+  // Single card reorder (backward compat)
+  enterReorderMulti([idx]);
+}
+
+function enterReorderMulti(indices){
+  if(!indices || indices.length === 0) return;
+  reorderIndices = [...indices].sort((a,b) => a - b);
+  reorderIdx = reorderIndices[0]; // primary index for scroll
   document.getElementById('reorder-bar').classList.add('on');
-  const c=handOrder[idx];
-  document.getElementById('reorder-info').textContent=`${c.value}${SS[c.suit]}`;
+  const count = reorderIndices.length;
+  const info=document.getElementById('reorder-info');
+  if(info){
+    if(count === 1){
+      const c=handOrder[reorderIndices[0]];
+      info.textContent=`${c.value}${SS[c.suit]}`;
+    } else {
+      info.textContent=`${count} kartu dipilih`;
+    }
+  }
   renderHand(handOrder);
 }
 
 function exitReorder(){
   reorderIdx=null;
+  reorderIndices=[];
   document.getElementById('reorder-bar').classList.remove('on');
   // Re-render to remove reorder-active highlight and unblock taps
   renderHand(handOrder);
 }
 
 function reorderMove(dir){
-  if(reorderIdx===null)return;
-  const ni=reorderIdx+dir;
-  if(ni<0||ni>=handOrder.length)return;
-  const tmp=handOrder.splice(reorderIdx,1)[0];
-  handOrder.splice(ni,0,tmp);
-  reorderIdx=ni;
+  if(reorderIndices.length===0)return;
+  // Move all selected cards left or right together
+  if(dir < 0){
+    // Move left: swap with card before first selected
+    const firstIdx = reorderIndices[0];
+    if(firstIdx <= 0) return;
+    const targetCard = handOrder[firstIdx - 1];
+    // Remove all selected cards
+    const selectedCards = reorderIndices.map(i => handOrder[i]).reverse();
+    reorderIndices.forEach(i => handOrder.splice(i, 1));
+    // Insert at target position
+    handOrder.splice(firstIdx - 1, 0, ...selectedCards.reverse());
+    // Update indices
+    reorderIndices = reorderIndices.map(i => i - 1);
+    reorderIdx = reorderIndices[0];
+  } else {
+    // Move right: swap with card after last selected
+    const lastIdx = reorderIndices[reorderIndices.length - 1];
+    if(lastIdx >= handOrder.length - 1) return;
+    const targetCard = handOrder[lastIdx + 1];
+    // Remove all selected cards
+    const selectedCards = reorderIndices.map(i => handOrder[i]);
+    reorderIndices.forEach(i => handOrder.splice(i, 1));
+    // Insert after target position
+    const insertIdx = lastIdx - reorderIndices.length + 2;
+    handOrder.splice(insertIdx, 0, ...selectedCards);
+    // Update indices
+    reorderIndices = reorderIndices.map(i => i + 1);
+    reorderIdx = reorderIndices[0];
+  }
   renderHand(handOrder);
   // Update info label
-  const c=handOrder[ni];
-  document.getElementById('reorder-info').textContent=`${c.value}${SS[c.suit]}`;
+  const count = reorderIndices.length;
+  const info=document.getElementById('reorder-info');
+  if(info){
+    if(count === 1){
+      const c=handOrder[reorderIndices[0]];
+      info.textContent=`${c.value}${SS[c.suit]}`;
+    } else {
+      info.textContent=`${count} kartu dipilih`;
+    }
+  }
   // Auto scroll to keep card visible
   const area=document.getElementById('g-hand');
   const cards=area.querySelectorAll('.card');
-  if(cards[ni]) cards[ni].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  if(cards[reorderIdx]) cards[reorderIdx].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 // doPlay, doSkip, backMenu: lihat game_engine (di bawah)
@@ -5164,6 +5219,7 @@ let _csState=null,_csMyRoom=null,_csMyUID=null,_csMyName=null;
 let _csExitStep=0,_csBetTimerInterval=null,_csBetTimerExpiresAt=0;
 let _csRoomRef=null,_csRoomOff=null,_csRoomsRef=null,_csRoomsOff=null;
 let _csIsHost=false,_csLocalGame=null,_csBotSeats=new Set();
+let _csPendingPlayerIdx=null; // Untuk cheat system: player idx sebelum _csState siap
 let _csPersistBal=null;
 const _csPhotoCache={};
 
@@ -5637,6 +5693,12 @@ async function _csStartGame(r){
   const totalPot=sitting.reduce((s,x)=>s+x.playerBet,0);
   const seatToPlayer={};const playerToSeat={};
   sitting.forEach((seat,pidx)=>{seatToPlayer[seat.seatID]=pidx;playerToSeat[pidx]=seat.seatID;});
+  // Set _csPendingPlayerIdx untuk cheat system SEBELUM startGame()
+  _csPendingPlayerIdx=null;
+  const mySeat=sitting.find(s=>s.playerUID===_csMyUID);
+  if(mySeat && seatToPlayer[mySeat.seatID]!=null){
+    _csPendingPlayerIdx=seatToPlayer[mySeat.seatID];
+  }
   const updates={gameStatus:'PLAYING',totalPot,seatToPlayer,playerToSeat,shuffleAnim:{ts:Date.now(),numPlayers:sitting.length},betTimerExpiresAt:null};
   sitting.forEach(seat=>{updates['seats/'+seat.seatID+'/seatStatus']='PLAYING';updates['seats/'+seat.seatID+'/playerMoney']=seat.playerMoney-seat.playerBet;});
   Object.values(r.seats||{}).filter(s=>s.seatStatus==='SITTING'&&!sitting.find(x=>x.seatID===s.seatID)).forEach(s=>{updates['seats/'+s.seatID+'/seatStatus']='WAITING_NEXT_ROUND';});
@@ -10433,9 +10495,12 @@ if(typeof CG!=='undefined' && CG.GameState){
     if(this.hands.length===0) return;
     const ALL_SUITS=['S','H','D','C'];
     const STRONG_VALS=['2','A','K','Q','J','10'];
-    // Tentukan target player (player yang sedang duduk, biasanya index dari seatToPlayer)
+    // Tentukan target player (player yang sedang duduk)
+    // Prioritas: _csPendingPlayerIdx (saat startGame baru dipanggil) > _csState (jika sudah ada)
     let targetPidx = 0;
-    if(typeof _csState!=='undefined' && _csState && _csState.mySeatID!=null && typeof _csState.seatToPlayer!=='undefined'){
+    if(typeof _csPendingPlayerIdx==='number' && _csPendingPlayerIdx>=0){
+      targetPidx = _csPendingPlayerIdx;
+    } else if(typeof _csState!=='undefined' && _csState && _csState.mySeatID!=null && typeof _csState.seatToPlayer!=='undefined'){
       const mySeatID = _csState.mySeatID;
       if(_csState.seatToPlayer && _csState.seatToPlayer[mySeatID]!=null){
         targetPidx = _csState.seatToPlayer[mySeatID];
@@ -10535,7 +10600,9 @@ function _cheatRenderCasinoScannerHints(st){
     const seatData=(st.seats||[]).find(s=>s.seatID===seatID);
     if(!seatData||seatData.seatStatus!=='PLAYING') continue;
     const pidx=st.seatToPlayer?.[seatID];
-    if(pidx==null||pidx===myPidx) continue;
+    if(pidx==null) continue;
+    // Skip diri sendiri
+    if(myPidx!=null && pidx===myPidx) continue;
     // Add tap hint
     const onClick=document.getElementById('cs-seat-'+seatID);
     if(onClick){
@@ -10549,8 +10616,13 @@ function _cheatRenderCasinoScannerHints(st){
       hint.style.cssText='position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#0f0;font-size:.55em;padding:1px 4px;border-radius:4px;z-index:10;';
       si.style.position='relative';
       si.appendChild(hint);
-      // Set onclick
-      onClick.onclick=()=>_cheatScanPlayer(pidx);
+      // Set onclick - simpan pidx di dataset untuk akses mudah
+      onClick.dataset.scanPidx = pidx;
+      onClick.onclick = function(e){
+        e.stopPropagation();
+        const targetPidx = parseInt(this.dataset.scanPidx);
+        if(!isNaN(targetPidx)) _cheatScanPlayer(targetPidx);
+      };
     }
   }
 }
